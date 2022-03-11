@@ -55,10 +55,20 @@ namespace Sharp.Xmpp.Extensions
         {
             if (message.Type == MessageType.Chat)
             {
+                XmlElement conferenceInfo = null;
+
                 // Do we receive a conference-info message ?
                 if (message.Data["conference-info"] != null)
+                    conferenceInfo = message.Data["conference-info"];
+                else if ( (message.Data["received"] != null) && (message.Data["received"]["forwarded"] != null) 
+                            && (message.Data["received"]["forwarded"]["message"] != null) && (message.Data["received"]["forwarded"]["message"]["conference-info"] != null) )
                 {
-                    ConferenceUpdated.Raise(this, new Sharp.Xmpp.Extensions.MessageEventArgs(message.Data["conference-info"].ToXmlString()));
+                    conferenceInfo = message.Data["received"]["forwarded"]["message"]["conference-info"];
+                }
+
+                if(conferenceInfo != null)
+                {
+                    ConferenceUpdated.Raise(this, new Sharp.Xmpp.Extensions.MessageEventArgs(conferenceInfo.ToXmlString()));
                     return true;
                 }
             }
