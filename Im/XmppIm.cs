@@ -2104,6 +2104,8 @@ namespace Sharp.Xmpp.Im
 
                 Message.Raise(this, new MessageEventArgs(realMessage.From, realMessage, true));
             }
+
+            log.LogDebug("[OnMessage] Message not managed");
         }
 
         /// <summary>
