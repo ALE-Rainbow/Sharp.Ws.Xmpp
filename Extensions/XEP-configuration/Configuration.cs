@@ -5,13 +5,12 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using System.Xml;
 
-
 namespace Sharp.Xmpp.Extensions
 {
     /// <summary>
     /// Implements the 'Configuration' extension used in Rainbow Hub
     /// </summary>
-    internal class Configuration : XmppExtension, IInputFilter<Message>
+    internal class Configuration : XmppExtension, IInputFilter<Message>, IInputFilter<Sharp.Xmpp.Core.Iq>
     {
         private static readonly ILogger log = LogFactory.CreateLogger<Configuration>();
 
@@ -104,6 +103,11 @@ namespace Sharp.Xmpp.Extensions
         /// The event raised when a record has been done in a conference. We receive a RecordingFile info node
         /// </summary>
         public event EventHandler<MessageEventArgs> RecordingFile;
+
+        /// <summary>
+        /// The event raised when a Configuration Message has been received
+        /// </summary>
+        public event EventHandler<MessageEventArgs> ConfigurationMessage;
 
         /// <summary>
         /// Invoked when a message stanza has been received.
@@ -385,6 +389,29 @@ namespace Sharp.Xmpp.Extensions
 
             // Pass the message on to the next handler.
             return false;
+        }
+
+
+        /// <summary>
+        /// Invoked when an IQ stanza is being received.
+        /// </summary>
+        /// <param name="stanza">The stanza which is being received.</param>
+        /// <returns>true to intercept the stanza or false to pass the stanza
+        /// on to the next handler.</returns>
+        public bool Input(Sharp.Xmpp.Core.Iq stanza)
+        {
+            if( ( stanza.Type == Core.IqType.Result) || (stanza.Type == Core.IqType.Error) )
+                return false;
+
+            var conversation = stanza.Data["configuration"];
+            if (conversation == null || conversation.NamespaceURI != "jabber:iq:configuration")
+                return false;
+
+            ConfigurationMessage.Raise(this, new MessageEventArgs(stanza.Data.ToXmlString()));
+
+            // We took care of this IQ request, so intercept it and don't pass it
+            // on to other handlers.
+            return true;
         }
 
         /// <summary>

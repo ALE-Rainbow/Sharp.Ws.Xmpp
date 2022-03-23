@@ -1212,7 +1212,21 @@ namespace Sharp.Xmpp.Client
             }
         }
 
-        
+        /// <summary>
+        /// The event raised when a Configuration Message has been recevied
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> ConfigurationMessage
+        {
+            add
+            {
+                configuration.ConfigurationMessage += value;
+            }
+            remove
+            {
+                configuration.ConfigurationMessage -= value;
+            }
+        }
+
 
 
         /// <summary>
@@ -1607,6 +1621,31 @@ namespace Sharp.Xmpp.Client
             Action<string, Core.Iq> callback = null)
         {
             im.IqRequestAsync(type, to, from, data, language, callback);
+        }
+
+        /// <summary>
+        /// Sends an IQ response for the IQ request with the specified id.
+        /// </summary>
+        /// <param name="type">The type of the response. This must be either
+        /// IqType.Result or IqType.Error.</param>
+        /// <param name="id">The id of the IQ request.</param>
+        /// <param name="to">The JID of the intended recipient for the stanza.</param>
+        /// <param name="from">The JID of the sender.</param>
+        /// <param name="data">he content of the stanza.</param>
+        /// <param name="language">The language of the XML character data of
+        /// the stanza.</param>
+        /// <exception cref="ArgumentException">The type parameter is not IqType.Result
+        /// or IqType.Error.</exception>
+        /// <exception cref="ObjectDisposedException">The XmppIm object has been
+        /// disposed.</exception>
+        /// <exception cref="InvalidOperationException">The XmppIm instance is not
+        /// connected to a remote host.</exception>
+        /// <exception cref="IOException">There was a failure while writing to the
+        /// network.</exception>
+        public void IqResponse(Core.IqType type, string id, Jid to = null, Jid from = null,
+            XmlElement data = null, CultureInfo language = null)
+        {
+            im.IqResponse(type, id, to, from, data, language);
         }
 
         public void DeleteCallLog(String callId)
