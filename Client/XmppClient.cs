@@ -192,6 +192,11 @@ namespace Sharp.Xmpp.Client
         private Configuration configuration;
 
         /// <summary>
+        /// Provides the Rainbow extension
+        /// </summary>
+        private Rainbow rainbow;
+
+        /// <summary>
         /// Provides the Conference extension
         /// </summary>
         private Conference conference;
@@ -1213,17 +1218,17 @@ namespace Sharp.Xmpp.Client
         }
 
         /// <summary>
-        /// The event raised when a Configuration Message has been recevied
+        /// The event raised when an AckMessage has been recevied
         /// </summary>
-        public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> ConfigurationMessage
+        public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> AckMessage
         {
             add
             {
-                configuration.ConfigurationMessage += value;
+                rainbow.AckMessage += value;
             }
             remove
             {
-                configuration.ConfigurationMessage -= value;
+                rainbow.AckMessage -= value;
             }
         }
 
@@ -3020,6 +3025,7 @@ namespace Sharp.Xmpp.Client
 
             jingleMessageInitiation = im.LoadExtension<JingleMessageInitiation>();
             configuration = im.LoadExtension<Configuration>();
+            rainbow = im.LoadExtension<Rainbow>();
             conference = im.LoadExtension<Conference>();
             callLog = im.LoadExtension<CallLog>();
             cap = im.LoadExtension<Cap>();

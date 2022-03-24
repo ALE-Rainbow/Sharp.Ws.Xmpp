@@ -203,6 +203,11 @@
         /// <summary>
         /// An extension added by Rainbow Hub to manage conference
         /// </summary>
-        Conference
+        Conference,
+
+        /// <summary>
+        /// An extension added by Rainbow Hub to manage specific message
+        /// </summary>
+        Rainbow
     }
 }
