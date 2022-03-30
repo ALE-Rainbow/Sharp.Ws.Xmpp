@@ -152,6 +152,8 @@ namespace Sharp.Xmpp.Extensions
             XmlElement fieldElement;
             XmlElement valueElement;
 
+            string localQueryId = queryId;
+
             rootElement = Xml.Element("query", "urn:xmpp:mam:1");
             rootElement.SetAttribute("queryid", queryId);
 
@@ -184,7 +186,6 @@ namespace Sharp.Xmpp.Extensions
             fieldElement.Child(valueElement);
             subElement.Child(fieldElement);
 
-
             fieldElement = Xml.Element("field");
             fieldElement.SetAttribute("var", "end");
             valueElement = Xml.Element("value");
@@ -197,27 +198,19 @@ namespace Sharp.Xmpp.Extensions
             //The Request is Async
             im.IqRequestAsync(IqType.Set, toJid, fromJid, rootElement, null, (id, iq) =>
             {
-                //For any reply we execute the callback
-                if (iq.Type == IqType.Error)
-                {
-                    MessageArchiveManagementResult.Raise(this, new MessageArchiveManagementResultEventArgs());
-                    return;
-                }
+                MamResult complete = MamResult.Error;
+                int count = 0;
+                string first = "";
+                string last = "";
 
                 if (iq.Type == IqType.Result)
                 {
-                    string queryid = "";
-                    MamResult complete = MamResult.Error;
-                    int count = 0;
-                    string first = "";
-                    string last = "";
                     try
                     {
                         if ((iq.Data["fin"] != null) && (iq.Data["fin"]["set"] != null))
                         {
                             XmlElement e = iq.Data["fin"];
 
-                            queryid = e.GetAttribute("queryid");
                             complete = (e.GetAttribute("complete") == "false") ? MamResult.InProgress : MamResult.Complete;
 
                             if (e["set"]["count"] != null)
@@ -228,18 +221,15 @@ namespace Sharp.Xmpp.Extensions
 
                             if (e["set"]["last"] != null)
                                 last = e["set"]["last"].InnerText;
-
-                            MessageArchiveManagementResult.Raise(this, new MessageArchiveManagementResultEventArgs(queryid, complete, count, first, last));
-                            return;
                         }
                     }
                     catch (Exception)
                     {
                         log.LogError("RequestCustomIqAsync - an error occurred ...");
                     }
-
-                    MessageArchiveManagementResult.Raise(this, new MessageArchiveManagementResultEventArgs(queryid, MamResult.Error, count, first, last));
                 }
+
+                MessageArchiveManagementResult.Raise(this, new MessageArchiveManagementResultEventArgs(localQueryId, complete, count, first, last));
             });
         }
 
