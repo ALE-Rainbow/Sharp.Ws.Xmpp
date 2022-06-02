@@ -186,6 +186,11 @@
         JingleMessageInitiation,
 
         /// <summary>
+        /// An extension to have Ad-Hoc Command (XEP-0050)
+        /// </summary>
+        AdHocCommand,
+
+        /// <summary>
         /// An extension added by Rainbow Hub to manage call logs
         /// </summary>
         CallLog,
@@ -209,5 +214,7 @@
         /// An extension added by Rainbow Hub to manage specific message
         /// </summary>
         Rainbow
+
+
     }
 }

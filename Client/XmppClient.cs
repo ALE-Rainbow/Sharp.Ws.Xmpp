@@ -199,6 +199,11 @@ namespace Sharp.Xmpp.Client
         /// <summary>
         /// Provides the Conference extension
         /// </summary>
+        private AdHocCommand adHocCommand;
+
+        /// <summary>
+        /// Provides the Conference extension
+        /// </summary>
         private Conference conference;
 
         /// <summary>
@@ -1127,7 +1132,7 @@ namespace Sharp.Xmpp.Client
         }
 
         /// <summary>
-        /// The event that is raised when a conference has been updated
+        /// Event raised when a conference has been updated
         /// </summary>
         public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> ConferenceUpdated
         {
@@ -1141,6 +1146,20 @@ namespace Sharp.Xmpp.Client
             }
         }
 
+        /// <summary>
+        /// Event raised when a AdHocCommand has been receibed
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> AdHocCommandReceived
+        {
+            add
+            {
+                adHocCommand.AdHocCommandReceived += value;
+            }
+            remove
+            {
+                adHocCommand.AdHocCommandReceived -= value;
+            }
+        }
 
         /// <summary>
         /// The event that is raised when we have ingo about image file
@@ -1231,8 +1250,6 @@ namespace Sharp.Xmpp.Client
                 rainbow.AckMessage -= value;
             }
         }
-
-
 
         /// <summary>
         /// The event that is raised when the current user password has been updated
@@ -3027,6 +3044,7 @@ namespace Sharp.Xmpp.Client
             configuration = im.LoadExtension<Configuration>();
             rainbow = im.LoadExtension<Rainbow>();
             conference = im.LoadExtension<Conference>();
+            adHocCommand = im.LoadExtension<AdHocCommand>();
             callLog = im.LoadExtension<CallLog>();
             cap = im.LoadExtension<Cap>();
             msgDeliveryReceipt = im.LoadExtension<MessageDeliveryReceipts>();

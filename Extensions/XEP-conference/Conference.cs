@@ -4,16 +4,22 @@ using System.Collections.Generic;
 
 using Microsoft.Extensions.Logging;
 using System.Xml;
-
+using Sharp.Xmpp.Core;
 
 namespace Sharp.Xmpp.Extensions
 {
     /// <summary>
     /// Implements the 'Conference' extension used in Rainbow Hub
     /// </summary>
-    internal class Conference : XmppExtension, IInputFilter<Message>
+    internal class Conference : XmppExtension, IInputFilter<Sharp.Xmpp.Im.Message>
     {
         private static readonly ILogger log = LogFactory.CreateLogger<Conference>();
+
+        /// <summary>
+        /// Event raised when a conference has been updated
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> ConferenceUpdated;
+
 
         /// <summary>
         /// An enumerable collection of XMPP namespaces the extension implements.
@@ -40,10 +46,6 @@ namespace Sharp.Xmpp.Extensions
             }
         }
 
-        /// <summary>
-        /// The event that is raised when a conference has been updated
-        /// </summary>
-         public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> ConferenceUpdated;
 
         /// <summary>
         /// Invoked when a message stanza has been received.
@@ -51,7 +53,7 @@ namespace Sharp.Xmpp.Extensions
         /// <param name="stanza">The stanza which has been received.</param>
         /// <returns>true to intercept the stanza or false to pass the stanza
         /// on to the next handler.</returns>
-        public bool Input(Message message)
+        public bool Input(Sharp.Xmpp.Im.Message message)
         {
             if (message.Type == MessageType.Chat)
             {
