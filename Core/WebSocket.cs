@@ -105,14 +105,6 @@ namespace Sharp.Xmpp.Core
             // First CLose / Dispose previous object
             Close();
 
-#if NETCOREAPP
-            // USE TLS 1.2 or TLS 1.3 only
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls13;
-
-#elif NETSTANDARD
-            // USE TLS 1.2 only
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-#endif
             // Create Client
             clientWebSocket = new ClientWebSocket();
 
