@@ -371,13 +371,6 @@ namespace Sharp.Xmpp.Core
         }
 #endregion
 
-        private bool IsConnected()
-        {
-            if (clientWebSocket != null)
-                return clientWebSocket.State == System.Net.WebSockets.WebSocketState.Open;
-            return false;
-        }
-
         public void Send(string xml)
         {
             QueueMessageToSend(xml);
@@ -399,6 +392,8 @@ namespace Sharp.Xmpp.Core
 
         private void RaiseWebSocketOpened()
         {
+            log.LogDebug("Web socket opened");
+
             // Raise event WebSocketOpened
             EventHandler h = this.WebSocketOpened;
             if (h != null)
@@ -416,6 +411,8 @@ namespace Sharp.Xmpp.Core
 
         private void RaiseWebSocketClosed()
         {
+            log.LogDebug("Web socket closed");
+
             // Raise event WebSocketClosed
             EventHandler h = this.WebSocketClosed;
             if (h != null)
