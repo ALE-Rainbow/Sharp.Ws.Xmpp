@@ -68,6 +68,8 @@ namespace Sharp.Xmpp.Core
 
         public async void Close(bool normalClosure = true)
         {
+            webSocketOpened = false;
+
             if (clientWebSocket != null)
             {
                 if (clientWebSocket.State != System.Net.WebSockets.WebSocketState.Closed)
@@ -132,12 +134,15 @@ namespace Sharp.Xmpp.Core
             await clientWebSocket.ConnectAsync(new Uri(uri), CancellationToken.None);
 
 
-            // Raise event ClientWebSocketOpened or ClientWebSocketClosed
+            // Need to raise WebSocketOpened or WebSocketClosed
             if (clientWebSocket.State == System.Net.WebSockets.WebSocketState.Open)
-                ClientWebSocketOpened();
+            {
+                webSocketOpened = true;
+                RaiseWebSocketOpened();
+            }
             else
             {
-                ClientWebSocketClosed();
+                RaiseWebSocketClosed();
                 return;
             }
 
@@ -378,32 +383,13 @@ namespace Sharp.Xmpp.Core
             QueueMessageToSend(xml);
         }
 
-        private void ClientWebSocketOpened()
-        {
-            log.LogDebug("Web socket opened");
-            webSocketOpened = true;
-            EventHandler h = this.WebSocketOpened;
-
-            if (h != null)
-            {
-                try
-                {
-                    h(this, null);
-                }
-                catch (Exception)
-                {
-                    log.LogError("ClientWebSocketOpened - ERROR");
-                }
-            }
-        }
-
         private void ClientWebSocketClosed()
         {
             if (webSocketOpened)
             {
                 webSocketOpened = false;
                 if (clientWebSocket != null)
-                    log.LogDebug("[ClientWebSocketClosed] CloseStatus:[{0}] -  CloseStatusDescription:[{1}]", clientWebSocket.CloseStatus, clientWebSocket.CloseStatusDescription);
+                    log.LogDebug($"[ClientWebSocketClosed] CloseStatus:[{clientWebSocket.CloseStatus}] -  CloseStatusDescription:[{clientWebSocket.CloseStatusDescription}]");
                 else
                     log.LogDebug("[ClientWebSocketClosed]");
 
@@ -411,20 +397,36 @@ namespace Sharp.Xmpp.Core
             }
         }
 
-        private void RaiseWebSocketClosed()
+        private void RaiseWebSocketOpened()
         {
-            log.LogDebug("[RaiseWebSocketClosed]");
-            EventHandler h = this.WebSocketClosed;
-
+            // Raise event WebSocketOpened
+            EventHandler h = this.WebSocketOpened;
             if (h != null)
             {
                 try
                 {
-                    h(this, new EventArgs());
+                    h(this, null);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    log.LogError("RaiseWebSocketClosed - ERROR");
+                    log.LogError($"[RaiseWebSocketOpened]  - Exception raising WebSocketOpened:[{ex}]");
+                }
+            }
+        }
+
+        private void RaiseWebSocketClosed()
+        {
+            // Raise event WebSocketClosed
+            EventHandler h = this.WebSocketClosed;
+            if (h != null)
+            {
+                try
+                {
+                    h(this, null);
+                }
+                catch (Exception ex)
+                {
+                    log.LogError($"[RaiseWebSocketClosed]  - Exception raising WebSocketClosed:[{ex}]");
                 }
             }
         }
