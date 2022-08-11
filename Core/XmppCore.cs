@@ -669,7 +669,7 @@ namespace Sharp.Xmpp.Core
             RaiseConnectionStatus(false);
         }
 
-        private void RaiseConnectionStatus(bool connected)
+        private void RaiseConnectionStatus(bool connected, String reason = null, String details = null)
         {
             Connected = connected;
             if (!connected)
@@ -692,7 +692,7 @@ namespace Sharp.Xmpp.Core
             }
 
             log.LogDebug("[RaiseConnectionStatus] connected:{0}", connected);
-            ConnectionStatus.Raise(this, new ConnectionStatusEventArgs(connected));
+            ConnectionStatus.Raise(this, new ConnectionStatusEventArgs(connected, reason, details));
         }
 
         private void WebSocketClient_WebSocketOpened(object sender, EventArgs e)
@@ -1517,6 +1517,9 @@ namespace Sharp.Xmpp.Core
             {
                 while (true)
                 {
+                    if (webSocketClient == null)
+                        return;
+
                     string message = webSocketClient.DequeueMessageReceived();
                     try
                     {
@@ -1676,6 +1679,19 @@ namespace Sharp.Xmpp.Core
                                 // We need to cancel any resume info
                                 StreamManagementResumeId = "";
                                 break;
+
+                            case "stream:error":
+                                String reason = null;
+                                String details = null;
+                                if(elem.FirstChild != null)
+                                {
+                                    reason = elem.FirstChild.Name;
+                                    if(elem.FirstChild.NextSibling?.Name == "text")
+                                        details = elem.FirstChild.NextSibling.InnerText;
+                                }
+
+                                RaiseConnectionStatus(false, reason, details);
+                                return;
 
                             default:
                                 log.LogError("ReadXmlWebSocketMessage - not managed:[{0}]", elem.Name);
