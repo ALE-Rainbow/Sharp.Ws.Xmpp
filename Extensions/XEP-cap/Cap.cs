@@ -13,7 +13,7 @@ namespace Sharp.Xmpp.Extensions
     /// </summary>
     internal class Cap : XmppExtension, IInputFilter<Sharp.Xmpp.Im.Message>
     {
-        private static readonly ILogger log = LogFactory.CreateLogger<Cap>();
+        private readonly ILogger log;
 
         /// <summary>
         /// An enumerable collection of XMPP namespaces the extension implements.
@@ -71,9 +71,10 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         /// <param name="im">A reference to the XmppIm instance on whose behalf this
         /// instance is created.</param>
-        public Cap(XmppIm im)
-            : base(im)
+        public Cap(XmppIm im, String loggerPrefix)
+            : base(im, loggerPrefix)
         {
+            log = LogFactory.CreateLogger<Cap>(loggerPrefix);
         }
     }
 }

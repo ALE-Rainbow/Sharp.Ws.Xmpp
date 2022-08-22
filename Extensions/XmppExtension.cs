@@ -1,4 +1,5 @@
 ﻿using Sharp.Xmpp.Im;
+using System;
 using System.Collections.Generic;
 
 namespace Sharp.Xmpp.Extensions
@@ -13,6 +14,8 @@ namespace Sharp.Xmpp.Extensions
         /// A reference to the instance of the XmppIm class.
         /// </summary>
         protected XmppIm im;
+
+        protected String loggerPrefix;
 
         /// <summary>
         /// An enumerable collection of XMPP namespaces the extension implements.
@@ -38,10 +41,11 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         /// <param name="im">A reference to the XmppIm instance on whose behalf the
         /// extension is being created.</param>
-        public XmppExtension(XmppIm im)
+        public XmppExtension(XmppIm im, String loggerPrefix)
         {
             im.ThrowIfNull("im");
             this.im = im;
+            this.loggerPrefix = loggerPrefix;
         }
 
         /// <summary>

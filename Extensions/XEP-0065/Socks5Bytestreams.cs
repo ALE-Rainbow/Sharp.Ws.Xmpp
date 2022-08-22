@@ -245,8 +245,8 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         /// <param name="im">A reference to the XmppIm instance on whose behalf this
         /// instance is created.</param>
-        public Socks5Bytestreams(XmppIm im)
-            : base(im)
+        public Socks5Bytestreams(XmppIm im, string loggerPrefix)
+            : base(im, loggerPrefix)
         {
             StunServer = new DnsEndPoint("stun.l.google.com", 19302);
             ProxyAllowed = true;

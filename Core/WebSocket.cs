@@ -17,8 +17,8 @@ namespace Sharp.Xmpp.Core
 {
     internal class WebSocket
     {
-        private static readonly ILogger log = LogFactory.CreateLogger<WebSocket>();
-        private static readonly ILogger logWebRTC = LogFactory.CreateWebRTCLogger();
+        private readonly ILogger log;
+        private readonly ILogger logWebRTC;
 
         public event EventHandler WebSocketOpened;
         public event EventHandler WebSocketClosed;
@@ -46,8 +46,11 @@ namespace Sharp.Xmpp.Core
             private set;
         }
 
-        public WebSocket(String uri, Tuple<String, String, String> webProxyInfo)
+        public WebSocket(String uri, Tuple<String, String, String> webProxyInfo, string loggerPrefix = null)
         {
+            log = LogFactory.CreateLogger<WebSocket>(loggerPrefix);
+            logWebRTC = LogFactory.CreateWebRTCLogger(loggerPrefix);
+
             log.LogDebug("Create Web socket");
             this.uri = uri;
             rootElement = false;

@@ -14,7 +14,7 @@ namespace Sharp.Xmpp.Extensions
     /// </summary>
     internal class CallService : XmppExtension, IInputFilter<Sharp.Xmpp.Im.Message>
     {
-        private static readonly ILogger log = LogFactory.CreateLogger<CallService>();
+        private readonly ILogger log;
 
         private static readonly String CALLSERVICE_NS = "urn:xmpp:pbxagent:callservice:1";
 
@@ -254,9 +254,10 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         /// <param name="im">A reference to the XmppIm instance on whose behalf this
         /// instance is created.</param>
-        public CallService(XmppIm im)
-            : base(im)
+        public CallService(XmppIm im, String loggerPrefix)
+            : base(im, loggerPrefix)
         {
+            log = LogFactory.CreateLogger<CallService>(loggerPrefix);
         }
     }
 }

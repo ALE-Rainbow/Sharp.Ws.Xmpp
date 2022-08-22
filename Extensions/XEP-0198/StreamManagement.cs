@@ -12,7 +12,7 @@ namespace Sharp.Xmpp.Extensions
     /// </summary>
     internal class StreamManagement : XmppExtension, IInputFilter<StreamManagementStanza>
     {
-        private static readonly ILogger log = LogFactory.CreateLogger<StreamManagement>();
+        private readonly ILogger log;
 
         public event EventHandler<EventArgs> Failed;
         public event EventHandler<EventArgs> Resumed;
@@ -148,9 +148,10 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         /// <param name="im">A reference to the XmppIm instance on whose behalf this
         /// instance is created.</param>
-        public StreamManagement(XmppIm im)
-            : base(im)
+        public StreamManagement(XmppIm im, String loggerPrefix)
+            : base(im, loggerPrefix)
         {
+            log = LogFactory.CreateLogger<StreamManagement>(loggerPrefix);
         }
     }
 }

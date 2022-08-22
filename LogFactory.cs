@@ -47,22 +47,27 @@ namespace Sharp.Xmpp
         /// It's the same than using **CreateLogger("WEBRTC")**
         /// </summary>
         /// <returns><see cref="ILogger"/> - ILogger interface</returns>
-        public static ILogger CreateWebRTCLogger() =>
-            Instance._factory.CreateLogger("WEBRTC");
+        public static ILogger CreateWebRTCLogger(string prefix = null) =>
+            CreateLogger("WEBRTC", prefix);
 
         /// <summary>
         ///  To create / get logger using a category name
         /// </summary>
         /// <returns><see cref="ILogger"/> - ILogger interface</returns>
-        public static ILogger CreateLogger(string categoryName) =>
-            Instance._factory.CreateLogger(categoryName);
+        public static ILogger CreateLogger(string categoryName, string prefix = null)
+        {
+            if (string.IsNullOrEmpty(prefix))
+                return Instance._factory.CreateLogger(categoryName);
+            else
+                return Instance._factory.CreateLogger($"{prefix}{categoryName}");
+        }
 
         /// <summary>
         ///  To create / get logger using a type
         /// </summary>
         /// <returns><see cref="ILogger"/> - ILogger interface</returns>
-        public static ILogger CreateLogger<T>() =>
-            Instance._factory.CreateLogger<T>();
+        public static ILogger CreateLogger<T>(string prefix = null) =>
+            CreateLogger(typeof(T).ToString(), prefix);
 
         /// <summary>
         /// To set the ILoggerFactory used for logging purpose.

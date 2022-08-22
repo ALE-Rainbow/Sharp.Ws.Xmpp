@@ -24,7 +24,8 @@ namespace Sharp.Xmpp.Client
     /// </remarks>
     public class XmppClient : IDisposable
     {
-        private static readonly ILogger log = LogFactory.CreateLogger<XmppClient>();
+        private readonly ILogger log;
+        private readonly String loggerPrefix;
 
         private bool normalClosure;
 
@@ -1408,9 +1409,11 @@ namespace Sharp.Xmpp.Client
         /// <remarks>Use this constructor if you wish to connect to an XMPP server using
         /// an existing set of user credentials.</remarks>
         public XmppClient(string address, string hostname, string username, string password,
-            int port = 5222, bool tls = true, RemoteCertificateValidationCallback validate = null)
+            int port = 5222, bool tls = true, RemoteCertificateValidationCallback validate = null, string loggerPrefix = null)
         {
-            im = new XmppIm(address, hostname, username, password, port, tls, validate);
+            this.loggerPrefix = loggerPrefix;
+            log = LogFactory.CreateLogger<XmppClient>(loggerPrefix);
+            im = new XmppIm(address, hostname, username, password, port, tls, validate, loggerPrefix);
             // Initialize the various extension modules.
             LoadExtensions();
         }
@@ -1437,9 +1440,10 @@ namespace Sharp.Xmpp.Client
         /// <remarks>Use this constructor if you wish to connect to an XMPP server using
         /// an existing set of user credentials.</remarks>
         public XmppClient(string hostname, string username, string password,
-            int port = 5222, bool tls = true, RemoteCertificateValidationCallback validate = null)
+            int port = 5222, bool tls = true, RemoteCertificateValidationCallback validate = null, string loggerPrefix = null)
         {
-            im = new XmppIm(hostname, username, password, port, tls, validate);
+            log = LogFactory.CreateLogger<XmppClient>(loggerPrefix);
+            im = new XmppIm(hostname, username, password, port, tls, validate, loggerPrefix);
             // Initialize the various extension modules.
             LoadExtensions();
         }
@@ -1463,9 +1467,10 @@ namespace Sharp.Xmpp.Client
         /// <remarks>Use this constructor if you wish to register an XMPP account using
         /// the in-band account registration process supported by some servers.</remarks>
         public XmppClient(string hostname, int port = 5222, bool tls = true,
-            RemoteCertificateValidationCallback validate = null)
+            RemoteCertificateValidationCallback validate = null, string loggerPrefix = null)
         {
-            im = new XmppIm(hostname, port, tls, validate);
+            log = LogFactory.CreateLogger<XmppClient>(loggerPrefix);
+            im = new XmppIm(hostname, port, tls, validate, loggerPrefix);
             LoadExtensions();
         }
 
@@ -3005,50 +3010,50 @@ namespace Sharp.Xmpp.Client
         /// </summary>
         private void LoadExtensions()
         {
-            version = im.LoadExtension<SoftwareVersion>();
-            sdisco = im.LoadExtension<ServiceDiscovery>();
-            ecapa = im.LoadExtension<EntityCapabilities>();
+            version = im.LoadExtension<SoftwareVersion>(loggerPrefix);
+            sdisco = im.LoadExtension<ServiceDiscovery>(loggerPrefix);
+            ecapa = im.LoadExtension<EntityCapabilities>(loggerPrefix);
 
-            streamManagement = im.LoadExtension<StreamManagement>();
-            ping = im.LoadExtension<Ping>();
+            streamManagement = im.LoadExtension<StreamManagement>(loggerPrefix);
+            ping = im.LoadExtension<Ping>(loggerPrefix);
 
-            attention = im.LoadExtension<Attention>();
-            time = im.LoadExtension<EntityTime>();
-            block = im.LoadExtension<BlockingCommand>();
-            pep = im.LoadExtension<Pep>();
-            userTune = im.LoadExtension<UserTune>();
+            attention = im.LoadExtension<Attention>(loggerPrefix);
+            time = im.LoadExtension<EntityTime>(loggerPrefix);
+            block = im.LoadExtension<BlockingCommand>(loggerPrefix);
+            pep = im.LoadExtension<Pep>(loggerPrefix);
+            userTune = im.LoadExtension<UserTune>(loggerPrefix);
 
-            userMood = im.LoadExtension<UserMood>();
-            dataForms = im.LoadExtension<DataForms>();
-            featureNegotiation = im.LoadExtension<FeatureNegotiation>();
-            streamInitiation = im.LoadExtension<StreamInitiation>();
-            userActivity = im.LoadExtension<UserActivity>();
+            userMood = im.LoadExtension<UserMood>(loggerPrefix);
+            dataForms = im.LoadExtension<DataForms>(loggerPrefix);
+            featureNegotiation = im.LoadExtension<FeatureNegotiation>(loggerPrefix);
+            streamInitiation = im.LoadExtension<StreamInitiation>(loggerPrefix);
+            userActivity = im.LoadExtension<UserActivity>(loggerPrefix);
 
-            socks5Bytestreams = im.LoadExtension<Socks5Bytestreams>();
-            inBandBytestreams = im.LoadExtension<InBandBytestreams>();
-            siFileTransfer = im.LoadExtension<SIFileTransfer>();
+            socks5Bytestreams = im.LoadExtension<Socks5Bytestreams>(loggerPrefix);
+            inBandBytestreams = im.LoadExtension<InBandBytestreams>(loggerPrefix);
+            siFileTransfer = im.LoadExtension<SIFileTransfer>(loggerPrefix);
             FileTransferSettings = new FileTransferSettings(socks5Bytestreams,
                 siFileTransfer);
             
-            serverIpCheck = im.LoadExtension<ServerIpCheck>();
-            messageCarbons = im.LoadExtension<MessageCarbons>();
-            inBandRegistration = im.LoadExtension<InBandRegistration>();
-            chatStateNotifications = im.LoadExtension<ChatStateNotifications>();
-            bitsOfBinary = im.LoadExtension<BitsOfBinary>();
-            vcardAvatars = im.LoadExtension<VCardAvatars>();
-            cusiqextension = im.LoadExtension<CustomIqExtension>();
-            groupChat = im.LoadExtension<MultiUserChat>();
-            mam = im.LoadExtension<MessageArchiveManagment>();
+            serverIpCheck = im.LoadExtension<ServerIpCheck>(loggerPrefix);
+            messageCarbons = im.LoadExtension<MessageCarbons>(loggerPrefix);
+            inBandRegistration = im.LoadExtension<InBandRegistration>(loggerPrefix);
+            chatStateNotifications = im.LoadExtension<ChatStateNotifications>(loggerPrefix);
+            bitsOfBinary = im.LoadExtension<BitsOfBinary>(loggerPrefix);
+            vcardAvatars = im.LoadExtension<VCardAvatars>(loggerPrefix);
+            cusiqextension = im.LoadExtension<CustomIqExtension>(loggerPrefix);
+            groupChat = im.LoadExtension<MultiUserChat>(loggerPrefix);
+            mam = im.LoadExtension<MessageArchiveManagment>(loggerPrefix);
 
-            jingleMessageInitiation = im.LoadExtension<JingleMessageInitiation>();
-            configuration = im.LoadExtension<Configuration>();
-            rainbow = im.LoadExtension<Rainbow>();
-            conference = im.LoadExtension<Conference>();
-            adHocCommand = im.LoadExtension<AdHocCommand>();
-            callLog = im.LoadExtension<CallLog>();
-            cap = im.LoadExtension<Cap>();
-            msgDeliveryReceipt = im.LoadExtension<MessageDeliveryReceipts>();
-            callService = im.LoadExtension<CallService>();
+            jingleMessageInitiation = im.LoadExtension<JingleMessageInitiation>(loggerPrefix);
+            configuration = im.LoadExtension<Configuration>(loggerPrefix);
+            rainbow = im.LoadExtension<Rainbow>(loggerPrefix);
+            conference = im.LoadExtension<Conference>(loggerPrefix);
+            adHocCommand = im.LoadExtension<AdHocCommand>(loggerPrefix);
+            callLog = im.LoadExtension<CallLog>(loggerPrefix);
+            cap = im.LoadExtension<Cap>(loggerPrefix);
+            msgDeliveryReceipt = im.LoadExtension<MessageDeliveryReceipts>(loggerPrefix);
+            callService = im.LoadExtension<CallService>(loggerPrefix);
             
         }
     }

@@ -12,7 +12,7 @@ namespace Sharp.Xmpp.Extensions
 {
     internal class JingleMessageInitiation : XmppExtension, IInputFilter<Sharp.Xmpp.Im.Message>, IInputFilter<Iq>
     {
-        private static readonly ILogger log = LogFactory.CreateLogger<JingleMessageInitiation>();
+        private readonly ILogger log;
 
         private static readonly String NamespaceJingleMessage = "urn:xmpp:jingle-message:0";
         private static readonly String NamespaceJingleIq = "urn:xmpp:jingle:1";
@@ -223,9 +223,10 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         /// <param name="im">A reference to the XmppIm instance on whose behalf this
         /// instance is created.</param>
-        public JingleMessageInitiation(XmppIm im)
-            : base(im)
+        public JingleMessageInitiation(XmppIm im, String loggerPrefix)
+            : base(im, loggerPrefix)
         {
+            log = LogFactory.CreateLogger<JingleMessageInitiation>(loggerPrefix);
         }
     }
 }

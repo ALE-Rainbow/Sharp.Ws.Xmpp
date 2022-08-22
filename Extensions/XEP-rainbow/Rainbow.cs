@@ -12,7 +12,7 @@ namespace Sharp.Xmpp.Extensions
     /// </summary>
     internal class Rainbow : XmppExtension, IInputFilter<Sharp.Xmpp.Core.Iq>
     {
-        private static readonly ILogger log = LogFactory.CreateLogger<Rainbow>();
+        private readonly ILogger log;
 
         private static readonly String namespaceUsed = "jabber:iq:rainbow:cpaas:message";
 
@@ -74,9 +74,10 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         /// <param name="im">A reference to the XmppIm instance on whose behalf this
         /// instance is created.</param>
-        public Rainbow(XmppIm im)
-            : base(im)
+        public Rainbow(XmppIm im, String loggerPrefix)
+            : base(im, loggerPrefix)
         {
+            log = LogFactory.CreateLogger<Rainbow>(loggerPrefix);
         }
     }
 }

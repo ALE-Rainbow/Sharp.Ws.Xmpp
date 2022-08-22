@@ -12,7 +12,7 @@ namespace Sharp.Xmpp.Extensions
     /// </summary>
     internal class Configuration : XmppExtension, IInputFilter<Message>
     {
-        private static readonly ILogger log = LogFactory.CreateLogger<Configuration>();
+        private readonly ILogger log;
 
         /// <summary>
         /// An enumerable collection of XMPP namespaces the extension implements.
@@ -391,9 +391,10 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         /// <param name="im">A reference to the XmppIm instance on whose behalf this
         /// instance is created.</param>
-        public Configuration(XmppIm im)
-            : base(im)
+        public Configuration(XmppIm im, String loggerPrefix)
+            : base(im, loggerPrefix)
         {
+            log = LogFactory.CreateLogger<Configuration>(loggerPrefix);
         }
     }
 }

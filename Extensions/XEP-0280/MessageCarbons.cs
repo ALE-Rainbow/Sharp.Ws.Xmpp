@@ -39,10 +39,10 @@ namespace Sharp.Xmpp.Extensions
                     "be enabled.");
         }
 
-        public MessageCarbons(XmppIm im) :
-            base(im)
+        public MessageCarbons(XmppIm im, String loggerPrefix) :
+            base(im, loggerPrefix)
         {
-            ;
+            
         }
     }
 }

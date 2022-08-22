@@ -23,7 +23,7 @@ namespace Sharp.Xmpp.Im
     /// <remarks>For implementation details, refer to RFC 3921.</remarks>
     public class XmppIm : IDisposable
     {
-        private static readonly ILogger log = LogFactory.CreateLogger<XmppIm>();
+        private readonly ILogger log;
 
         /// <summary>
         /// Provides access to the core facilities of XMPP.
@@ -521,9 +521,10 @@ namespace Sharp.Xmpp.Im
         /// <exception cref="ArgumentOutOfRangeException">The value of the port parameter
         /// is not a valid port number.</exception>
         public XmppIm(string hostname, string username, string password,
-            int port = 5222, bool tls = true, RemoteCertificateValidationCallback validate = null)
+            int port = 5222, bool tls = true, RemoteCertificateValidationCallback validate = null, string loggerPrefix = null)
         {
-            core = new XmppCore(hostname, username, password, port, tls, validate);
+            log = LogFactory.CreateLogger<XmppIm>(loggerPrefix);
+            core = new XmppCore(hostname, username, password, port, tls, validate, loggerPrefix);
             SetupEventHandlers();
         }
 
@@ -548,9 +549,10 @@ namespace Sharp.Xmpp.Im
         /// <exception cref="ArgumentOutOfRangeException">The value of the port parameter
         /// is not a valid port number.</exception>
         public XmppIm(string address, string hostname, string username, string password,
-            int port = 5222, bool tls = true, RemoteCertificateValidationCallback validate = null)
+            int port = 5222, bool tls = true, RemoteCertificateValidationCallback validate = null, string loggerPrefix = null)
         {
-            core = new XmppCore(address, hostname, username, password, port, tls, validate);
+            log = LogFactory.CreateLogger<XmppIm>(loggerPrefix);
+            core = new XmppCore(address, hostname, username, password, port, tls, validate, loggerPrefix);
             SetupEventHandlers();
         }
 
@@ -571,9 +573,10 @@ namespace Sharp.Xmpp.Im
         /// <exception cref="ArgumentOutOfRangeException">The value of the port parameter
         /// is not a valid port number.</exception>
         public XmppIm(string hostname, int port = 5222, bool tls = true,
-            RemoteCertificateValidationCallback validate = null)
+            RemoteCertificateValidationCallback validate = null, string loggerPrefix = null)
         {
-            core = new XmppCore(hostname, port, tls, validate);
+            log = LogFactory.CreateLogger<XmppIm>(loggerPrefix);
+            core = new XmppCore(hostname, port, tls, validate, loggerPrefix);
             SetupEventHandlers();
         }
 
@@ -1570,10 +1573,14 @@ namespace Sharp.Xmpp.Im
         /// </summary>
         /// <typeparam name="T">The type of the extension to load.</typeparam>
         /// <returns>An instance of the loaded extension.</returns>
-        internal T LoadExtension<T>() where T : XmppExtension
+        internal T LoadExtension<T>(String loggerPrefix) where T : XmppExtension
         {
+            Object[] obj = new Object[2];
+            obj[0] = this;
+            obj[1] = loggerPrefix;
+
             // Create instance of extension.
-            XmppExtension ext = Activator.CreateInstance(typeof(T), this)
+            XmppExtension ext = Activator.CreateInstance(typeof(T), obj)
                 as XmppExtension;
             // Add instance to list of loaded extensions.
             extensions.Add(ext);

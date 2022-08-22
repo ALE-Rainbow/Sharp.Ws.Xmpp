@@ -12,7 +12,7 @@ namespace Sharp.Xmpp.Extensions
     /// </summary>
     internal class AdHocCommand : XmppExtension, IInputFilter<Iq>
     {
-        private static readonly ILogger log = LogFactory.CreateLogger<AdHocCommand>();
+        private readonly ILogger log;
 
         private static readonly String NamespaceAdHocCommandIq = "http://jabber.org/protocol/commands";
 
@@ -73,9 +73,10 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         /// <param name="im">A reference to the XmppIm instance on whose behalf this
         /// instance is created.</param>
-        public AdHocCommand(XmppIm im)
-            : base(im)
+        public AdHocCommand(XmppIm im, String loggerPrefix)
+            : base(im, loggerPrefix)
         {
+            log = LogFactory.CreateLogger<AdHocCommand>(loggerPrefix);
         }
     }
 }

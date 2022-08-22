@@ -16,12 +16,12 @@ namespace Sharp.Xmpp.Extensions
     /// </summary>
     internal class ServiceDiscovery : XmppExtension, IInputFilter<Iq>
     {
-        private static readonly ILogger log = LogFactory.CreateLogger<ServiceDiscovery>();
+        private readonly ILogger log;
 
         /// <summary>
         /// A dictionary for caching supported services of XMPP entities.
         /// </summary>
-        private IDictionary<Jid, IEnumerable<Extension>> cache =
+        private readonly IDictionary<Jid, IEnumerable<Extension>> cache =
             new Dictionary<Jid, IEnumerable<Extension>>();
 
         /// <summary>
@@ -213,9 +213,11 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         /// <param name="im">A reference to the XmppIm instance on whose behalf this
         /// instance is created.</param>
-        public ServiceDiscovery(XmppIm im)
-            : base(im)
+        public ServiceDiscovery(XmppIm im, string loggerPrefix)
+            : base(im, loggerPrefix)
         {
+            log = LogFactory.CreateLogger<ServiceDiscovery>(loggerPrefix);
+
             Attribute attr = typeof(ServiceDiscovery).Assembly.GetCustomAttribute(typeof(AssemblyProductAttribute));
             string name = attr != null ? ((AssemblyProductAttribute)attr).Product :
                 "S22.Xmpp";

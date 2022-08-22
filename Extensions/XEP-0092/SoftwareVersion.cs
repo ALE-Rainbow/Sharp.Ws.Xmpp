@@ -127,8 +127,8 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         /// <param name="im">A reference to the XmppIm instance on whose behalf this
         /// instance is created.</param>
-        public SoftwareVersion(XmppIm im)
-            : base(im)
+        public SoftwareVersion(XmppIm im, String loggerPrefix)
+            : base(im, loggerPrefix)
         {
             // Collect name and version attributes from the assembly's metadata.
             Attribute attr = typeof(ServiceDiscovery).Assembly.

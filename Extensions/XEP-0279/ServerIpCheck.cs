@@ -92,8 +92,8 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         /// <param name="im">A reference to the XmppIm instance on whose behalf this
         /// instance is created.</param>
-        public ServerIpCheck(XmppIm im)
-            : base(im)
+        public ServerIpCheck(XmppIm im, String loggerPrefix)
+            : base(im, loggerPrefix)
         {
         }
     }

@@ -1,4 +1,5 @@
 ﻿using Sharp.Xmpp.Im;
+using System;
 using System.Collections.Generic;
 
 namespace Sharp.Xmpp.Extensions
@@ -38,8 +39,8 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         /// <param name="im">A reference to the XmppIm instance on whose behalf this
         /// instance is created.</param>
-        public DataForms(XmppIm im)
-            : base(im)
+        public DataForms(XmppIm im, String loggerPrefix)
+            : base(im, loggerPrefix)
         {
         }
     }

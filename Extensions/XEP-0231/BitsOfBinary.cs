@@ -167,8 +167,8 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         /// <param name="im">A reference to the XmppIm instance on whose behalf this
         /// instance is created.</param>
-        public BitsOfBinary(XmppIm im)
-            : base(im)
+        public BitsOfBinary(XmppIm im, String loggerPrefix)
+            : base(im, loggerPrefix)
         {
         }
 

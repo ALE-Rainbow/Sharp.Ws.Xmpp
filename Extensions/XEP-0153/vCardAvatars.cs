@@ -227,8 +227,8 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         /// <param name="im">A reference to the XmppIm instance on whose behalf this
         /// instance is created.</param>
-        public VCardAvatars(XmppIm im)
-            : base(im)
+        public VCardAvatars(XmppIm im, String loggerPrefix)
+            : base(im, loggerPrefix)
         {
         }
     }

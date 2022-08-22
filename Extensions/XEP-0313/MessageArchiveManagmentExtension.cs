@@ -15,7 +15,7 @@ namespace Sharp.Xmpp.Extensions
     /// </summary>
     internal class MessageArchiveManagment : XmppExtension, IInputFilter<Sharp.Xmpp.Im.Message>
     {
-        private static readonly ILogger log = LogFactory.CreateLogger<MessageArchiveManagment>();
+        private readonly ILogger log;
 
         /// <summary>
         /// A reference to the 'Entity Capabilities' extension instance.
@@ -442,9 +442,10 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         /// <param name="im">A reference to the XmppIm instance on whose behalf this
         /// instance is created.</param>
-        public MessageArchiveManagment(XmppIm im)
-            : base(im)
+        public MessageArchiveManagment(XmppIm im, String loggerPrefix)
+            : base(im, loggerPrefix)
         {
+            log = LogFactory.CreateLogger<MessageArchiveManagment>(loggerPrefix);
         }
     }
 }

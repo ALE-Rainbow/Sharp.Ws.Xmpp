@@ -27,7 +27,8 @@ namespace Sharp.Xmpp.Core
     /// <remarks>For implementation details, refer to RFC 3920.</remarks>
     public class XmppCore : IDisposable
     {
-        private static readonly ILogger log = LogFactory.CreateLogger<XmppCore>();
+        private readonly ILogger log;
+        private readonly String loggerPrefix;
 
         private const String BIND_ID = "bind-0";
 
@@ -517,8 +518,11 @@ namespace Sharp.Xmpp.Core
         /// <exception cref="ArgumentOutOfRangeException">The value of the port parameter
         /// is not a valid port number.</exception>
         public XmppCore(string address, string hostname, string username, string password,
-            int port = 5222, bool tls = true, RemoteCertificateValidationCallback validate = null)
+            int port = 5222, bool tls = true, RemoteCertificateValidationCallback validate = null, string loggerPrefix = null)
         {
+            this.loggerPrefix = loggerPrefix;
+            log = LogFactory.CreateLogger<XmppCore>(loggerPrefix);
+
             if (address == string.Empty)
                 Address = hostname;
             else
@@ -556,8 +560,8 @@ namespace Sharp.Xmpp.Core
         /// <exception cref="ArgumentOutOfRangeException">The value of the port parameter
         /// is not a valid port number.</exception>
         public XmppCore(string hostname, string username, string password,
-            int port = 5222, bool tls = true, RemoteCertificateValidationCallback validate = null) :
-            this(string.Empty, hostname, username, password, port, tls, validate)
+            int port = 5222, bool tls = true, RemoteCertificateValidationCallback validate = null, string loggerPrefix = null) :
+            this(string.Empty, hostname, username, password, port, tls, validate, loggerPrefix)
         { }
 
         /// <summary>
@@ -577,8 +581,8 @@ namespace Sharp.Xmpp.Core
         /// <exception cref="ArgumentOutOfRangeException">The value of the port parameter
         /// is not a valid port number.</exception>
         public XmppCore(string hostname, int port = 5222, bool tls = true,
-            RemoteCertificateValidationCallback validate = null) :
-            this(hostname, string.Empty, string.Empty, port, tls, validate)
+            RemoteCertificateValidationCallback validate = null, string loggerPrefix = null) :
+            this(hostname, string.Empty, string.Empty, port, tls, validate, loggerPrefix)
         { }
 
          /// <summary>
@@ -618,7 +622,7 @@ namespace Sharp.Xmpp.Core
                         webSocketClient = null;
                     }
 
-                    webSocketClient = new WebSocket(WebSocketUri, WebProxyInfo);
+                    webSocketClient = new WebSocket(WebSocketUri, WebProxyInfo, loggerPrefix);
                     webSocketClient.WebSocketOpened += new EventHandler(WebSocketClient_WebSocketOpened);
                     webSocketClient.WebSocketClosed += new EventHandler(WebSocketClient_WebSocketClosed);
 

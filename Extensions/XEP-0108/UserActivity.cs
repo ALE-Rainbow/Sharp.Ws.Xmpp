@@ -98,8 +98,8 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         /// <param name="im">A reference to the XmppIm instance on whose behalf this
         /// instance is created.</param>
-        public UserActivity(XmppIm im)
-            : base(im)
+        public UserActivity(XmppIm im, String loggerPrefix)
+            : base(im, loggerPrefix)
         {
         }
 

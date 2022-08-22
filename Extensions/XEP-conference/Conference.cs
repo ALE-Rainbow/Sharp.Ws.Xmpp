@@ -13,7 +13,7 @@ namespace Sharp.Xmpp.Extensions
     /// </summary>
     internal class Conference : XmppExtension, IInputFilter<Sharp.Xmpp.Im.Message>
     {
-        private static readonly ILogger log = LogFactory.CreateLogger<Conference>();
+        private readonly ILogger log;
 
         /// <summary>
         /// Event raised when a conference has been updated
@@ -84,9 +84,10 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         /// <param name="im">A reference to the XmppIm instance on whose behalf this
         /// instance is created.</param>
-        public Conference(XmppIm im)
-            : base(im)
+        public Conference(XmppIm im, String loggerPrefix)
+            : base(im, loggerPrefix)
         {
+            log = LogFactory.CreateLogger<Conference>(loggerPrefix);
         }
     }
 }

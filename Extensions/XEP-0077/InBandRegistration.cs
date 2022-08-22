@@ -152,8 +152,8 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         /// <param name="im">A reference to the XmppIm instance on whose behalf this
         /// instance is created.</param>
-        public InBandRegistration(XmppIm im)
-            : base(im)
+        public InBandRegistration(XmppIm im, String loggerPrefix)
+            : base(im, loggerPrefix)
         {
         }
 

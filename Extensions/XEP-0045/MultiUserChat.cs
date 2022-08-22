@@ -12,7 +12,7 @@ namespace Sharp.Xmpp.Extensions
 {
     internal class MultiUserChat : XmppExtension, IInputFilter<Im.Message>, IInputFilter<Im.Presence>
     {
-        public MultiUserChat(XmppIm im) : base(im)
+        public MultiUserChat(XmppIm im, String loggerPrefix) : base(im, loggerPrefix)
         {
         }
 
