@@ -155,9 +155,9 @@ namespace Sharp.Xmpp.Core
                 // Manage outgoing message
                 ManageOutgoingMessage();
             }
-            catch
+            catch (Exception exc)
             {
-                log.LogWarning("[CreateAndManageWebSocket] failed");
+                log.LogWarning($"[CreateAndManageWebSocket] Exception:[{Util.SerializeException(exc)}]");
                 RaiseWebSocketClosed();
             }
         }
