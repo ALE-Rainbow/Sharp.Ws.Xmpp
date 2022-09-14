@@ -126,7 +126,6 @@ namespace Sharp.Xmpp.Core
                 clientWebSocket.Options.Proxy = null;
             else
             {
-                    
                 log.LogDebug("[CreateAndManageWebSocket] Web Proxy Info:[{0}]", webProxyInfo?.Item1);
                 WebProxy proxy = new WebProxy(webProxyInfo.Item1);
                 if(!String.IsNullOrEmpty(webProxyInfo.Item2))
@@ -134,26 +133,33 @@ namespace Sharp.Xmpp.Core
                 clientWebSocket.Options.Proxy = proxy;
             }
 
-            await clientWebSocket.ConnectAsync(new Uri(uri), CancellationToken.None);
-
-
-            // Need to raise WebSocketOpened or WebSocketClosed
-            if (clientWebSocket.State == System.Net.WebSockets.WebSocketState.Open)
+            try
             {
-                webSocketOpened = true;
-                RaiseWebSocketOpened();
+                await clientWebSocket.ConnectAsync(new Uri(uri), CancellationToken.None);
+
+                // Need to raise WebSocketOpened or WebSocketClosed
+                if (clientWebSocket.State == System.Net.WebSockets.WebSocketState.Open)
+                {
+                    webSocketOpened = true;
+                    RaiseWebSocketOpened();
+                }
+                else
+                {
+                    RaiseWebSocketClosed();
+                    return;
+                }
+
+                // Manage next incoming message
+                ManageIncomingMessage();
+
+                // Manage outgoing message
+                ManageOutgoingMessage();
             }
-            else
+            catch (Exception exc)
             {
+                log.LogWarning($"[CreateAndManageWebSocket] Exception:[{Util.SerializeException(exc)}]");
                 RaiseWebSocketClosed();
-                return;
             }
-
-            // Manage next incoming message
-            ManageIncomingMessage();
-
-            // Manage outgoing message
-            ManageOutgoingMessage();
         }
 
         private async void ManageOutgoingMessage()
