@@ -1238,6 +1238,40 @@ namespace Sharp.Xmpp.Client
         }
 
         /// <summary>
+        /// The event raised when the synhcronisation status with a provider has changed
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.SynchroProviderStatusEventArgs> SynchroProviderStatus
+        {
+            add
+            {
+                configuration.SynchroProviderStatus += value;
+            }
+            remove
+            {
+                configuration.SynchroProviderStatus -= value;
+            }
+        }
+
+        /// <summary>
+        /// The event raised when The event raised when a user setting has changed
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.UserSettingEventArgs> UserSetting
+        {
+            add
+            {
+                configuration.UserSetting += value;
+            }
+            remove
+            {
+                configuration.UserSetting -= value;
+            }
+        }
+
+        
+
+
+
+        /// <summary>
         /// The event raised when an AckMessage has been recevied
         /// </summary>
         public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> AckMessage

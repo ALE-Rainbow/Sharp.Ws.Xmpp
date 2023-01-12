@@ -1,8 +1,7 @@
+using Microsoft.Extensions.Logging;
 using Sharp.Xmpp.Im;
 using System;
 using System.Collections.Generic;
-
-using Microsoft.Extensions.Logging;
 using System.Xml;
 
 namespace Sharp.Xmpp.Extensions
@@ -105,6 +104,16 @@ namespace Sharp.Xmpp.Extensions
         public event EventHandler<MessageEventArgs> RecordingFile;
 
         /// <summary>
+        /// The event raised when the synhcronisation status with a provider has changed
+        /// </summary>
+        public event EventHandler<SynchroProviderStatusEventArgs> SynchroProviderStatus;
+
+        /// <summary>
+        /// The event raised when a user setting has changed
+        /// </summary>
+        public event EventHandler<UserSettingEventArgs> UserSetting;
+
+        /// <summary>
         /// Invoked when a message stanza has been received.
         /// </summary>
         /// <param name="stanza">The stanza which has been received.</param>
@@ -132,6 +141,40 @@ namespace Sharp.Xmpp.Extensions
                     {
 
                     }
+                }
+                // Do we receive message about user settings ?
+                else if (message.Data["usersettings"] != null)
+                {
+                    XmlElement e = message.Data["usersettings"];
+                    var nodesList = e.ChildNodes;
+                    foreach(var node in nodesList)
+                    {
+                        if ( (node is XmlElement el) && (el.Name == "setting") )
+                        {
+                            string name = el.GetAttribute("name");
+                            string value = el.GetAttribute("value");
+                            UserSetting.Raise(this, new UserSettingEventArgs(name, value));
+                        }
+                    }
+                }
+                // Do we receive message about calendar synchronization ?
+                else if (message.Data["calendar"] != null)
+                {
+                    XmlElement e = message.Data["calendar"];
+
+                    string status = e.GetAttribute("status"); // 'disabled', 'enabled'
+                    string provider = e.GetAttribute("provider"); // 'office365', 'google'
+                    SynchroProviderStatus.Raise(this, new SynchroProviderStatusEventArgs("calendar", provider, status == "enabled"));
+
+                }
+                // Do we receive message about teams presence synchronization ?
+                else if (message.Data["presence"] != null)
+                {
+                    XmlElement e = message.Data["presence"];
+
+                    string status = e.GetAttribute("status"); // 'disabled', 'enabled'
+                    SynchroProviderStatus.Raise(this, new SynchroProviderStatusEventArgs("presence", "teams", status == "enabled"));
+
                 }
                 // Do we receive message about conversation management
                 else if (message.Data["conversation"] != null)
@@ -218,7 +261,7 @@ namespace Sharp.Xmpp.Extensions
                 else if (message.Data["visualvoicemail"] != null)
                 {
                     // WE DO NOTHING HERE
-                    // WE USE "file" message and file descrptior to manage voice message
+                    // WE USE "file" message and file descriptor to manage voice message
 
                     //XmlElement e = message.Data["visualvoicemail"];
 
@@ -263,7 +306,7 @@ namespace Sharp.Xmpp.Extensions
                         int.TryParse(widthStr, out width);
                         int.TryParse(heightStr, out height);
                     }
-                    catch(Exception exc)
+                    catch (Exception exc)
                     {
                         log.LogWarning("[Input] Exception occurred for thumbnail: [{0}]", Util.SerializeException(exc));
                     }
