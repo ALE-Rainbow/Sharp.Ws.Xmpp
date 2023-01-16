@@ -77,6 +77,17 @@ namespace Sharp.Xmpp.Im
         }
 
         /// <summary>
+        /// To know if this presence must be applied for the aggregated Presence - Can only be set to false when Calendar Presence or Teamps Presence are used
+        /// </summary>
+        public Boolean Apply
+        {
+            get;
+            private set;
+        }
+
+
+
+        /// <summary>
         /// Initializes a new instance of the Status class.
         /// </summary>
         /// <param name="availability">The availability state.</param>
@@ -108,8 +119,9 @@ namespace Sharp.Xmpp.Im
         /// codes.</param>
         /// <param name="priority">Provides a hint for stanza routing.</param>
         public Status(Availability availability, Dictionary<string, string> messages,
-            sbyte priority, DateTime until, DateTime date)
+            sbyte priority, DateTime until, DateTime date, Boolean apply)
         {
+            Apply = apply;
             Availability = availability;
             Priority = priority;
             Messages = new Dictionary<string, string>();

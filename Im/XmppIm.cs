@@ -2124,6 +2124,7 @@ namespace Sharp.Xmpp.Im
         /// invalid data.</exception>
         private void ProcessStatusNotification(Presence presence)
         {
+            bool apply = true; // Always true by default
             bool offline = presence.Type == PresenceType.Unavailable;
             XmlElement e = presence.Data["show"];
             Availability availability = offline ? Availability.Offline :
@@ -2165,6 +2166,13 @@ namespace Sharp.Xmpp.Im
                 dict.Add(l, element.InnerText);
             }
 
+            // Is-it Calendar presence
+            if(presence.From.Resource == "calendar")
+                apply = presence.Data["applyCalendarPresence"] != null;
+
+            // Is-it Teams presence
+            else if (presence.From.Resource == "presence")
+                apply = presence.Data["applyMsTeamsPresence"] != null;
 
             // Parse the optional 'until' element.
             DateTime until = DateTime.MinValue;
@@ -2175,7 +2183,7 @@ namespace Sharp.Xmpp.Im
                     until = DateTime.Now;
             }
 
-            Status status = new Status(availability, dict, prio, until, presence.Date);
+            Status status = new Status(availability, dict, prio, until, presence.Date, apply);
             // Raise Status event.
             Status.Raise(this, new StatusEventArgs(presence.From, status));
         }
