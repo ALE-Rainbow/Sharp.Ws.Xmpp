@@ -41,8 +41,13 @@ namespace Sharp.Xmpp.Core
         public const String ACTION_FULLY_CONNECTED = "FULLY_CONNECTED";
 
         public event EventHandler<TextEventArgs> ActionToPerform;
-        public event EventHandler<ConnectionStatusEventArgs> ConnectionStatus;
         public event EventHandler<EventArgs> StreamManagementRequestAcknowledgement;
+        public event EventHandler<ConnectionStatusEventArgs> ConnectionStatus;
+
+        // See Chapter "4.7.3.  Defined Conditions" in https://xmpp.org/rfcs/rfc3920.html
+        private static List<String> STREAM_ERROR_FATAL = new List<string>() { "see-other-host", "conflict", "resource-constraint", "unsupported-version" };
+        private static List<String> STREAM_ERROR_WARN = new List<string>() { "remote-connection-failed", "reset", "connection-timeout", "system-shutdown" };
+        //private static List<String> STREAM_ERROR_INFO = new List<string>() { "bad-format", "bad-namespace-prefix", "host-gone", "host-unknown", "improper-addressing", "internal-server-error", "invalid-from", "invalid-namespace", "invalid-xml", "not-authorized", "not-well-formed", "policy-violation", "restricted-xml", "undefined-condition", "unsupported-encoding", "unsupported-feature", "unsupported-stanza-type" };
 
         /// <summary>
         /// The TCP connection to the XMPP server.
@@ -673,10 +678,33 @@ namespace Sharp.Xmpp.Core
             RaiseConnectionStatus(false);
         }
 
-        private void RaiseConnectionStatus(bool connected, String reason = null, String details = null)
+        private void CheckStreamError(String reason, string details)
         {
-            Connected = connected;
-            if (!connected)
+            if(String.IsNullOrEmpty(reason))
+                log.LogWarning("[CheckStreamError] Reason provided is null/empty ... Do nothing");
+            else
+            {
+                ConnectionStatusEventArgs status;
+                if (STREAM_ERROR_FATAL.Contains(reason))
+                    status = new ConnectionStatusEventArgs(false, reason, details, "fatal");
+                else if (STREAM_ERROR_WARN.Contains(reason))
+                    status = new ConnectionStatusEventArgs(false, reason, details, "error");
+                else
+                    status = new ConnectionStatusEventArgs(true, reason, details, "info");
+
+                RaiseConnectionStatus(status);
+            }
+        }
+
+        private void RaiseConnectionStatus(bool connected)
+        {
+            RaiseConnectionStatus(new ConnectionStatusEventArgs(connected));
+        }
+
+        private void RaiseConnectionStatus(ConnectionStatusEventArgs status)
+        {
+            Connected = status.Connected;
+            if (!Connected)
             {
                 if (webSocketClient != null)
                 {
@@ -695,8 +723,7 @@ namespace Sharp.Xmpp.Core
                 }
             }
 
-            log.LogDebug("[RaiseConnectionStatus] connected:{0}", connected);
-            ConnectionStatus.Raise(this, new ConnectionStatusEventArgs(connected, reason, details));
+            ConnectionStatus.Raise(this, status);
         }
 
         private void WebSocketClient_WebSocketOpened(object sender, EventArgs e)
@@ -1689,12 +1716,12 @@ namespace Sharp.Xmpp.Core
                                 String details = null;
                                 if(elem.FirstChild != null)
                                 {
-                                    reason = elem.FirstChild.Name;
+                                    reason = elem.FirstChild.Name.ToLower();
                                     if(elem.FirstChild.NextSibling?.Name == "text")
                                         details = elem.FirstChild.NextSibling.InnerText;
                                 }
 
-                                RaiseConnectionStatus(false, reason, details);
+                                CheckStreamError(reason, details);
                                 return;
 
                             default:

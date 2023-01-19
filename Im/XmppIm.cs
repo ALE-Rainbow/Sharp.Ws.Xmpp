@@ -649,8 +649,7 @@ namespace Sharp.Xmpp.Im
 
         private void Core_ConnectionStatus(object sender, ConnectionStatusEventArgs e)
         {
-            log.LogDebug("[Core_ConnectionStatus] - connected:{0}", e.Connected);
-            RaiseConnectionStatus(e.Connected, e.Reason, e.Details);
+            RaiseConnectionStatus(e);
         }
 
         private void Core_ActionToPerform(object sender, TextEventArgs e)
@@ -2374,15 +2373,23 @@ namespace Sharp.Xmpp.Im
             return new PrivacyRule(allow, order, granularity);
         }
 
-        internal void RaiseConnectionStatus(bool connected, String reason = null, String details = null)
+        internal void RaiseConnectionStatus(bool connected)
         {
-            log.LogDebug("[RaiseConnectionStatus] connected:{0}", connected);
+            RaiseConnectionStatus(new ConnectionStatusEventArgs(connected));
+        }
+
+        internal void RaiseConnectionStatus(ConnectionStatusEventArgs e)
+        {
+            if(String.IsNullOrEmpty(e.Reason))
+                log.LogDebug($"[RaiseConnectionStatus] Connected:[{e.Connected}]");
+            else
+                log.LogDebug($"[RaiseConnectionStatus] Connected:[{e.Connected}] - Criticity:[{e.Criticity}] - Reason:[{e.Reason}] - Details:[{e.Details}]");
             EventHandler<ConnectionStatusEventArgs> h = this.ConnectionStatus;
             if (h != null)
             {
                 try
                 {
-                    h(this, new ConnectionStatusEventArgs(connected, reason, details));
+                    h(this, e);
                 }
                 catch (Exception)
                 {
