@@ -44,10 +44,16 @@ namespace Sharp.Xmpp.Core
         public event EventHandler<EventArgs> StreamManagementRequestAcknowledgement;
         public event EventHandler<ConnectionStatusEventArgs> ConnectionStatus;
 
-        // See Chapter "4.7.3.  Defined Conditions" in https://xmpp.org/rfcs/rfc3920.html
-        private static List<String> STREAM_ERROR_FATAL = new List<string>() { "see-other-host", "conflict", "resource-constraint", "unsupported-version" };
-        private static List<String> STREAM_ERROR_WARN = new List<string>() { "remote-connection-failed", "reset", "connection-timeout", "system-shutdown" };
-        //private static List<String> STREAM_ERROR_INFO = new List<string>() { "bad-format", "bad-namespace-prefix", "host-gone", "host-unknown", "improper-addressing", "internal-server-error", "invalid-from", "invalid-namespace", "invalid-xml", "not-authorized", "not-well-formed", "policy-violation", "restricted-xml", "undefined-condition", "unsupported-encoding", "unsupported-feature", "unsupported-stanza-type" };
+        // Xmpp stream:error - See Chapter "4.7.3.  Defined Conditions" in https://xmpp.org/rfcs/rfc3920.html
+        // FATAL or WARN:   Check is done on "reason" only
+        // FATAL_SPECIFIC:  Check is done on "reason" then "details" must contains the text specified
+        // if FATAL or FATAL_SPECIFIC, Need to close web socket, AutoReconnection service must be Stopped/Cancelled, Add log entry
+        // else if WARN, Need to close web socket, AutoReconnection service continues its job (i.e. try to reconnect), Add log entry
+        // else just Add log entry
+        private static List<String> STREAM_ERROR_FATAL = new List<String>() { "see-other-host", "conflict", "unsupported-version" };
+        private static List<(String, String)> STREAM_ERROR_FATAL_SPECIFIC = new List<(String, String)>() { ("policy-violation", "has been kicked"), ("resource-constraint", "max sessions reached") };
+        private static List<String> STREAM_ERROR_WARN = new List<String>() { "remote-connection-failed", "reset", "connection-timeout", "system-shutdown" };
+        //private static List<String> STREAM_ERROR_INFO = new List<string>() { "bad-format", "bad-namespace-prefix", "host-gone", "host-unknown", "improper-addressing", "internal-server-error", "invalid-from", "invalid-namespace", "invalid-xml", "not-authorized", "not-well-formed", "restricted-xml", "undefined-condition", "unsupported-encoding", "unsupported-feature", "unsupported-stanza-type" };
 
         /// <summary>
         /// The TCP connection to the XMPP server.
@@ -678,6 +684,27 @@ namespace Sharp.Xmpp.Core
             RaiseConnectionStatus(false);
         }
 
+        private Boolean IsFatalStreamError(String reason, String details)
+        {
+            if (STREAM_ERROR_FATAL.Contains(reason))
+                return true;
+
+            foreach((String r, String d) in STREAM_ERROR_FATAL_SPECIFIC)
+            {
+                if (r.Equals(reason, StringComparison.InvariantCultureIgnoreCase)
+                    && (details?.ToLower().Contains(d) == true))
+                    return true;
+            }
+            return false;
+        }
+
+        private Boolean IsWarningStreamError(String reason)
+        {
+            if (STREAM_ERROR_WARN.Contains(reason))
+                return true;
+            return false;
+        }
+
         private void CheckStreamError(String reason, string details)
         {
             if(String.IsNullOrEmpty(reason))
@@ -685,9 +712,9 @@ namespace Sharp.Xmpp.Core
             else
             {
                 ConnectionStatusEventArgs status;
-                if (STREAM_ERROR_FATAL.Contains(reason))
+                if (IsFatalStreamError(reason, details))
                     status = new ConnectionStatusEventArgs(false, reason, details, "fatal");
-                else if (STREAM_ERROR_WARN.Contains(reason))
+                else if (IsWarningStreamError(reason))
                     status = new ConnectionStatusEventArgs(false, reason, details, "error");
                 else
                     status = new ConnectionStatusEventArgs(true, reason, details, "info");
