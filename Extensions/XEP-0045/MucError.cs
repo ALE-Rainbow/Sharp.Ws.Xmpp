@@ -75,7 +75,7 @@ namespace Sharp.Xmpp.Extensions
             }
         }
 
-        private XmlNode ErrorNode
+        internal XmlNode ErrorNode
         {
             get
             {

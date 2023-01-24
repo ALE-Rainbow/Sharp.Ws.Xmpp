@@ -131,10 +131,10 @@ namespace Sharp.Xmpp.Extensions
 
         public bool Input (Im.Presence stanza)
 		{
-			if (MucError.IsError (stanza)) {
+            var mucError = new MucError(stanza);
+            if (mucError.ErrorNode != null) {
 				// Unable to join - No nickname specified / Duplicate nickname exists ... etc
-				var error = new MucError (stanza);
-				MucErrorResponse?.Raise (this, new GroupErrorEventArgs (error));
+				MucErrorResponse?.Raise (this, new GroupErrorEventArgs (mucError));
 				return true;
 			}
 
@@ -172,7 +172,8 @@ namespace Sharp.Xmpp.Extensions
 				}
 
 				if (person != null) {
-					PrescenceChanged.Raise (this, new GroupPresenceEventArgs (person, statusCodeList));
+                    var type = stanza.Data.GetAttribute("type");
+                    PrescenceChanged.Raise (this, new GroupPresenceEventArgs (person, statusCodeList, type == "unavailable"));
 					return true;
 				}
 			}

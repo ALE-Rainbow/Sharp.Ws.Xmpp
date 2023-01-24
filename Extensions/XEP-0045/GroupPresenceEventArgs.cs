@@ -18,15 +18,18 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         public IEnumerable<MucStatusType> Statuses { get; set; }
 
+        public Boolean Unavailable { get; set; }
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="person"></param>
         /// <param name="statuses"></param>
-        public GroupPresenceEventArgs(Occupant person, IEnumerable<MucStatusType> statuses) : base()
+        public GroupPresenceEventArgs(Occupant person, IEnumerable<MucStatusType> statuses, Boolean unavailable) : base()
         {
             Person = person;
             Statuses = statuses;
+            Unavailable = unavailable;
         }
     }
 }
