@@ -1468,9 +1468,7 @@ namespace Sharp.Xmpp.Core
         private void Send(string xml, Boolean isStanza)
         {
             xml.ThrowIfNull("xml");
-            // XMPP is guaranteed to be UTF-8.
-            byte[] buf = Encoding.UTF8.GetBytes(xml);
-
+            
             if (useWebSocket)
             {
                 webSocketClient.Send(xml); 
@@ -1481,6 +1479,9 @@ namespace Sharp.Xmpp.Core
 
             lock (writeLock)
             {
+                // XMPP is guaranteed to be UTF-8.
+                byte[] buf = Encoding.UTF8.GetBytes(xml);
+
                 //FIXME
                 //If we have an IOexception immediatelly we make a disconnection, is it correct?
                 try
@@ -1931,7 +1932,10 @@ namespace Sharp.Xmpp.Core
                 ev.Set();
             // Call the callback if it's an asynchronous call.
             else if (iqCallbacks.TryRemove(id, out cb))
-                Task.Factory.StartNew(() => { cb(id, iq); });
+                Task.Factory.StartNew(() => 
+                { 
+                    cb(id, iq); 
+                });
         }
 
         /// <summary>
