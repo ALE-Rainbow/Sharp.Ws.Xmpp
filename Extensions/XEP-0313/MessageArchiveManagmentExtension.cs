@@ -359,7 +359,7 @@ namespace Sharp.Xmpp.Extensions
         }
 
 
-        public void DeleteAllArchivedMessages(Jid jid, string queryId, bool isRoom)
+        public void DeleteAllArchivedMessages(String with, string queryId, String toJidString)
         {
             /*
              * 
@@ -398,42 +398,29 @@ namespace Sharp.Xmpp.Extensions
             fieldElement.Child(valueElement);
             subElement.Child(fieldElement);
 
-            if (jid != null)
+            if (!String.IsNullOrEmpty(with))
             {
                 fieldElement = Xml.Element("field");
                 fieldElement.SetAttribute("var", "with");
                 valueElement = Xml.Element("value");
-                valueElement.InnerText = jid.ToString();
+                valueElement.InnerText = with;
                 fieldElement.Child(valueElement);
                 subElement.Child(fieldElement);
             }
-
             rootElement.Child(subElement);
 
+            Jid jidTo = null;
+            if (!String.IsNullOrEmpty(toJidString))
+                jidTo = new Jid(toJidString);
+
             //The Request is Async
-            im.IqRequestAsync(IqType.Set, null, null, rootElement, null, (id, iq) =>
+            im.IqRequestAsync(IqType.Set, jidTo, null, rootElement, null, (id, iq) =>
             {
-                //For any reply we execute the callback
                 if (iq.Type == IqType.Error)
                 {
                     // TODO
-                    return;
-                }
-
-                if (iq.Type == IqType.Result)
-                {
-                    try
-                    {
-                        return;
-                    }
-                    catch (Exception)
-                    {
-                        log.LogError("RequestCustomIqAsync - an error occurred ...");
-                    }
-
                 }
             });
-
         }
 
 
