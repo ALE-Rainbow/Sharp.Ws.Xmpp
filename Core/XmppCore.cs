@@ -1543,26 +1543,24 @@ namespace Sharp.Xmpp.Core
         {
             while (true)
             {
-                string action = webSocketClient.DequeueActionToPerform();
-                //log.LogDebug("Action dequeued:{0}", action);
+                if (webSocketClient == null)
+                    break;
 
-                if (ActionToPerform != null)
+                try
                 {
-                    try
+                    string action = webSocketClient.DequeueActionToPerform();
+                    if ( (ActionToPerform != null) && (action != null) )
                     {
                         ActionToPerform(this, new TextEventArgs(action));
                     }
-                    catch (Exception)
-                    {
-                        //TODO
-                    }
                 }
+                catch { }
             }
         }
 
         public void QueueActionToPerform(string action)
         {
-            webSocketClient.QueueActionToPerform(action);
+            webSocketClient?.QueueActionToPerform(action);
         }
 
         /// <summary>

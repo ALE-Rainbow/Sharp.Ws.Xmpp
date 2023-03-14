@@ -315,16 +315,18 @@ namespace Sharp.Xmpp.Core
 #region Action to perform
         public void QueueActionToPerform(String action)
         {
-            //log.LogDebug("QueueActionToPerform");
             actionsToPerform.Add(action);
         }
 
         public string DequeueActionToPerform()
         {
-            //log.LogDebug("DequeueActionToPerform - START");
-            string action = actionsToPerform.Take();
-            //log.LogDebug("DequeueActionToPerform - END");
-            return action;
+            try
+            {
+                string action = actionsToPerform.Take();
+                return action;
+            }
+            catch { }
+            return null;
         }
 #endregion
 
