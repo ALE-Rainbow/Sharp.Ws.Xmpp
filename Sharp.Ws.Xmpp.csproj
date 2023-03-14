@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netstandard2.1;netcoreapp3.1;net5.0</TargetFrameworks>
-    <AssemblyName>Sharp.Ws.Xmpp</AssemblyName>
+	<AssemblyName>Sharp.Ws.Xmpp</AssemblyName>
+	<RootNamespace>Sharp.Xmpp</RootNamespace>
     <Version>2.6.15</Version>
     <Authors>Christophe Irles</Authors>
     <Company>ALE International</Company>
