@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Net;
+using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -17,6 +18,8 @@ namespace Sharp.Xmpp.Core
 {
     internal class WebSocket
     {
+        const Int32 TIMEOUT_WS_DEFAULT_VALUE = 30000;
+
         private readonly ILogger log;
         private readonly ILogger logWebRTC;
 
@@ -29,6 +32,7 @@ namespace Sharp.Xmpp.Core
         private string uri;
 
         private readonly object writeLock = new object();
+        private readonly object closedLock = new object();
 
         private BlockingCollection<string> actionsToPerform;
         private BlockingCollection<string> messagesToSend;
@@ -105,7 +109,7 @@ namespace Sharp.Xmpp.Core
             }
         }
 
-        private async void CreateAndManageWebSocket()
+        private void CreateAndManageWebSocket()
         {
             // First CLose / Dispose previous object
             Close();
@@ -135,7 +139,27 @@ namespace Sharp.Xmpp.Core
 
             try
             {
-                await clientWebSocket.ConnectAsync(new Uri(uri), CancellationToken.None);
+                // Create the token source.
+                CancellationTokenSource cts = new CancellationTokenSource();
+                Task result = clientWebSocket.ConnectAsync(new Uri(uri), cts.Token);
+                if(!result.Wait(TIMEOUT_WS_DEFAULT_VALUE))
+                {
+                    try
+                    {
+                        log.LogDebug($"[CreateAndManageWebSocket] after ConnectAsync - NOT opened before timeout");
+                        RaiseWebSocketClosed();
+                        cts.Cancel();
+                        Thread.Sleep(500);
+                        cts.Dispose();
+                    }
+                    catch
+                    {
+
+                    }
+                    return;
+                }
+
+                cts.Dispose();
 
                 // Need to raise WebSocketOpened or WebSocketClosed
                 if (clientWebSocket.State == System.Net.WebSockets.WebSocketState.Open)
@@ -225,8 +249,13 @@ namespace Sharp.Xmpp.Core
                         {
                             try
                             {
-                                result = await clientWebSocket.ReceiveAsync(buffer, CancellationToken.None);
-                                ms.Write(buffer.Array, buffer.Offset, result.Count);
+                                if (clientWebSocket != null)
+                                {
+                                    result = await clientWebSocket.ReceiveAsync(buffer, CancellationToken.None);
+                                    ms.Write(buffer.Array, buffer.Offset, result.Count);
+                                }
+                                else
+                                    readingCorrectly = false;
                             }
                             catch
                             {
@@ -389,53 +418,44 @@ namespace Sharp.Xmpp.Core
 
         private void ClientWebSocketClosed()
         {
-            if (webSocketOpened)
+            lock (closedLock)
             {
-                webSocketOpened = false;
-                if (clientWebSocket != null)
-                    log.LogDebug($"[ClientWebSocketClosed] CloseStatus:[{clientWebSocket.CloseStatus}] -  CloseStatusDescription:[{clientWebSocket.CloseStatusDescription}]");
-                else
-                    log.LogDebug("[ClientWebSocketClosed]");
+                if (webSocketOpened)
+                {
+                    webSocketOpened = false;
+                    if (clientWebSocket != null)
+                        log.LogDebug($"[ClientWebSocketClosed] CloseStatus:[{clientWebSocket.CloseStatus}] -  CloseStatusDescription:[{clientWebSocket.CloseStatusDescription}]");
+                    else
+                        log.LogDebug("[ClientWebSocketClosed]");
 
-                RaiseWebSocketClosed();
+                    RaiseWebSocketClosed();
+                }
             }
         }
 
         private void RaiseWebSocketOpened()
         {
             log.LogDebug("Web socket opened");
-
-            // Raise event WebSocketOpened
-            EventHandler h = this.WebSocketOpened;
-            if (h != null)
+            try
             {
-                try
-                {
-                    h(this, null);
-                }
-                catch (Exception ex)
-                {
-                    log.LogError($"[RaiseWebSocketOpened]  - Exception raising WebSocketOpened:[{ex}]");
-                }
+                WebSocketOpened?.Invoke(this, null);
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"[RaiseWebSocketOpened]  - Exception raising WebSocketOpened:[{ex}]");
             }
         }
 
         private void RaiseWebSocketClosed()
         {
             log.LogDebug("Web socket closed");
-
-            // Raise event WebSocketClosed
-            EventHandler h = this.WebSocketClosed;
-            if (h != null)
+            try
+            { 
+                WebSocketClosed?.Invoke(this, null);
+            }
+            catch (Exception ex)
             {
-                try
-                {
-                    h(this, null);
-                }
-                catch (Exception ex)
-                {
-                    log.LogError($"[RaiseWebSocketClosed]  - Exception raising WebSocketClosed:[{ex}]");
-                }
+                log.LogError($"[RaiseWebSocketClosed]  - Exception raising WebSocketClosed:[{ex}]");
             }
         }
 

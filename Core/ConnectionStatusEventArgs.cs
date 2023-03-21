@@ -28,22 +28,37 @@ namespace Sharp.Xmpp.Core
         public String Details { get; private set; }
 
         /// <summary>
-        /// <see cref="String"/> - Criticity of the status (if any)
+        /// <see cref="String"/> - Xriticality of the status (if any)
         /// 'fatal': we are disconnected and the AutoReconnection service (if used) will stop immediatly.
         /// 'error': we are disconnected and the AutoReconnection service (if used) will continue its job (so it will try to reconnect to the server).
         /// 'info': we are not disconnected but the server returns an error
         /// </summary>
-        public String Criticity { get; private set; }
+        public String Criticality { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the ConnectionStatusEventArgs class.
         /// </summary>
-        public ConnectionStatusEventArgs(bool connected, String reason = null, String details = null, String criticity = null)
+        public ConnectionStatusEventArgs(bool connected, String criticality, String reason, String details = "")
         { 
             Connected = connected;
+            Criticality = criticality;
             Reason = reason;
             Details = details;
-            Criticity = criticity;
+            
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the ConnectionStatusEventArgs class.
+        /// </summary>
+        public ConnectionStatusEventArgs(bool connected)
+        {
+            Connected = connected;
+            if(connected)
+                Criticality = "info";
+            else
+                Criticality = "error";
+            Reason = "";
+            Details = "";
         }
     }
 }

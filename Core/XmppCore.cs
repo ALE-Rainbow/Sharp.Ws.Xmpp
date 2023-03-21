@@ -713,11 +713,11 @@ namespace Sharp.Xmpp.Core
             {
                 ConnectionStatusEventArgs status;
                 if (IsFatalStreamError(reason, details))
-                    status = new ConnectionStatusEventArgs(false, reason, details, "fatal");
+                    status = new ConnectionStatusEventArgs(false, "fatal", reason, details);
                 else if (IsWarningStreamError(reason))
-                    status = new ConnectionStatusEventArgs(false, reason, details, "error");
+                    status = new ConnectionStatusEventArgs(false, "error", reason, details);
                 else
-                    status = new ConnectionStatusEventArgs(true, reason, details, "info");
+                    status = new ConnectionStatusEventArgs(true, "info", reason, details);
 
                 RaiseConnectionStatus(status);
             }
@@ -1620,7 +1620,11 @@ namespace Sharp.Xmpp.Core
 
                             case "failure":
                                 log.LogWarning("Failure received");
-                                //TO DOlog.LogDebug
+                                if(elem.NamespaceURI == "urn:ietf:params:xml:ns:xmpp-sasl")
+                                {
+                                    var status = new ConnectionStatusEventArgs(false, "fatal", "Invalid username or password");
+                                    RaiseConnectionStatus(status);
+                                }
                                 break;
 
                             case "stream:features":

@@ -2383,7 +2383,7 @@ namespace Sharp.Xmpp.Im
             if(String.IsNullOrEmpty(e.Reason))
                 log.LogDebug($"[RaiseConnectionStatus] Connected:[{e.Connected}]");
             else
-                log.LogDebug($"[RaiseConnectionStatus] Connected:[{e.Connected}] - Criticity:[{e.Criticity}] - Reason:[{e.Reason}] - Details:[{e.Details}]");
+                log.LogDebug($"[RaiseConnectionStatus] Connected:[{e.Connected}] - Criticality:[{e.Criticality}] - Reason:[{e.Reason}] - Details:[{e.Details}]");
             EventHandler<ConnectionStatusEventArgs> h = this.ConnectionStatus;
             if (h != null)
             {
