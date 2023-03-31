@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Xml;
 
 namespace Sharp.Xmpp.Core
 {
-    
+
     public class StreamManagementStanza : Stanza
     {
 

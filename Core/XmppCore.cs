@@ -1,5 +1,4 @@
 ﻿using Sharp.Xmpp.Core.Sasl;
-using Sharp.Xmpp.Extensions;
 
 using System;
 using System.Collections.Concurrent;
@@ -7,7 +6,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
@@ -1471,9 +1469,16 @@ namespace Sharp.Xmpp.Core
             
             if (useWebSocket)
             {
-                webSocketClient.Send(xml); 
-                if(isStanza && StreamManagementEnabled)
-                    StreamManagementRequestAcknowledgement.Raise(this, null);
+                try
+                {
+                    webSocketClient.Send(xml);
+                    if (isStanza && StreamManagementEnabled)
+                        StreamManagementRequestAcknowledgement.Raise(this, null);
+                }
+                catch
+                {
+                    RaiseConnectionStatus(false);
+                }
                 return;
             }
 

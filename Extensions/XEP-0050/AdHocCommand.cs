@@ -3,7 +3,6 @@ using Sharp.Xmpp.Core;
 using Sharp.Xmpp.Im;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Sharp.Xmpp.Extensions
 {

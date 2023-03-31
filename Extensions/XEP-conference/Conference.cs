@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 using Microsoft.Extensions.Logging;
 using System.Xml;
-using Sharp.Xmpp.Core;
 
 namespace Sharp.Xmpp.Extensions
 {
