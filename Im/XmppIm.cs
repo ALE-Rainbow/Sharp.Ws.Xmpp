@@ -12,7 +12,7 @@ using System.Security.Authentication;
 using System.Xml;
 
 using Microsoft.Extensions.Logging;
-
+using System.Net;
 
 namespace Sharp.Xmpp.Im
 {
@@ -41,16 +41,16 @@ namespace Sharp.Xmpp.Im
         /// </summary>
         private ISet<XmppExtension> extensions = new HashSet<XmppExtension>();
 
-        public Tuple<String, String, String> WebProxyInfo
+        public WebProxy WebProxy
         {
             get
             {
-                return core.WebProxyInfo;
+                return core.WebProxy;
             }
 
             set
             {
-                core.WebProxyInfo = value;
+                core.WebProxy = value;
             }
         }
 

@@ -39,7 +39,7 @@ namespace Sharp.Xmpp.Core
         private BlockingCollection<Iq> iqMessagesReceived;
         private HashSet<String> iqIdList;
 
-        private Tuple<String, String, String> webProxyInfo = null;
+        private WebProxy webProxy = null;
 
         private ClientWebSocket clientWebSocket = null;
 
@@ -49,7 +49,7 @@ namespace Sharp.Xmpp.Core
             private set;
         }
 
-        public WebSocket(String uri, Tuple<String, String, String> webProxyInfo, string loggerPrefix = null)
+        public WebSocket(String uri, WebProxy webProxy, string loggerPrefix = null)
         {
             log = LogFactory.CreateLogger<WebSocket>(loggerPrefix);
             logWebRTC = LogFactory.CreateWebRTCLogger(loggerPrefix);
@@ -58,7 +58,7 @@ namespace Sharp.Xmpp.Core
             this.uri = uri;
             rootElement = false;
 
-            this.webProxyInfo = webProxyInfo;
+            this.webProxy = webProxy;
 
             actionsToPerform = new BlockingCollection<string>(new ConcurrentQueue<string>());
             messagesToSend = new BlockingCollection<string>(new ConcurrentQueue<string>());
@@ -125,16 +125,7 @@ namespace Sharp.Xmpp.Core
 #endif
 
             // Manage proxy configuration
-            if (webProxyInfo == null)
-                clientWebSocket.Options.Proxy = null;
-            else
-            {
-                log.LogDebug("[CreateAndManageWebSocket] Web Proxy Info:[{0}]", webProxyInfo?.Item1);
-                WebProxy proxy = new WebProxy(webProxyInfo.Item1);
-                if(!String.IsNullOrEmpty(webProxyInfo.Item2))
-                    proxy.Credentials = new NetworkCredential(webProxyInfo.Item2, webProxyInfo.Item3);
-                clientWebSocket.Options.Proxy = proxy;
-            }
+            clientWebSocket.Options.Proxy = webProxy;
 
             try
             {

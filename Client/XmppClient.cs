@@ -9,6 +9,7 @@ using Sharp.Xmpp.Extensions;
 using Sharp.Xmpp.Im;
 
 using Microsoft.Extensions.Logging;
+using System.Net;
 
 namespace Sharp.Xmpp.Client
 {
@@ -226,16 +227,16 @@ namespace Sharp.Xmpp.Client
         /// </summary>
         private StreamManagement streamManagement;
 
-        public Tuple<String, String, String> WebProxyInfo
+        public WebProxy WebProxy
         {
             get
             {
-                return im.WebProxyInfo;
+                return im.WebProxy;
             }
 
             set
             {
-                im.WebProxyInfo = value;
+                im.WebProxy = value;
             }
         }
 

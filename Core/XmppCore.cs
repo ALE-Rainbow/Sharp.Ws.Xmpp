@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 using System.Xml;
 
 using Microsoft.Extensions.Logging;
-
+using System.Net;
 
 namespace Sharp.Xmpp.Core
 {
@@ -78,9 +78,9 @@ namespace Sharp.Xmpp.Core
         private bool disposed;
 
         /// <summary>
-        /// The URI to use for the proxy
+        /// WebProxy to use
         /// </summary>
-        public Tuple<String, String, String> WebProxyInfo = null;
+        public WebProxy WebProxy = null;
 
         /// <summary>
         /// True if web socket is used
@@ -631,7 +631,7 @@ namespace Sharp.Xmpp.Core
                         webSocketClient = null;
                     }
 
-                    webSocketClient = new WebSocket(WebSocketUri, WebProxyInfo, loggerPrefix);
+                    webSocketClient = new WebSocket(WebSocketUri, WebProxy, loggerPrefix);
                     webSocketClient.WebSocketOpened += new EventHandler(WebSocketClient_WebSocketOpened);
                     webSocketClient.WebSocketClosed += new EventHandler(WebSocketClient_WebSocketClosed);
 
@@ -640,13 +640,15 @@ namespace Sharp.Xmpp.Core
                 else
                 {
                     Uri proxyUri = null;
-                    if ( (WebProxyInfo != null) && (!String.IsNullOrEmpty(WebProxyInfo.Item1)) )
-                        proxyUri = new Uri(WebProxyInfo.Item1);
+                    
+                    if ( (WebProxy != null) && (WebProxy.Address != null) )
+                        proxyUri = WebProxy.Address;
 
                     if(proxyUri != null)
                         tcpClient = new TcpClient(proxyUri.DnsSafeHost, proxyUri.Port);
                     else
                         tcpClient = new TcpClient();
+
 
                     tcpClient.Connect(Address, Port);
                     stream = tcpClient.GetStream();
