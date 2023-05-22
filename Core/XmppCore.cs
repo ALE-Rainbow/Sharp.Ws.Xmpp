@@ -1935,7 +1935,8 @@ namespace Sharp.Xmpp.Core
             string id = iq.Id;
             AutoResetEvent ev;
             Action<string, Iq> cb;
-            iqResponses[id] = iq;
+            if (!useWebSocket)
+                iqResponses[id] = iq;
             // Signal the event if it's a blocking call.
             if (waitHandles.TryRemove(id, out ev))
                 ev.Set();
