@@ -343,7 +343,7 @@ namespace Sharp.Xmpp.Extensions
         private string Sha1(string s)
         {
             s.ThrowIfNull("s");
-            using (var sha1 = new SHA1Managed())
+            using (var sha1 = SHA1.Create())
             {
                 byte[] hash = sha1.ComputeHash(Encoding.UTF8.GetBytes(s));
                 StringBuilder builder = new StringBuilder();

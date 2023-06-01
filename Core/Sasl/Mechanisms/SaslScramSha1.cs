@@ -349,7 +349,7 @@ namespace Sharp.Xmpp.Core.Sasl.Mechanisms
         /// <returns>The hash value for the specified byte array.</returns>
         private byte[] H(byte[] data)
         {
-            using (var sha1 = new SHA1Managed())
+            using (var sha1 = SHA1.Create())
             {
                 return sha1.ComputeHash(data);
             }

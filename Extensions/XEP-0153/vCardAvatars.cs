@@ -144,7 +144,7 @@ namespace Sharp.Xmpp.Extensions
         private string Hash(byte[] data)
         {
             data.ThrowIfNull("data");
-            using (var sha1 = new SHA1Managed())
+            using (var sha1 = SHA1.Create())
             {
                 return Convert.ToBase64String(sha1.ComputeHash(data));
             }

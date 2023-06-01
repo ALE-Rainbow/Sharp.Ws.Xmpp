@@ -23,8 +23,7 @@ namespace Sharp.Xmpp.Extensions.Stun
         /// <summary>
         /// The crypto provider for generating random transaction ids.
         /// </summary>
-        private static RNGCryptoServiceProvider cryptoProvider =
-            new RNGCryptoServiceProvider();
+        private readonly static RandomNumberGenerator cryptoProvider = RandomNumberGenerator.Create();
 
         /// <summary>
         /// The transaction id of the binding request.
