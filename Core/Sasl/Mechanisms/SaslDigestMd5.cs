@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Specialized;
-using System.Security.Cryptography;
 using System.Text;
 
 namespace Sharp.Xmpp.Core.Sasl.Mechanisms
