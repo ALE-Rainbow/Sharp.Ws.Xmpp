@@ -24,7 +24,7 @@ namespace Sharp.Xmpp.Extensions
             get
             {
                 XmlNode node = ErrorNode;
-                string v = node == null ? null : node.Attributes?[byAttribute]?.Value;
+                string v = node?.Attributes?[byAttribute]?.Value;
                 return string.IsNullOrEmpty(v) ? null : new Jid(v);
             }
         }
@@ -39,11 +39,10 @@ namespace Sharp.Xmpp.Extensions
                 // It's possible for the error tag to be either inside or outside the x tag.
                 string errorTypeString = ErrorNode?.Attributes?[typeAttribute]?.Value;
 
-                ErrorType error;
                 const bool ignoreCase = true;
 
                 // It should always parse, otherwise the message doesn't meet the protocol.
-                if (string.IsNullOrEmpty(errorTypeString) || !Enum.TryParse(errorTypeString, ignoreCase, out error))
+                if (string.IsNullOrEmpty(errorTypeString) || !Enum.TryParse(errorTypeString, ignoreCase, out ErrorType error))
                     error = ErrorType.Cancel;
 
                 return error;
@@ -62,11 +61,10 @@ namespace Sharp.Xmpp.Extensions
                 // It's possible for the error tag to be either inside or outside the x tag.
                 string nodeName = ErrorNode?.FirstChild?.Name?.Replace(allDashses, string.Empty);
 
-                ErrorCondition reason;
                 const bool ignoreCase = true;
 
                 // It should always parse, otherwise the message doesn't meet the protocol.
-                if (string.IsNullOrEmpty(nodeName) || !Enum.TryParse(nodeName, ignoreCase, out reason))
+                if (string.IsNullOrEmpty(nodeName) || !Enum.TryParse(nodeName, ignoreCase, out ErrorCondition reason))
                     reason = ErrorCondition.BadRequest;
 
                 return reason;

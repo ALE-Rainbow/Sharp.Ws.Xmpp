@@ -15,18 +15,18 @@ namespace Sharp.Xmpp.Core
         /// <summary>
         /// The reader that provides the fast-forward access to the XML stream.
         /// </summary>
-        private XmlReader reader;
+        private readonly XmlReader reader;
 
         /// <summary>
         /// If true, the stream is not closed when the StreamParser instance is
         /// disposed of.
         /// </summary>
-        private bool leaveOpen;
+        private readonly bool leaveOpen;
 
         /// <summary>
         /// The stream on which the reader operates.
         /// </summary>
-        private Stream stream;
+        private readonly Stream stream;
 
         /// <summary>
         /// The default language of any human-readable XML character send over
@@ -99,7 +99,7 @@ namespace Sharp.Xmpp.Core
             {
                 inner.Read();
                 string xml = inner.ReadOuterXml();
-                XmlDocument doc = new XmlDocument();
+                XmlDocument doc = new();
                 using (var sr = new StringReader(xml))
                 using (var xtr = new XmlTextReader(sr))
                     doc.Load(xtr);

@@ -201,7 +201,7 @@ namespace Sharp.Xmpp
         /// <returns>The XML element name of the specified error condition.</returns>
         private string ErrorConditionToTagName(ErrorCondition condition)
         {
-            StringBuilder b = new StringBuilder();
+            StringBuilder b = new();
             string s = condition.ToString();
             for (int i = 0; i < s.Length; i++)
             {

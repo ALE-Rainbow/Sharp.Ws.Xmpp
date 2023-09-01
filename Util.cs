@@ -56,7 +56,7 @@ namespace Sharp.Xmpp
             {
                 try
                 {
-                    StackTrace stackTrace = new StackTrace(exception, true);
+                    StackTrace stackTrace = new(exception, true);
                     String fileNames = stackTrace.GetFrame((stackTrace.FrameCount - 1)).GetFileName();
                     Int32 lineNumber = stackTrace.GetFrame((stackTrace.FrameCount - 1)).GetFileLineNumber();
                     MethodBase methodBase = stackTrace.GetFrame((stackTrace.FrameCount - 1)).GetMethod();

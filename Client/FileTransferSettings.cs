@@ -13,12 +13,12 @@ namespace Sharp.Xmpp.Client
         /// <summary>
         /// A reference to the Socks5Bytestreams extension.
         /// </summary>
-        private Socks5Bytestreams socks5;
+        private readonly Socks5Bytestreams socks5;
 
         /// <summary>
         /// A reference to the SIFileTransfer extension.
         /// </summary>
-        private SIFileTransfer siFileTransfer;
+        private readonly SIFileTransfer siFileTransfer;
 
         /// <summary>
         /// Determines whether usage of a SOCKS5 proxy server is allowed.

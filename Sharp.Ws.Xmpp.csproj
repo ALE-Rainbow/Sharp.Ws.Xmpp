@@ -4,6 +4,7 @@
     <TargetFrameworks>netstandard2.0;netstandard2.1;net6.0</TargetFrameworks>
 	<AssemblyName>Sharp.Ws.Xmpp</AssemblyName>
 	<RootNamespace>Sharp.Xmpp</RootNamespace>
+	<LangVersion>10</LangVersion>
     <Version>2.6.17.11</Version>
     <Authors>Christophe Irles</Authors>
     <Company>ALE International</Company>

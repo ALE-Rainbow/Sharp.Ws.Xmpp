@@ -115,17 +115,17 @@ namespace Sharp.Xmpp.Extensions
         /// Determines whether the XMPP entity with the specified JID supports the
         /// specified XMPP extension.
         /// </summary>
-        /// <typeparam name="T">The XMPP extension to probe for.</typeparam>
+        /// <param name="xmppExtension">The XMPP extension to probe for.</param>
         /// <param name="jid">The JID of the XMPP entity.</param>
         /// <returns>true if the XMPP entity with the specified JID supports the
         /// specified XMPP extension; Otherwise false.</returns>
         /// <exception cref="ArgumentNullException">The jid parameter is null.</exception>
         /// <exception cref="NotSupportedException">The XMPP entity with the specified
         /// JID does not support querying of feature information.</exception>
-        public bool Supports<T>(Jid jid) where T : XmppExtension
+        public bool Supports(XmppExtension xmppExtension, Jid jid)
         {
             jid.ThrowIfNull("jid");
-            T ext = im.GetExtension<T>();
+            var ext = im.GetExtension(xmppExtension.GetType());
             return Supports(jid, ext.Xep);
         }
 
@@ -348,7 +348,7 @@ namespace Sharp.Xmpp.Extensions
                     continue;
                 try
                 {
-                    Jid itemJid = new Jid(_jid);
+                    Jid itemJid = new(_jid);
                     items.Add(new Item(itemJid, String.IsNullOrEmpty(node) ? null : node,
                         String.IsNullOrEmpty(name) ? null : name));
                 }

@@ -105,7 +105,7 @@ namespace Sharp.Xmpp.Extensions.Socks5
             {
                 byte[] bytes = request.Serialize();
                 stream.Write(bytes, 0, bytes.Length);
-                ByteBuilder b = new ByteBuilder();
+                ByteBuilder b = new();
                 using (var r = new BinaryReader(stream, Encoding.UTF8, true))
                 {
                     bytes = r.ReadBytes(4);
@@ -240,11 +240,9 @@ namespace Sharp.Xmpp.Extensions.Socks5
                 // Get rid of managed resources.
                 if (disposing)
                 {
-                    if (stream != null)
-                        stream.Dispose();
+                    stream?.Dispose();
                     stream = null;
-                    if (client != null)
-                        client.Close();
+                    client?.Close();
                     client = null;
                 }
                 // Get rid of unmanaged resources.

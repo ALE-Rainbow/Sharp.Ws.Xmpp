@@ -18,17 +18,17 @@ namespace Sharp.Xmpp.Extensions.Dataforms
         /// <summary>
         /// The underlying XML element used for implementing the collection.
         /// </summary>
-        private XmlElement element;
+        private readonly XmlElement element;
 
         /// <summary>
         /// The tag name of a single collection item.
         /// </summary>
-        private string tag;
+        private readonly string tag;
 
         /// <summary>
         /// A callback for converting an XML element into the specified type.
         /// </summary>
-        private Func<XmlElement, T> conversion;
+        private readonly Func<XmlElement, T> conversion;
 
         /// <summary>
         /// Gets the number of elements in the collection.

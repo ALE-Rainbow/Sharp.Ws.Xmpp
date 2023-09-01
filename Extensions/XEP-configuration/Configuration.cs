@@ -183,7 +183,7 @@ namespace Sharp.Xmpp.Extensions
 
                     string conversationID = e.GetAttribute("id");
                     string action = e.GetAttribute("action"); // 'create', 'update', 'delete'
-                    Dictionary<string, string> data = new Dictionary<string, string>();
+                    Dictionary<string, string> data = new();
 
                     if (e["type"] != null)
                         data.Add("type", e["type"].InnerText);

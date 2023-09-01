@@ -20,12 +20,12 @@ namespace Sharp.Xmpp.Extensions
         /// <summary>
         /// A dictionary for caching the 'ver' hash of each JID.
         /// </summary>
-        private IDictionary<Jid, string> hashes = new Dictionary<Jid, string>();
+        private readonly IDictionary<Jid, string> hashes = new Dictionary<Jid, string>();
 
         /// <summary>
         /// A dictionary of cached features.
         /// </summary>
-        private IDictionary<string, IEnumerable<Extension>> cachedFeatures =
+        private readonly IDictionary<string, IEnumerable<Extension>> cachedFeatures =
             new Dictionary<string, IEnumerable<Extension>>();
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace Sharp.Xmpp.Extensions
         public override void Initialize()
         {
             // Get a reference to the SDisco extension.
-            sdisco = im.GetExtension<ServiceDiscovery>();
+            sdisco = im.GetExtension(typeof(ServiceDiscovery)) as ServiceDiscovery;
         }
 
         /// <summary>
@@ -86,8 +86,7 @@ namespace Sharp.Xmpp.Extensions
             var c = stanza.Data["c"];
             if (c == null || c.NamespaceURI != "http://jabber.org/protocol/caps")
                 return false;
-            string hash = c.GetAttribute("hash"), ver = c.GetAttribute("ver"),
-                node = c.GetAttribute("node");
+            string hash = c.GetAttribute("hash"), ver = c.GetAttribute("ver"); //,node = c.GetAttribute("node");
             if (String.IsNullOrEmpty(hash) || String.IsNullOrWhiteSpace(ver))
                 return false;
             hashes[stanza.From] = ver;
@@ -159,7 +158,7 @@ namespace Sharp.Xmpp.Extensions
         /// Determines whether the XMPP entity with the specified JID supports the
         /// specified XMPP extension.
         /// </summary>
-        /// <typeparam name="T">The XMPP extension to probe for.</typeparam>
+        /// <param name="xmppExtension">The XMPP extension to probe for.</param>
         /// <param name="jid">The JID of the XMPP entity.</param>
         /// <returns>true if the XMPP entity with the specified JID supports the
         /// specified XMPP extension; Otherwise false.</returns>
@@ -168,10 +167,10 @@ namespace Sharp.Xmpp.Extensions
         /// <exception cref="NotSupportedException">The XMPP entity with
         /// the specified JID does not support querying of feature
         /// information.</exception>
-        public bool Supports<T>(Jid jid) where T : XmppExtension
+        public bool Supports(XmppExtension xmppExtension, Jid jid)
         {
             jid.ThrowIfNull("jid");
-            T ext = im.GetExtension<T>();
+            var ext = im.GetExtension(xmppExtension.GetType());
             return Supports(jid, ext.Xep);
         }
 
@@ -246,9 +245,9 @@ namespace Sharp.Xmpp.Extensions
         private string GenerateVerificationString()
         {
             Identity ident = sdisco.Identity;
-            StringBuilder s = new StringBuilder(ident.Category + "/" +
+            StringBuilder s = new(ident.Category + "/" +
                 ident.Type + "//" + ident.Name + "<");
-            List<string> list = new List<string>(sdisco.Features);
+            List<string> list = new(sdisco.Features);
             list.Sort();
             foreach (string xmlns in list)
                 s.Append(xmlns + "<");

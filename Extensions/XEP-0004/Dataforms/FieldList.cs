@@ -14,12 +14,12 @@ namespace Sharp.Xmpp.Extensions.Dataforms
         /// <summary>
         /// The underlying XML element of the data-form.
         /// </summary>
-        private XmlElement element;
+        private readonly XmlElement element;
 
         /// <summary>
         /// Determines whether the collection of data-fields is read-only.
         /// </summary>
-        private bool readOnly;
+        private readonly bool readOnly;
 
         /// <summary>
         /// Gets the number of elements contained in the list of data-fields.
@@ -349,7 +349,7 @@ namespace Sharp.Xmpp.Extensions.Dataforms
         private DataFieldType AttributeValueToType(string value)
         {
             value.ThrowIfNull("value");
-            StringBuilder b = new StringBuilder();
+            StringBuilder b = new();
             string s = value;
             for (int i = 0; i < s.Length; i++)
             {

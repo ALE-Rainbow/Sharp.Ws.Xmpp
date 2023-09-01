@@ -108,13 +108,11 @@ namespace Sharp.Xmpp.Extensions
             Read = read;
             Type = type;
 
-            DateTime result;
-            if (!DateTime.TryParse(timeStamp, out result))
+            if (!DateTime.TryParse(timeStamp, out DateTime result))
                 result = DateTime.Now;
             TimeStamp = result;
 
-            Int32 _duration;
-            if(!Int32.TryParse(duration, out _duration))
+            if (!Int32.TryParse(duration, out int _duration))
                 _duration = 0;
             Duration = _duration;
         }

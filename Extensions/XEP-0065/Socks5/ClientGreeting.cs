@@ -19,7 +19,7 @@ namespace Sharp.Xmpp.Extensions.Socks5
         /// <summary>
         /// A set of authentication methods advertised to the server.
         /// </summary>
-        private HashSet<AuthMethod> methods = new HashSet<AuthMethod>();
+        private readonly HashSet<AuthMethod> methods = new();
 
         /// <summary>
         /// An enumerable collection of authentication methods.
@@ -63,7 +63,7 @@ namespace Sharp.Xmpp.Extensions.Socks5
             buffer.ThrowIfNull("buffer");
             using (var ms = new MemoryStream(buffer))
             {
-                using (BinaryReader r = new BinaryReader(ms))
+                using (BinaryReader r = new(ms))
                 {
                     if (r.ReadByte() != version)
                         throw new SerializationException("Invalid SOCKS5 greeting.");

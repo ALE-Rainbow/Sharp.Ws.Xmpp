@@ -12,7 +12,7 @@ namespace Sharp.Xmpp.Im
         /// <summary>
         /// The groups this roster item is part of.
         /// </summary>
-        private ISet<string> groups = new HashSet<string>();
+        private readonly ISet<string> groups = new HashSet<string>();
 
         /// <summary>
         /// The JID of the user this item is associated with.

@@ -24,7 +24,7 @@ namespace Sharp.Xmpp.Extensions
         {
             get
             {
-                return GroupJid == null ? null : GroupJid.Resource;
+                return GroupJid?.Resource;
             }
         }
 

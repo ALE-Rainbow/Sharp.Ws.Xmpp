@@ -1736,8 +1736,10 @@ namespace Sharp.Xmpp.Client
         /// <param name="messageId">The ID of the message to mark as read</param>
         public void MarkMessageAsRead(Jid jid, string messageId, MessageType messageType)
         {
-            Message message = new Message(jid);
-            message.Type = messageType;
+            Message message = new(jid)
+            {
+                Type = messageType
+            };
 
             XmlElement e = message.Data;
 
@@ -1761,8 +1763,10 @@ namespace Sharp.Xmpp.Client
         /// <param name="messageId">The ID of the message to mark as read</param>
         public void MarkMessageAsReceive(Jid jid, string messageId, MessageType messageType)
         {
-            Message message = new Message(jid);
-            message.Type = messageType;
+            Message message = new(jid)
+            {
+                Type = messageType
+            };
 
             XmlElement e = message.Data;
 
@@ -2671,8 +2675,7 @@ namespace Sharp.Xmpp.Client
                         privacyList = list;
                 }
                 // If 'blocklist' doesn't exist, create it and set it as default.
-                if (privacyList == null)
-                    privacyList = new PrivacyList("blocklist");
+                privacyList ??= new PrivacyList("blocklist");
                 privacyList.Add(new JidPrivacyRule(jid, false, 0), true);
                 // Save the privacy list and activate it.
                 im.EditPrivacyList(privacyList);
@@ -3013,8 +3016,7 @@ namespace Sharp.Xmpp.Client
                 // Get rid of managed resources.
                 if (disposing)
                 {
-                    if (im != null)
-                        im.Close(normalClosure);
+                    im?.Close(normalClosure);
                     im = null;
                 }
                 // Get rid of unmanaged resources.
@@ -3044,51 +3046,50 @@ namespace Sharp.Xmpp.Client
         /// </summary>
         private void LoadExtensions()
         {
-            version = im.LoadExtension<SoftwareVersion>(loggerPrefix);
-            sdisco = im.LoadExtension<ServiceDiscovery>(loggerPrefix);
-            ecapa = im.LoadExtension<EntityCapabilities>(loggerPrefix);
+            // First create all extensions (after load them)
+            im.AddExtension(version = new SoftwareVersion(im, loggerPrefix));
+            im.AddExtension(sdisco = new ServiceDiscovery(im, loggerPrefix));
+            im.AddExtension(ecapa = new EntityCapabilities(im, loggerPrefix));
 
-            streamManagement = im.LoadExtension<StreamManagement>(loggerPrefix);
-            ping = im.LoadExtension<Ping>(loggerPrefix);
+            im.AddExtension(streamManagement = new StreamManagement(im, loggerPrefix));
+            im.AddExtension(ping = new Ping(im, loggerPrefix));
 
-            attention = im.LoadExtension<Attention>(loggerPrefix);
-            time = im.LoadExtension<EntityTime>(loggerPrefix);
-            block = im.LoadExtension<BlockingCommand>(loggerPrefix);
-            pep = im.LoadExtension<Pep>(loggerPrefix);
-            userTune = im.LoadExtension<UserTune>(loggerPrefix);
+            im.AddExtension(attention = new Attention(im, loggerPrefix));
+            im.AddExtension(time = new EntityTime(im, loggerPrefix));
+            im.AddExtension(block = new BlockingCommand(im, loggerPrefix));
+            im.AddExtension(pep = new Pep(im, loggerPrefix));
+            im.AddExtension(userTune = new UserTune(im, loggerPrefix));
 
-            userMood = im.LoadExtension<UserMood>(loggerPrefix);
-            dataForms = im.LoadExtension<DataForms>(loggerPrefix);
-            featureNegotiation = im.LoadExtension<FeatureNegotiation>(loggerPrefix);
-            streamInitiation = im.LoadExtension<StreamInitiation>(loggerPrefix);
-            userActivity = im.LoadExtension<UserActivity>(loggerPrefix);
+            im.AddExtension(userMood = new UserMood(im, loggerPrefix));
+            im.AddExtension(dataForms = new DataForms(im, loggerPrefix));
+            im.AddExtension(featureNegotiation = new FeatureNegotiation(im, loggerPrefix));
+            im.AddExtension(streamInitiation = new StreamInitiation(im, loggerPrefix));
+            im.AddExtension(userActivity = new UserActivity(im, loggerPrefix));
 
-            socks5Bytestreams = im.LoadExtension<Socks5Bytestreams>(loggerPrefix);
-            inBandBytestreams = im.LoadExtension<InBandBytestreams>(loggerPrefix);
-            siFileTransfer = im.LoadExtension<SIFileTransfer>(loggerPrefix);
-            FileTransferSettings = new FileTransferSettings(socks5Bytestreams,
-                siFileTransfer);
-            
-            serverIpCheck = im.LoadExtension<ServerIpCheck>(loggerPrefix);
-            messageCarbons = im.LoadExtension<MessageCarbons>(loggerPrefix);
-            inBandRegistration = im.LoadExtension<InBandRegistration>(loggerPrefix);
-            chatStateNotifications = im.LoadExtension<ChatStateNotifications>(loggerPrefix);
-            bitsOfBinary = im.LoadExtension<BitsOfBinary>(loggerPrefix);
-            vcardAvatars = im.LoadExtension<VCardAvatars>(loggerPrefix);
-            cusiqextension = im.LoadExtension<CustomIqExtension>(loggerPrefix);
-            groupChat = im.LoadExtension<MultiUserChat>(loggerPrefix);
-            mam = im.LoadExtension<MessageArchiveManagment>(loggerPrefix);
+            im.AddExtension(socks5Bytestreams = new Socks5Bytestreams(im, loggerPrefix));
+            im.AddExtension(inBandBytestreams = new InBandBytestreams(im, loggerPrefix));
+            im.AddExtension(siFileTransfer = new SIFileTransfer(im, loggerPrefix));
+            FileTransferSettings = new FileTransferSettings(socks5Bytestreams, siFileTransfer);
 
-            jingleMessageInitiation = im.LoadExtension<JingleMessageInitiation>(loggerPrefix);
-            configuration = im.LoadExtension<Configuration>(loggerPrefix);
-            rainbow = im.LoadExtension<Rainbow>(loggerPrefix);
-            conference = im.LoadExtension<Conference>(loggerPrefix);
-            adHocCommand = im.LoadExtension<AdHocCommand>(loggerPrefix);
-            callLog = im.LoadExtension<CallLog>(loggerPrefix);
-            cap = im.LoadExtension<Cap>(loggerPrefix);
-            msgDeliveryReceipt = im.LoadExtension<MessageDeliveryReceipts>(loggerPrefix);
-            callService = im.LoadExtension<CallService>(loggerPrefix);
-            
+            im.AddExtension(serverIpCheck = new ServerIpCheck(im, loggerPrefix));
+            im.AddExtension(messageCarbons = new MessageCarbons(im, loggerPrefix));
+            im.AddExtension(inBandRegistration = new InBandRegistration(im, loggerPrefix));
+            im.AddExtension(chatStateNotifications = new ChatStateNotifications(im, loggerPrefix));
+            im.AddExtension(bitsOfBinary = new BitsOfBinary(im, loggerPrefix));
+            im.AddExtension(vcardAvatars = new VCardAvatars(im, loggerPrefix));
+            im.AddExtension(cusiqextension = new CustomIqExtension(im, loggerPrefix));
+            im.AddExtension(groupChat = new MultiUserChat(im, loggerPrefix));
+            im.AddExtension(mam = new MessageArchiveManagment(im, loggerPrefix));
+
+            im.AddExtension(jingleMessageInitiation = new JingleMessageInitiation(im, loggerPrefix));
+            im.AddExtension(configuration = new Configuration(im, loggerPrefix));
+            im.AddExtension(rainbow = new Rainbow(im, loggerPrefix));
+            im.AddExtension(conference = new Conference(im, loggerPrefix));
+            im.AddExtension(adHocCommand = new AdHocCommand(im, loggerPrefix));
+            im.AddExtension(callLog = new CallLog(im, loggerPrefix));
+            im.AddExtension(cap = new Cap(im, loggerPrefix));
+            im.AddExtension(msgDeliveryReceipt = new MessageDeliveryReceipts(im, loggerPrefix));
+            im.AddExtension(callService = new CallService(im, loggerPrefix));
         }
     }
 }

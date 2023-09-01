@@ -84,7 +84,7 @@ namespace Sharp.Xmpp
             // Can't use e.OuterXml because it "messes up" namespaces for elements with
             // a prefix, i.e. stream:stream (What it does is probably correct, but just
             // not what we need for XMPP).
-            StringBuilder b = new StringBuilder("<" + e.Name);
+            StringBuilder b = new("<" + e.Name);
             if (!String.IsNullOrEmpty(e.NamespaceURI))
                 b.Append(" xmlns='" + e.NamespaceURI + "'");
             foreach (XmlAttribute a in e.Attributes)

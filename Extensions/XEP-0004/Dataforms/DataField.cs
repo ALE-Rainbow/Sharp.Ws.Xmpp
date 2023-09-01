@@ -253,7 +253,7 @@ namespace Sharp.Xmpp.Extensions.Dataforms
         /// <returns>A string representing the specified value.</returns>
         private string TypeToAttributeValue(DataFieldType type)
         {
-            StringBuilder b = new StringBuilder();
+            StringBuilder b = new();
             string s = type.ToString();
             for (int i = 0; i < s.Length; i++)
             {
@@ -279,7 +279,7 @@ namespace Sharp.Xmpp.Extensions.Dataforms
         private DataFieldType AttributeValueToType(string value)
         {
             value.ThrowIfNull("value");
-            StringBuilder b = new StringBuilder();
+            StringBuilder b = new();
             string s = value;
             for (int i = 0; i < s.Length; i++)
             {

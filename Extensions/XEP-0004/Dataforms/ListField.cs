@@ -16,7 +16,7 @@ namespace Sharp.Xmpp.Extensions.Dataforms
         /// <summary>
         /// The options of the field.
         /// </summary>
-        private XmlCollection<Option> options;
+        private readonly XmlCollection<Option> options;
 
         /// <summary>
         /// Gets an enumerable collection of options.
@@ -37,7 +37,7 @@ namespace Sharp.Xmpp.Extensions.Dataforms
             get
             {
                 var v = element["value"];
-                return v != null ? v.InnerText : null;
+                return v?.InnerText;
             }
 
             private set

@@ -175,8 +175,7 @@ namespace Sharp.Xmpp.Extensions.Socks5
         /// <returns>A reference to the calling instance.</returns>
         public ByteBuilder Append(string value, Encoding encoding = null)
         {
-            if (encoding == null)
-                encoding = Encoding.ASCII;
+            encoding ??= Encoding.ASCII;
             byte[] bytes = encoding.GetBytes(value);
             if ((position + bytes.Length) >= buffer.Length)
                 Resize();

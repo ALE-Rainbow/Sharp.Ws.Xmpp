@@ -313,7 +313,7 @@ namespace Sharp.Xmpp.Extensions
         public void MarkCallLogAsRead(String callId)
         {
             string jid = im.Jid.Node + "@" + im.Jid.Domain;
-            Sharp.Xmpp.Im.Message message = new Sharp.Xmpp.Im.Message(jid);
+            Sharp.Xmpp.Im.Message message = new(jid);
 
             XmlElement e = message.Data;
 

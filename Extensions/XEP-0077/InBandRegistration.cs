@@ -14,11 +14,6 @@ namespace Sharp.Xmpp.Extensions
     internal class InBandRegistration : XmppExtension
     {
         /// <summary>
-        /// A reference to the 'Entity Capabilities' extension instance.
-        /// </summary>
-        private EntityCapabilities ecapa;
-
-        /// <summary>
         /// A reference to the 'Bits of Binary' extension instance.
         /// </summary>
         private BitsOfBinary bob;
@@ -53,8 +48,7 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         public override void Initialize()
         {
-            ecapa = im.GetExtension<EntityCapabilities>();
-            bob = im.GetExtension<BitsOfBinary>();
+            bob = im.GetExtension(typeof(BitsOfBinary)) as BitsOfBinary;
         }
 
         /// <summary>
@@ -168,9 +162,8 @@ namespace Sharp.Xmpp.Extensions
         /// element.</returns>
         private RequestForm CreateDataForm(XmlElement query)
         {
-            string instructions = query["instructions"] != null ?
-                query["instructions"].InnerText : null;
-            RequestForm form = new RequestForm(null, instructions);
+            string instructions = query["instructions"]?.InnerText;
+            RequestForm form = new(null, instructions);
             foreach (XmlElement child in query.ChildNodes)
             {
                 if (child.Name == "instructions")

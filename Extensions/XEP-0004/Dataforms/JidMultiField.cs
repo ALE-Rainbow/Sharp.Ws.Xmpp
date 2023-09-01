@@ -17,7 +17,7 @@ namespace Sharp.Xmpp.Extensions.Dataforms
         /// <summary>
         /// The values of the field.
         /// </summary>
-        private XmlCollection<Jid> values;
+        private readonly XmlCollection<Jid> values;
 
         /// <summary>
         /// Gets an enumerable collection of values set on the field.

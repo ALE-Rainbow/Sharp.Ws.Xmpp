@@ -11,7 +11,7 @@ namespace Sharp.Xmpp.Extensions.Dataforms
         /// <summary>
         /// The underlying XML element.
         /// </summary>
-        private XmlElement element;
+        private readonly XmlElement element;
 
         /// <summary>
         /// A human-readable name for the option.
@@ -41,7 +41,7 @@ namespace Sharp.Xmpp.Extensions.Dataforms
             get
             {
                 var v = element["value"];
-                return v != null ? v.InnerText : null;
+                return v?.InnerText;
             }
 
             private set

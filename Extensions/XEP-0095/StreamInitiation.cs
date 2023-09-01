@@ -21,7 +21,7 @@ namespace Sharp.Xmpp.Extensions
         /// <summary>
         /// A dictionary of registered profiles.
         /// </summary>
-        private IDictionary<string, Func<Jid, XmlElement, XmlElement>> profiles =
+        private readonly IDictionary<string, Func<Jid, XmlElement, XmlElement>> profiles =
             new Dictionary<string, Func<Jid, XmlElement, XmlElement>>();
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         public override void Initialize()
         {
-            ecapa = im.GetExtension<EntityCapabilities>();
+            ecapa = im.GetExtension(typeof(EntityCapabilities)) as EntityCapabilities;
         }
 
         /// <summary>
@@ -269,7 +269,7 @@ namespace Sharp.Xmpp.Extensions
             streamOptions.ThrowIfNull("streamOptions");
             // Create the data-form for stream-method selection.
             DataForm form = new RequestForm();
-            HashSet<Option> options = new HashSet<Option>();
+            HashSet<Option> options = new();
             foreach (string opt in streamOptions)
                 options.Add(new Option(opt));
             form.Fields.Add(new ListField("stream-method", true, null, null,
@@ -322,12 +322,8 @@ namespace Sharp.Xmpp.Extensions
             feature.ThrowIfNull("feature");
             DataForm form = FeatureNegotiation.Parse(feature);
             // The data-form must contain a field named 'stream-method'.
-            var field = form.Fields["stream-method"];
-            if (field == null)
-                throw new ArgumentException("Missing or erroneous 'stream-method' field.");
-            string selected = field.Values.FirstOrDefault();
-            if (selected == null)
-                throw new ArgumentException("No stream-method selected.");
+            var field = form.Fields["stream-method"] ?? throw new ArgumentException("Missing or erroneous 'stream-method' field.");
+            string selected = field.Values.FirstOrDefault() ?? throw new ArgumentException("No stream-method selected.");
             return selected;
         }
 

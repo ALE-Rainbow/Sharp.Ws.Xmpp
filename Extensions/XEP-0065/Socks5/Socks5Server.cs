@@ -17,7 +17,7 @@ namespace Sharp.Xmpp.Extensions.Socks5
         /// <summary>
         /// The underlying TCP listener.
         /// </summary>
-        private TcpListener listener;
+        private readonly TcpListener listener;
 
         /// <summary>
         /// The client connection.
@@ -147,8 +147,7 @@ namespace Sharp.Xmpp.Extensions.Socks5
         /// socket.</exception>
         public Socks5Server(int port, IPAddress localaddress = null)
         {
-            if (localaddress == null)
-                localaddress = IPAddress.Any;
+            localaddress ??= IPAddress.Any;
             listener = new TcpListener(localaddress, port);
             listener.Start();
             Port = port;
@@ -186,11 +185,9 @@ namespace Sharp.Xmpp.Extensions.Socks5
                 // Get rid of managed resources.
                 if (disposing)
                 {
-                    if (stream != null)
-                        stream.Dispose();
+                    stream?.Dispose();
                     stream = null;
-                    if (client != null)
-                        client.Close();
+                    client?.Close();
                     client = null;
                 }
                 // Get rid of unmanaged resources.
@@ -220,7 +217,7 @@ namespace Sharp.Xmpp.Extensions.Socks5
         /// operation timed out.</exception>
         private void PerformGreeting()
         {
-            ByteBuilder b = new ByteBuilder();
+            ByteBuilder b = new();
             using (var r = new BinaryReader(stream, Encoding.UTF8, true))
             {
                 byte[] bytes = r.ReadBytes(2);
@@ -248,7 +245,7 @@ namespace Sharp.Xmpp.Extensions.Socks5
         /// is not a valid SOCKS5 request.</exception>
         private SocksRequest WaitForRequest()
         {
-            ByteBuilder b = new ByteBuilder();
+            ByteBuilder b = new();
             using (var r = new BinaryReader(stream, Encoding.UTF8, true))
             {
                 byte[] bytes = r.ReadBytes(4);

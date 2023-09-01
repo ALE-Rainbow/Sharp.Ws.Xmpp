@@ -48,9 +48,9 @@ namespace Sharp.Xmpp.Core
         // if FATAL or FATAL_SPECIFIC, Need to close web socket, AutoReconnection service must be Stopped/Cancelled, Add log entry
         // else if WARN, Need to close web socket, AutoReconnection service continues its job (i.e. try to reconnect), Add log entry
         // else just Add log entry
-        private static List<String> STREAM_ERROR_FATAL = new List<String>() { "see-other-host", "conflict", "unsupported-version" };
-        private static List<(String, String)> STREAM_ERROR_FATAL_SPECIFIC = new List<(String, String)>() { ("policy-violation", "has been kicked"), ("resource-constraint", "max sessions reached") };
-        private static List<String> STREAM_ERROR_WARN = new List<String>() { "remote-connection-failed", "reset", "connection-timeout", "system-shutdown" };
+        private static readonly List<String> STREAM_ERROR_FATAL = new() { "see-other-host", "conflict", "unsupported-version" };
+        private static readonly List<(String, String)> STREAM_ERROR_FATAL_SPECIFIC = new() { ("policy-violation", "has been kicked"), ("resource-constraint", "max sessions reached") };
+        private static readonly List<String> STREAM_ERROR_WARN = new() { "remote-connection-failed", "reset", "connection-timeout", "system-shutdown" };
         //private static List<String> STREAM_ERROR_INFO = new List<string>() { "bad-format", "bad-namespace-prefix", "host-gone", "host-unknown", "improper-addressing", "internal-server-error", "invalid-from", "invalid-namespace", "invalid-xml", "not-authorized", "not-well-formed", "restricted-xml", "undefined-condition", "unsupported-encoding", "unsupported-feature", "unsupported-stanza-type" };
 
         /// <summary>
@@ -127,7 +127,7 @@ namespace Sharp.Xmpp.Core
         /// <summary>
         /// Write lock for the network stream.
         /// </summary>
-        private readonly object writeLock = new object();
+        private readonly object writeLock = new();
 
         /// <summary>
         /// The default Time Out for IQ Requests
@@ -142,41 +142,41 @@ namespace Sharp.Xmpp.Core
         /// <summary>
         /// A thread-safe dictionary of wait handles for pending IQ requests.
         /// </summary>
-        private ConcurrentDictionary<string, AutoResetEvent> waitHandles =
-            new ConcurrentDictionary<string, AutoResetEvent>();
+        private readonly ConcurrentDictionary<string, AutoResetEvent> waitHandles =
+            new();
 
         /// <summary>
         /// A thread-safe dictionary of IQ responses for pending IQ requests.
         /// </summary>
-        private ConcurrentDictionary<string, Iq> iqResponses =
-         new ConcurrentDictionary<string, Iq>();
+        private readonly ConcurrentDictionary<string, Iq> iqResponses =
+         new();
 
         /// <summary>
         /// A thread-safe dictionary of callback methods for asynchronous IQ requests.
         /// </summary>
-        private ConcurrentDictionary<string, Action<string, Iq>> iqCallbacks =
-         new ConcurrentDictionary<string, Action<string, Iq>>();
+        private readonly ConcurrentDictionary<string, Action<string, Iq>> iqCallbacks =
+         new();
 
         /// <summary>
         /// A cancellation token source that is set when the listener threads shuts
         /// down due to an exception.
         /// </summary>
-        private CancellationTokenSource cancelIq = new CancellationTokenSource();
+        private CancellationTokenSource cancelIq = new();
 
         /// <summary>
         /// A FIFO of stanzas waiting to be processed.
         /// </summary>
-        private BlockingCollection<Stanza> stanzaQueue = new BlockingCollection<Stanza>();
+        private readonly BlockingCollection<Stanza> stanzaQueue = new();
 
-        private BlockingCollection<Stanza> streamManagementStanzaQueue = new BlockingCollection<Stanza>();
+        private readonly BlockingCollection<Stanza> streamManagementStanzaQueue = new();
 
-        private BlockingCollection<Stanza>[] fullStanzaQueue;
+        private readonly BlockingCollection<Stanza>[] fullStanzaQueue;
          
 
         /// <summary>
         /// A cancellation token source for cancelling the dispatcher, if neccessary.
         /// </summary>
-        private CancellationTokenSource cancelDispatch = new CancellationTokenSource();
+        private CancellationTokenSource cancelDispatch = new();
 
         /// <summary>
         /// Is web socket used - false by default
@@ -500,10 +500,8 @@ namespace Sharp.Xmpp.Core
 
         public void SetLanguage()
         {
-            if(Language == null)
-                Language = webSocketClient.Language;
-            if (Language == null)
-                Language = new CultureInfo("en");
+            Language ??= webSocketClient.Language;
+            Language ??= new CultureInfo("en");
         }
 
         /// <summary>
@@ -850,8 +848,7 @@ namespace Sharp.Xmpp.Core
         {
             AssertValid();
             message.ThrowIfNull("message");
-            if (message.Id == null)
-                message.Id = GetId();
+            message.Id ??= GetId();
             Send(message);
         }
 
@@ -954,7 +951,7 @@ namespace Sharp.Xmpp.Core
         /// expired.</exception>
         public Iq IqRequest(Iq request, int millisecondsTimeout = -1)
         {
-            int timeOut = -1;
+            int timeOut;
             AssertValid();
             request.ThrowIfNull("request");
             if (request.Type != IqType.Set && request.Type != IqType.Get)
@@ -965,8 +962,7 @@ namespace Sharp.Xmpp.Core
             }
             else timeOut = millisecondsTimeout;
             // Generate a unique ID for the IQ request.
-            if(request.Id == null)
-                request.Id = GetId();
+            request.Id ??= GetId();
 
             if (useWebSocket)
             {
@@ -979,7 +975,7 @@ namespace Sharp.Xmpp.Core
             else
             {
                 //TODO: need to add time out ...
-                AutoResetEvent ev = new AutoResetEvent(false);
+                AutoResetEvent ev = new(false);
                 Send(request);
                 // Wait for event to be signaled by task that processes the incoming
                 // XML stream.
@@ -1011,8 +1007,7 @@ namespace Sharp.Xmpp.Core
                 if (index == 1)
                     throw new IOException("The incoming XML stream could not read.");
                 // Fetch response stanza.
-                Iq response;
-                if (iqResponses.TryRemove(request.Id, out response))
+                if (iqResponses.TryRemove(request.Id, out Iq response))
                     return response;
                 // Shouldn't happen.
 
@@ -1292,8 +1287,7 @@ namespace Sharp.Xmpp.Core
                 .Attr("xml:lang", CultureInfo.CurrentCulture.Name);
             Send(xml.ToXmlString(xmlDeclaration: true, leaveOpen: true), false);
             // Create a new parser instance.
-            if (parser != null)
-                parser.Close();
+            parser?.Close();
             parser = new StreamParser(stream, true);
             // Remember the default language of the stream. The server is required to
             // include this, but we make sure nonetheless.
@@ -1327,7 +1321,7 @@ namespace Sharp.Xmpp.Core
             SendAndReceive(Xml.Element("starttls",
                 "urn:ietf:params:xml:ns:xmpp-tls"), false, "proceed");
             // Complete TLS negotiation and switch to secure stream.
-            SslStream sslStream = new SslStream(stream, false, validate ??
+            SslStream sslStream = new(stream, false, validate ??
                 ((sender, cert, chain, err) => true));
             sslStream.AuthenticateAsClient(hostname);
             stream = sslStream;
@@ -1406,6 +1400,7 @@ namespace Sharp.Xmpp.Core
         {
             // Precedence: SCRAM-SHA-1, DIGEST-MD5, PLAIN.
             //string[] m = new string[] { "SCRAM-SHA-1", "DIGEST-MD5", "PLAIN" };
+            // ONLY PLAIN IS SUPPORTED - see also SaslFactory
             string[] m = new string[] { "PLAIN" };
             for (int i = 0; i < m.Length; i++)
             {
@@ -1695,7 +1690,7 @@ namespace Sharp.Xmpp.Core
                                     break;
                                 }
 
-                                Iq iq = new Iq(elem);
+                                Iq iq = new(elem);
                                 //log.LogDebug("iq.Id: " + iq.Id);
                                 if (webSocketClient.IsExpectedIqId(iq.Id))
                                 {
@@ -1768,15 +1763,15 @@ namespace Sharp.Xmpp.Core
                         }
 
                     }
-                    catch (Exception)
+                    catch (Exception exc)
                     {
-                        log.LogError("ReadXmlWebSocketMessage - ERROR");
+                        log.LogError($"ReadXmlWebSocketMessage - Exception:[{exc}");
                     }
                 }
             }
             catch (Exception e)
             {
-                log.LogError("ReadXmlWebSocketMessage - SUB_ERROR");
+                log.LogError($"ReadXmlWebSocketMessage - SUB_ERROR - Exception:[{e}");
 
                 // Shut down the dispatcher task.
                 cancelDispatch.Cancel();
@@ -1820,7 +1815,7 @@ namespace Sharp.Xmpp.Core
                     switch (elem.Name)
                     {
                         case "iq":
-                            Iq iq = new Iq(elem);
+                            Iq iq = new(elem);
                             if (iq.IsRequest)
                                 stanzaQueue.Add(iq);
                             else
@@ -1885,8 +1880,7 @@ namespace Sharp.Xmpp.Core
             {
                 try
                 {
-                    Stanza stanza;
-                    BlockingCollection<Stanza>.TakeFromAny(fullStanzaQueue, out stanza, cancelDispatch.Token);
+                    BlockingCollection<Stanza>.TakeFromAny(fullStanzaQueue, out Stanza stanza, cancelDispatch.Token);
 
                     //log.LogDebug("DispatchEvents - message:[{0}]", stanza.ToString());
                     if (stanza is Iq)
@@ -1933,15 +1927,13 @@ namespace Sharp.Xmpp.Core
         private void HandleIqResponse(Iq iq)
         {
             string id = iq.Id;
-            AutoResetEvent ev;
-            Action<string, Iq> cb;
             if (!useWebSocket)
                 iqResponses[id] = iq;
             // Signal the event if it's a blocking call.
-            if (waitHandles.TryRemove(id, out ev))
+            if (waitHandles.TryRemove(id, out AutoResetEvent ev))
                 ev.Set();
             // Call the callback if it's an asynchronous call.
-            else if (iqCallbacks.TryRemove(id, out cb))
+            else if (iqCallbacks.TryRemove(id, out Action<string, Iq> cb))
                 Task.Factory.StartNew(() => 
                 { 
                     cb(id, iq); 

@@ -47,7 +47,7 @@ namespace Sharp.Xmpp.Extensions
             get
             {
                 XmlElement node = InviteElement;
-                string v = node == null ? null : node.GetAttribute(toAttribute);
+                string v = node?.GetAttribute(toAttribute);
 
                 return String.IsNullOrEmpty(v) ? null : new Jid(v);
             }
@@ -69,7 +69,7 @@ namespace Sharp.Xmpp.Extensions
             get
             {
                 XmlElement node = InviteElement;
-                string v = node == null ? null : node.GetAttribute(fromAttribute);
+                string v = node?.GetAttribute(fromAttribute);
 
                 return String.IsNullOrEmpty(v) ? null : new Jid(v);
             }
@@ -91,7 +91,7 @@ namespace Sharp.Xmpp.Extensions
             get
             {
                 XmlElement invite = ReasonElement;
-                return invite == null ? null : invite.InnerText;
+                return invite?.InnerText;
             }
 
             set
@@ -109,7 +109,7 @@ namespace Sharp.Xmpp.Extensions
             get
             {
                 XmlElement node = PasswordElement;
-                return node == null ? null : node.InnerText;
+                return node?.InnerText;
             }
 
             set
@@ -139,7 +139,7 @@ namespace Sharp.Xmpp.Extensions
 
         internal static bool IsElement(Core.Message message)
         {
-            Invite temp = new Invite(message);
+            Invite temp = new(message);
             return temp?.XElement?.NamespaceURI == MucNs.NsUser && temp?.InviteElement != null;
         }
     }

@@ -22,7 +22,7 @@ namespace Sharp.Xmpp.Extensions
 
         public override void Initialize()
         {
-            ecapa = im.GetExtension<EntityCapabilities>();
+            ecapa = im.GetExtension(typeof(EntityCapabilities)) as EntityCapabilities;
         }
 
         public void EnableCarbons(bool enable = true)

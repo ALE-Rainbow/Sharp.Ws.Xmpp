@@ -35,9 +35,14 @@ namespace Sharp.Xmpp.Core.Sasl
                 throw new SaslException("A Sasl mechanism with the specified name " +
                     "is not registered with Sasl.SaslFactory.");
             }
-            Type t = Mechanisms[name];
-            object o = Activator.CreateInstance(t, true);
+
+            // Only PLAIN is supported - see also XmppCore.SelectMechanism
+            var o = new Sasl.Mechanisms.SaslPlain();
             return o as SaslMechanism;
+
+            //Type t = Mechanisms[name];
+            //object o = Activator.CreateInstance(t, true);
+            //return o as SaslMechanism;
         }
 
         /// <summary>
@@ -84,8 +89,9 @@ namespace Sharp.Xmpp.Core.Sasl
             // Could be moved to App.config to support SASL "plug-in" mechanisms.
             var list = new Dictionary<string, Type>() {
 				{ "PLAIN", typeof(Sasl.Mechanisms.SaslPlain) },
-				{ "DIGEST-MD5", typeof(Sasl.Mechanisms.SaslDigestMd5) },
-				{ "SCRAM-SHA-1", typeof(Sasl.Mechanisms.SaslScramSha1) },
+                // ONLY PLAIN IS SUPPORTED - see also XmppCore.SelectMechanism
+				//{ "DIGEST-MD5", typeof(Sasl.Mechanisms.SaslDigestMd5) },
+				//{ "SCRAM-SHA-1", typeof(Sasl.Mechanisms.SaslScramSha1) },
 			};
             foreach (string key in list.Keys)
                 Mechanisms.Add(key, list[key]);

@@ -18,7 +18,7 @@ namespace Sharp.Xmpp.Extensions
         /// <summary>
         /// A cache of binary data items indexed by cid.
         /// </summary>
-        private IDictionary<string, BobData> cache = new Dictionary<string, BobData>();
+        private readonly IDictionary<string, BobData> cache = new Dictionary<string, BobData>();
 
         /// <summary>
         /// An enumerable collection of XMPP namespaces the extension implements.
@@ -50,7 +50,7 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         public override void Initialize()
         {
-            ecapa = im.GetExtension<EntityCapabilities>();
+            ecapa = im.GetExtension(typeof(EntityCapabilities)) as EntityCapabilities;
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace Sharp.Xmpp.Extensions
         {
             data.ThrowIfNull("data");
             type.ThrowIfNull("type");
-            BobData b = new BobData(data, type);
+            BobData b = new(data, type);
             if (cache)
                 this.cache[b.Cid] = b;
             return b;

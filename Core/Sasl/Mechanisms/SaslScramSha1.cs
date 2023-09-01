@@ -17,7 +17,7 @@ namespace Sharp.Xmpp.Core.Sasl.Mechanisms
         /// <summary>
         /// The client nonce value used during authentication.
         /// </summary>
-        private string Cnonce = GenerateCnonce();
+        private readonly string Cnonce = GenerateCnonce();
 
         /// <summary>
         /// Scram-Sha-1 involves several steps.
@@ -173,7 +173,7 @@ namespace Sharp.Xmpp.Core.Sasl.Mechanisms
             byte[] ret = Step == 0 ? ComputeInitialResponse() :
                 (Step == 1 ? ComputeFinalResponse(challenge) :
                 VerifyServerSignature(challenge));
-            Step = Step + 1;
+            Step++;
             return ret;
         }
 
@@ -276,7 +276,7 @@ namespace Sharp.Xmpp.Core.Sasl.Mechanisms
         {
             challenge.ThrowIfNull("challenge");
             string message = Encoding.UTF8.GetString(challenge);
-            NameValueCollection coll = new NameValueCollection();
+            NameValueCollection coll = new();
             foreach (string s in message.Split(','))
             {
                 int delimiter = s.IndexOf('=');

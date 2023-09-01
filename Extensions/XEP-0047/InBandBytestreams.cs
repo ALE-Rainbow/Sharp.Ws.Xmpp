@@ -72,8 +72,8 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         public override void Initialize()
         {
-            siFileTransfer = im.GetExtension<SIFileTransfer>();
-            ecapa = im.GetExtension<EntityCapabilities>();
+            siFileTransfer = im.GetExtension(typeof(SIFileTransfer)) as SIFileTransfer;
+            ecapa = im.GetExtension(typeof(EntityCapabilities)) as EntityCapabilities;
         }
 
         /// <summary>
@@ -87,10 +87,8 @@ namespace Sharp.Xmpp.Extensions
             if (stanza.Type != IqType.Set)
                 return false;
             var e = stanza.Data["open"];
-            if (e == null)
-                e = stanza.Data["close"];
-            if (e == null)
-                e = stanza.Data["data"];
+            e ??= stanza.Data["close"];
+            e ??= stanza.Data["data"];
             if (e == null || e.NamespaceURI != "http://jabber.org/protocol/ibb")
                 return false;
             string sessionId = e.GetAttribute("sid");
@@ -161,7 +159,7 @@ namespace Sharp.Xmpp.Extensions
                 while (left > 0)
                 {
                     int read = session.Stream.Read(buf, 0, blockSize);
-                    left = left - read;
+                    left -= read;
                     if (read <= 0)
                         break;
                     string b64 = Convert.ToBase64String(buf, 0, read);
@@ -173,7 +171,7 @@ namespace Sharp.Xmpp.Extensions
                     Iq response = im.IqRequest(IqType.Set, session.To, im.Jid, data);
                     if (response.Type == IqType.Error)
                         throw Util.ExceptionFromError(response);
-                    session.Count = session.Count + read;
+                    session.Count += read;
                     // Raise the 'BytesTransferred' event.
                     BytesTransferred.Raise(this, new BytesTransferredEventArgs(session));
                 }
@@ -289,12 +287,8 @@ namespace Sharp.Xmpp.Extensions
         {
             sessionId.ThrowIfNull("sessionId");
             stanza.ThrowIfNull("stanza");
-            var data = stanza.Data["data"];
-            if (data == null)
-                throw new ArgumentException("Invalid stanza, missing data element.");
-            SISession session = siFileTransfer.GetSession(sessionId, stanza.From, im.Jid);
-            if (session == null)
-                throw new ArgumentException("Invalid session-id.");
+            var data = stanza.Data["data"] ?? throw new ArgumentException("Invalid stanza, missing data element.");
+            SISession session = siFileTransfer.GetSession(sessionId, stanza.From, im.Jid) ?? throw new ArgumentException("Invalid session-id.");
             string base64 = data.InnerText;
             // Decode base64 string and write decoded binary data to file.
             byte[] bytes = Convert.FromBase64String(base64);
@@ -307,7 +301,7 @@ namespace Sharp.Xmpp.Extensions
                 throw new IOException("The stream could not be written.", e);
             }
             // Update the byte count and raise the 'BytesTransferred' event.
-            session.Count = session.Count + bytes.Length;
+            session.Count += bytes.Length;
             BytesTransferred.Raise(this, new BytesTransferredEventArgs(session));
         }
 

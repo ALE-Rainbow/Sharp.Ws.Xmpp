@@ -103,8 +103,7 @@ namespace Sharp.Xmpp.Im
             Priority = priority;
             Messages = new Dictionary<string, string>();
             Until = DateTime.MinValue;
-            if (language == null)
-                language = CultureInfo.CurrentCulture;
+            language ??= CultureInfo.CurrentCulture;
             if (message != null)
                 Messages.Add(language.Name, message);
         }

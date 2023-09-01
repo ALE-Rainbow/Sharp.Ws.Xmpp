@@ -89,17 +89,20 @@ namespace Sharp.Xmpp.Extensions
                 {
                     XmlElement element = message.Data[action];
 
-                    JingleMessageEventArgs jingleMessageEventArgs = new JingleMessageEventArgs();
-
-                    jingleMessageEventArgs.JingleMessage = new JingleMessage();
-                    jingleMessageEventArgs.JingleMessage.Id = element.GetAttribute("id");
-                    jingleMessageEventArgs.JingleMessage.FromJid = message.From?.GetBareJid()?.ToString();
-                    jingleMessageEventArgs.JingleMessage.FromResource = message.From?.Resource;
-                    jingleMessageEventArgs.JingleMessage.ToJid = message.To?.GetBareJid()?.ToString();
-                    jingleMessageEventArgs.JingleMessage.ToResource = message.To?.Resource;
-                    jingleMessageEventArgs.JingleMessage.Action = action;
-                    jingleMessageEventArgs.JingleMessage.UnifiedPlan = (element["unifiedplan"] != null);
-                    jingleMessageEventArgs.JingleMessage.DisplayName = element.GetAttribute("displayname");
+                    JingleMessageEventArgs jingleMessageEventArgs = new()
+                    {
+                        JingleMessage = new JingleMessage
+                        {
+                            Id = element.GetAttribute("id"),
+                            FromJid = message.From?.GetBareJid()?.ToString(),
+                            FromResource = message.From?.Resource,
+                            ToJid = message.To?.GetBareJid()?.ToString(),
+                            ToResource = message.To?.Resource,
+                            Action = action,
+                            UnifiedPlan = (element["unifiedplan"] != null),
+                            DisplayName = element.GetAttribute("displayname")
+                        }
+                    };
 
                     // Subject
                     if (element["subject"] != null)
@@ -172,7 +175,7 @@ namespace Sharp.Xmpp.Extensions
         /// <param name="jingleMessage">Jingle Message to send</param>
         public void Send(JingleMessage jingleMessage)
         {
-            Sharp.Xmpp.Im.Message message = new Sharp.Xmpp.Im.Message(jingleMessage.ToJid);
+            Sharp.Xmpp.Im.Message message = new(jingleMessage.ToJid);
             XmlElement e = message.Data;
 
             XmlElement actionElement = e.OwnerDocument.CreateElement(jingleMessage.Action, NamespaceJingleMessage);

@@ -21,7 +21,7 @@ namespace Sharp.Xmpp.Im
         /// <summary>
         /// The type of the presence stanza.
         /// </summary>
-        private DateTime date;
+        private readonly DateTime date;
 
 
         /// <summary>

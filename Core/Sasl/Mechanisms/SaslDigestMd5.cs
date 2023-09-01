@@ -15,7 +15,7 @@ namespace Sharp.Xmpp.Core.Sasl.Mechanisms
         /// <summary>
         /// The client nonce value used during authentication.
         /// </summary>
-        private string Cnonce = GenerateCnonce();
+        private readonly string Cnonce = GenerateCnonce();
 
         /// <summary>
         /// Cram-Md5 involves several steps.
@@ -154,7 +154,7 @@ namespace Sharp.Xmpp.Core.Sasl.Mechanisms
             // with a CRLF.
             byte[] ret = Step == 0 ? ComputeDigestResponse(challenge) :
                 new byte[0];
-            Step = Step + 1;
+            Step++;
             return ret;
         }
 
@@ -207,7 +207,7 @@ namespace Sharp.Xmpp.Core.Sasl.Mechanisms
         private static NameValueCollection ParseDigestChallenge(string challenge)
         {
             challenge.ThrowIfNull("challenge");
-            NameValueCollection coll = new NameValueCollection();
+            NameValueCollection coll = new();
             string[] parts = challenge.Split(',');
             foreach (string p in parts)
             {
@@ -253,7 +253,7 @@ namespace Sharp.Xmpp.Core.Sasl.Mechanisms
                 // Construct A2.
                 string A2 = "AUTHENTICATE:" + digestUri;
                 if (!"auth".Equals(challenge["qop"]))
-                    A2 = A2 + ":00000000000000000000000000000000";
+                    A2 += ":00000000000000000000000000000000";
                 string ret = MD5(A1, enc) + ":" + challenge["nonce"] + ":" + ncValue +
                     ":" + cnonce + ":" + challenge["qop"] + ":" + MD5(A2, enc);
                 return MD5(ret, enc);
@@ -274,11 +274,10 @@ namespace Sharp.Xmpp.Core.Sasl.Mechanisms
         {
             if (s == null)
                 throw new ArgumentNullException("s");
-            if (encoding == null)
-                encoding = Encoding.UTF8;
+            encoding ??= Encoding.UTF8;
             byte[] data = encoding.GetBytes(s);
             byte[] hash = (System.Security.Cryptography.MD5.Create()).ComputeHash(data);
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new();
             foreach (byte h in hash)
                 builder.Append(h.ToString("x2"));
             return builder.ToString();

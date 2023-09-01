@@ -29,10 +29,7 @@ namespace Sharp.Xmpp
         {
             get
             {
-                if (_appLog == null)
-                {
-                    _appLog = new LogFactory();
-                }
+                _appLog ??= new LogFactory();
 
                 return _appLog;
             }

@@ -13,17 +13,17 @@ namespace Sharp.Xmpp.Im
         /// <summary>
         /// The parent XML element of the dictionary items.
         /// </summary>
-        private XmlElement element;
+        private readonly XmlElement element;
 
         /// <summary>
         /// The tag name of a single dictionary item.
         /// </summary>
-        private string tag;
+        private readonly string tag;
 
         /// <summary>
         /// The attribute name of the items which acts as key.
         /// </summary>
-        private string key;
+        private readonly string key;
 
         /// <summary>
         /// Initializes a new instance of the XmlDictionary class.
@@ -131,7 +131,7 @@ namespace Sharp.Xmpp.Im
         {
             key.ThrowIfNull("key");
             XmlElement e = GetElement(key);
-            value = e != null ? e.InnerText : null;
+            value = e?.InnerText;
             return e != null;
         }
 

@@ -22,8 +22,8 @@ namespace Sharp.Xmpp.Extensions
         private DateTime? creationDate;
         private CultureInfo language;
 
-        private IList<Jid> contactAddresses;
-        private ISet<Jid> occupants;
+        private readonly IList<Jid> contactAddresses;
+        private readonly ISet<Jid> occupants;
 
         private RoomVisibility visibility;
         private RoomPersistence persistence;
@@ -335,9 +335,8 @@ namespace Sharp.Xmpp.Extensions
 
         private bool ConvertToBoolean(string value)
         {
-            bool tmp;
 
-            if (bool.TryParse(value, out tmp))
+            if (bool.TryParse(value, out bool tmp))
             {
                 return tmp;
             }
@@ -363,9 +362,8 @@ namespace Sharp.Xmpp.Extensions
 
         private DateTime? ConvertToDateTime(string value)
         {
-            DateTime tmp;
 
-            if (DateTime.TryParse(value, out tmp))
+            if (DateTime.TryParse(value, out DateTime tmp))
             {
                 return tmp;
             }
@@ -375,9 +373,8 @@ namespace Sharp.Xmpp.Extensions
 
         private int ConvertToInteger(string value)
         {
-            int tmp;
 
-            if (int.TryParse(value, out tmp))
+            if (int.TryParse(value, out int tmp))
             {
                 return tmp;
             }

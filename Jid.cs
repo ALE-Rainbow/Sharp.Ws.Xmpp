@@ -131,7 +131,7 @@ namespace Sharp.Xmpp
         /// <returns>A textual representation of this JID instance.</returns>
         public override string ToString()
         {
-            StringBuilder b = new StringBuilder();
+            StringBuilder b = new();
             if (!String.IsNullOrEmpty(Node))
                 b.Append(Node + "@");
             b.Append(Domain);

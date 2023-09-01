@@ -37,9 +37,9 @@ namespace Sharp.Xmpp.Im
         private bool disposed;
 
         /// <summary>
-        /// The set of loaded extensions.
+        /// The dictionnary of loaded extensions.
         /// </summary>
-        private ISet<XmppExtension> extensions = new HashSet<XmppExtension>();
+        private readonly IDictionary<String, XmppExtension> extensions = new Dictionary<String, XmppExtension>();
 
         public WebProxy WebProxy
         {
@@ -602,7 +602,7 @@ namespace Sharp.Xmpp.Im
             if (disposed)
                 throw new ObjectDisposedException(GetType().FullName);
             // Call 'Initialize' method of each loaded extension.
-            foreach (XmppExtension ext in extensions)
+            foreach (XmppExtension ext in extensions.Values)
             {
                 try
                 {
@@ -663,7 +663,7 @@ namespace Sharp.Xmpp.Im
 
                 case XmppCore.ACTION_SERVICE_DISCOVERY:
                     core.SetLanguage();
-                    ServiceDiscovery serviceDiscovery = GetExtension<ServiceDiscovery>();
+                    ServiceDiscovery serviceDiscovery = GetExtension(typeof(ServiceDiscovery)) as ServiceDiscovery;
                     serviceDiscovery.Supports(core.Jid.Domain, new Extension[] { });
                     
                     core.QueueActionToPerform(XmppCore.ACTION_ENABLE_STREAM_MANAGEMENT);
@@ -683,7 +683,8 @@ namespace Sharp.Xmpp.Im
                     break;
 
                 case XmppCore.ACTION_ENABLE_MESSAGE_CARBONS:
-                    GetExtension<MessageCarbons>()?.EnableCarbons(true);
+                    var messageCarbons = GetExtension(typeof(MessageCarbons)) as MessageCarbons;
+                    messageCarbons?.EnableCarbons(true);
 
                     core.QueueActionToPerform(XmppCore.ACTION_GET_ROSTER);
                     break;
@@ -732,7 +733,7 @@ namespace Sharp.Xmpp.Im
             // Establish a session (Refer to RFC 3921, Section 3. Session Establishment).
             EstablishSession();
             // Retrieve user's roster as recommended (Refer to RFC 3921, Section 7.3).
-            Roster roster = GetRoster();
+            GetRoster();
             // Send initial presence.
             SendPresence(new Presence());
         }
@@ -767,8 +768,10 @@ namespace Sharp.Xmpp.Im
             AssertValid();
             to.ThrowIfNull("to");
             body.ThrowIfNull("body");
-            Message m = new Message(to, body, subject, thread, type, language, oobInfo);
-            m.Id = id;
+            Message m = new(to, body, subject, thread, type, language, oobInfo)
+            {
+                Id = id
+            };
 
             SendMessage(m);
         }
@@ -804,7 +807,7 @@ namespace Sharp.Xmpp.Im
             AssertValid();
             to.ThrowIfNull("to");
             bodies.ThrowIfNull("bodies");
-            Message m = new Message(to, bodies, subjects, thread, type, language, oobInfo);
+            Message m = new(to, bodies, subjects, thread, type, language, oobInfo);
             SendMessage(m);
         }
 
@@ -832,10 +835,9 @@ namespace Sharp.Xmpp.Im
             // "Stamp" the sender's JID onto the message.
             message.From = Jid;
             // Invoke IOutput<Message> Plugins.
-            foreach (var ext in extensions)
+            foreach (var ext in extensions.Values)
             {
-                var filter = ext as IOutputFilter<Message>;
-                if (filter != null)
+                if (ext is IOutputFilter<Message> filter)
                     filter.Output(message);
             }
             core.SendMessage(message);
@@ -859,7 +861,7 @@ namespace Sharp.Xmpp.Im
         {
             AssertValid();
             jid.ThrowIfNull("jid");
-            Presence p = new Presence(jid, null, PresenceType.Subscribe);
+            Presence p = new(jid, null, PresenceType.Subscribe);
             SendPresence(p);
         }
 
@@ -879,7 +881,7 @@ namespace Sharp.Xmpp.Im
         {
             AssertValid();
             jid.ThrowIfNull("jid");
-            Presence p = new Presence(jid, null, PresenceType.Unsubscribe);
+            Presence p = new(jid, null, PresenceType.Unsubscribe);
             SendPresence(p);
         }
 
@@ -900,7 +902,7 @@ namespace Sharp.Xmpp.Im
         {
             AssertValid();
             jid.ThrowIfNull("jid");
-            Presence p = new Presence(jid, null, PresenceType.Subscribed);
+            Presence p = new(jid, null, PresenceType.Subscribed);
             SendPresence(p);
         }
 
@@ -921,7 +923,7 @@ namespace Sharp.Xmpp.Im
         {
             AssertValid();
             jid.ThrowIfNull("jid");
-            Presence p = new Presence(jid, null, PresenceType.Unsubscribed);
+            Presence p = new(jid, null, PresenceType.Unsubscribed);
             SendPresence(p);
         }
 
@@ -943,7 +945,7 @@ namespace Sharp.Xmpp.Im
         {
             AssertValid();
             jid.ThrowIfNull("jid");
-            Presence p = new Presence(jid, null, PresenceType.Unsubscribed);
+            Presence p = new(jid, null, PresenceType.Unsubscribed);
             SendPresence(p);
         }
 
@@ -973,7 +975,7 @@ namespace Sharp.Xmpp.Im
             AssertValid();
             if (availability == Availability.Offline)
                 throw new ArgumentException("Invalid availability state.");
-            List<XmlElement> elems = new List<XmlElement>();
+            List<XmlElement> elems = new();
 
             if (elementToAdd != null)
                 elems.Add(elementToAdd);
@@ -992,7 +994,7 @@ namespace Sharp.Xmpp.Im
                 elems.Add(Xml.Element("priority").Text(priority.ToString()));
             if (message != null)
                 elems.Add(Xml.Element("status").Text(message));
-            Presence p = new Presence(null, null, PresenceType.Available, null,
+            Presence p = new(null, null, PresenceType.Available, null,
                 language, elems.ToArray());
             SendPresence(p);
         }
@@ -1023,7 +1025,7 @@ namespace Sharp.Xmpp.Im
             AssertValid();
             if (availability == Availability.Offline)
                 throw new InvalidOperationException("Invalid availability state.");
-            List<XmlElement> elems = new List<XmlElement>();
+            List<XmlElement> elems = new();
             if (availability != Availability.Online)
             {
                 var states = new Dictionary<Availability, string>() {
@@ -1042,7 +1044,7 @@ namespace Sharp.Xmpp.Im
                     elems.Add(Xml.Element("status").Attr("xml:lang", pair.Key)
                         .Text(pair.Value));
             }
-            Presence p = new Presence(null, null, PresenceType.Available, null,
+            Presence p = new(null, null, PresenceType.Available, null,
                 null, elems.ToArray());
             SendPresence(p);
         }
@@ -1257,7 +1259,7 @@ namespace Sharp.Xmpp.Im
             {
                 throw new XmppException("Erroneous server response: " + iq);
             }
-            PrivacyList list = new PrivacyList(name);
+            PrivacyList list = new(name);
             var listElement = query["list"];
             // Parse the items on the list.
             foreach (XmlElement item in listElement.GetElementsByTagName("item"))
@@ -1558,8 +1560,7 @@ namespace Sharp.Xmpp.Im
                 // Get rid of managed resources.
                 if (disposing)
                 {
-                    if (core != null)
-                        core.Close(normalClosure);
+                    core?.Close(normalClosure);
                     core = null;
                 }
                 // Get rid of unmanaged resources.
@@ -1567,22 +1568,13 @@ namespace Sharp.Xmpp.Im
         }
 
         /// <summary>
-        /// Loads the specified XMPP extension.
+        /// Add the specified XMPP extension.
         /// </summary>
-        /// <typeparam name="T">The type of the extension to load.</typeparam>
-        /// <returns>An instance of the loaded extension.</returns>
-        internal T LoadExtension<T>(String loggerPrefix) where T : XmppExtension
+        /// <param name="ext">extension.</param>
+        internal void AddExtension(XmppExtension ext)
         {
-            Object[] obj = new Object[2];
-            obj[0] = this;
-            obj[1] = loggerPrefix;
-
-            // Create instance of extension.
-            XmppExtension ext = Activator.CreateInstance(typeof(T), obj)
-                as XmppExtension;
-            // Add instance to list of loaded extensions.
-            extensions.Add(ext);
-            return (T)ext;
+            var id = ext.GetType().Name;
+            extensions.Add(id, ext);
         }
 
         /// <summary>
@@ -1592,26 +1584,11 @@ namespace Sharp.Xmpp.Im
         /// <returns>true if the extension was unloaded; Otherwise false. This
         /// method also returns false if the extension is not found in the
         /// original list of extensions.</returns>
-        internal bool UnloadExtension<T>() where T : XmppExtension
+        internal bool UnloadExtension(Type type)
         {
-            XmppExtension ext = GetExtension<T>();
-            return ext != null ? extensions.Remove(ext) : false;
-        }
-
-        /// <summary>
-        /// Retrieves the instance of the specified extension.
-        /// </summary>
-        /// <typeparam name="T">The type of the extension to retrieve.</typeparam>
-        /// <returns>The instance of the retrieved extension or null if the
-        /// extension has not been loaded.</returns>
-        internal T GetExtension<T>() where T : XmppExtension
-        {
-            foreach (var ext in extensions)
-            {
-                if (ext.GetType() == typeof(T))
-                    return (T)ext;
-            }
-            return null;
+            type.ThrowIfNull("type");
+            var id = type.Name;
+            return extensions.Remove(id);
         }
 
         /// <summary>
@@ -1625,11 +1602,9 @@ namespace Sharp.Xmpp.Im
         internal XmppExtension GetExtension(Type type)
         {
             type.ThrowIfNull("type");
-            foreach (var ext in extensions)
-            {
-                if (ext.GetType() == type)
-                    return ext;
-            }
+            var id = type.Name;
+            if(extensions.ContainsKey(id))
+                return extensions[id];
             return null;
         }
 
@@ -1645,7 +1620,7 @@ namespace Sharp.Xmpp.Im
         internal XmppExtension GetExtension(string @namespace)
         {
             @namespace.ThrowIfNull("namespace");
-            foreach (var ext in extensions)
+            foreach (var ext in extensions.Values)
             {
                 if (ext.Namespaces.Contains(@namespace))
                     return ext;
@@ -1660,7 +1635,7 @@ namespace Sharp.Xmpp.Im
         {
             get
             {
-                return extensions;
+                return extensions.Values;
             }
         }
 
@@ -1679,10 +1654,9 @@ namespace Sharp.Xmpp.Im
         {
             presence.ThrowIfNull("presence");
             // Invoke IOutput<Presence> Plugins.
-            foreach (var ext in extensions)
+            foreach (var ext in extensions.Values)
             {
-                var filter = ext as IOutputFilter<Presence>;
-                if (filter != null)
+                if (ext is IOutputFilter<Presence> filter)
                     filter.Output(presence);
             }
             core.SendPresence(presence);
@@ -1728,12 +1702,11 @@ namespace Sharp.Xmpp.Im
             XmlElement data = null, CultureInfo language = null,
             int millisecondsTimeout = -1)
         {
-            Iq iq = new Iq(type, XmppCore.GetId(), to, from, data, language);
+            Iq iq = new(type, XmppCore.GetId(), to, from, data, language);
             // Invoke IOutput<Iq> Plugins.
-            foreach (var ext in extensions)
+            foreach (var ext in extensions.Values)
             {
-                var filter = ext as IOutputFilter<Iq>;
-                if (filter != null)
+                if (ext is IOutputFilter<Iq> filter)
                     filter.Output(iq);
             }
             return core.IqRequest(iq, millisecondsTimeout);
@@ -1765,12 +1738,11 @@ namespace Sharp.Xmpp.Im
             XmlElement data = null, CultureInfo language = null,
             Action<string, Iq> callback = null)
         {
-            Iq iq = new Iq(type, XmppCore.GetId(), to, from, data, language);
+            Iq iq = new(type, XmppCore.GetId(), to, from, data, language);
             // Invoke IOutput<Iq> Plugins.
-            foreach (var ext in extensions)
+            foreach (var ext in extensions.Values)
             {
-                var filter = ext as IOutputFilter<Iq>;
-                if (filter != null)
+                if (ext is IOutputFilter<Iq> filter)
                     filter.Output(iq);
             }
             return core.IqRequestAsync(iq, callback);
@@ -1799,12 +1771,11 @@ namespace Sharp.Xmpp.Im
             XmlElement data = null, CultureInfo language = null)
         {
             AssertValid(false);
-            Iq iq = new Iq(type, id, to, from, data, language);
+            Iq iq = new(type, id, to, from, data, language);
             // Invoke IOutput<Iq> Plugins.
-            foreach (var ext in extensions)
+            foreach (var ext in extensions.Values)
             {
-                var filter = ext as IOutputFilter<Iq>;
-                if (filter != null)
+                if (ext is IOutputFilter<Iq> filter)
                     filter.Output(iq);
             }
             core.IqResponse(iq);
@@ -1835,7 +1806,7 @@ namespace Sharp.Xmpp.Im
         {
             AssertValid(false);
             iq.ThrowIfNull("iq");
-            Iq response = new Iq(IqType.Error, iq.Id, iq.From, Jid,
+            Iq response = new(IqType.Error, iq.Id, iq.From, Jid,
                 new XmppError(type, condition, text, data).Data);
             core.IqResponse(response);
         }
@@ -1859,7 +1830,7 @@ namespace Sharp.Xmpp.Im
         {
             AssertValid(false);
             iq.ThrowIfNull("iq");
-            Iq response = new Iq(IqType.Result, iq.Id, iq.From, Jid, data);
+            Iq response = new(IqType.Result, iq.Id, iq.From, Jid, data);
             core.IqResponse(response);
         }
 
@@ -1888,7 +1859,7 @@ namespace Sharp.Xmpp.Im
             {
                 try
                 {
-                    Presence presence = new Presence(e.Stanza);
+                    Presence presence = new(e.Stanza);
                     OnPresence(presence);
                 }
                 catch (Exception ePresence)
@@ -1902,7 +1873,7 @@ namespace Sharp.Xmpp.Im
             {
                 try
                 {
-                    Message message = new Message(e.Stanza);
+                    Message message = new(e.Stanza);
                     OnMessage(message);
                 }
                 catch (Exception eMessage)
@@ -1921,7 +1892,7 @@ namespace Sharp.Xmpp.Im
             {
                 try
                 {
-                    StreamManagementStanza sms = new StreamManagementStanza(e.Stanza);
+                    StreamManagementStanza sms = new(e.Stanza);
                     OnStreamManagementStanza(sms);
                 }
                 catch (Exception eMessage)
@@ -1932,7 +1903,7 @@ namespace Sharp.Xmpp.Im
 
             core.StreamManagementRequestAcknowledgement += (sender, e) =>
             {
-                GetExtension<StreamManagement>()?.RequestAcknowledgement();
+                (GetExtension(typeof(StreamManagement)) as StreamManagement)?.RequestAcknowledgement();
             };
         }
 
@@ -1959,10 +1930,9 @@ namespace Sharp.Xmpp.Im
         private void OnStreamManagementStanza(StreamManagementStanza sms)
         {
             // Invoke IInput<Iq> Plugins.
-            foreach (var ext in extensions)
+            foreach (var ext in extensions.Values)
             {
-                var filter = ext as IInputFilter<StreamManagementStanza>;
-                if (filter != null)
+                if (ext is IInputFilter<StreamManagementStanza> filter)
                 {
                     // Swallow StreamManagement stanza?
                     if (filter.Input(sms))
@@ -1981,10 +1951,9 @@ namespace Sharp.Xmpp.Im
         private void OnIq(Iq iq)
         {
             // Invoke IInput<Iq> Plugins.
-            foreach (var ext in extensions)
+            foreach (var ext in extensions.Values)
             {
-                var filter = ext as IInputFilter<Iq>;
-                if (filter != null)
+                if (ext is IInputFilter<Iq> filter)
                 {
                     // Swallow IQ stanza?
                     if (filter.Input(iq))
@@ -2017,10 +1986,9 @@ namespace Sharp.Xmpp.Im
         {
             //log.LogDebug("[OnPresence]");
             // Invoke IInput<Presence> Plugins.
-            foreach (var ext in extensions)
+            foreach (var ext in extensions.Values)
             {
-                var filter = ext as IInputFilter<Presence>;
-                if (filter != null)
+                if (ext is IInputFilter<Presence> filter)
                 {
                     // Swallow presence stanza?
                     if (filter.Input(presence))
@@ -2063,10 +2031,9 @@ namespace Sharp.Xmpp.Im
         private void OnMessage(Message message)
         {
             // Invoke IInput<Message> Plugins.
-            foreach (var ext in extensions)
+            foreach (var ext in extensions.Values)
             {
-                var filter = ext as IInputFilter<Message>;
-                if (filter != null)
+                if (ext is IInputFilter<Message> filter)
                 {
                     // Swallow message?
                     if (filter.Input(message))
@@ -2155,8 +2122,7 @@ namespace Sharp.Xmpp.Im
             }
             foreach (XmlNode node in presence.Data.GetElementsByTagName("status"))
             {
-                XmlElement element = node as XmlElement;
-                if (element == null)
+                if (node is not XmlElement element)
                     continue;
                 string l = element.GetAttribute("xml:lang");
                 if (String.IsNullOrEmpty(l))
@@ -2181,7 +2147,7 @@ namespace Sharp.Xmpp.Im
                     until = DateTime.Now;
             }
 
-            Status status = new Status(availability, dict, prio, until, presence.Date, apply);
+            Status status = new(availability, dict, prio, until, presence.Date, apply);
             // Raise Status event.
             Status.Raise(this, new StatusEventArgs(presence.From, status));
         }
@@ -2195,8 +2161,7 @@ namespace Sharp.Xmpp.Im
         /// <param name="presence">The presence stanza to process.</param>
         private void ProcessSubscriptionRequest(Presence presence)
         {
-            if (SubscriptionRequest != null)
-                SubscriptionRequest.Invoke(presence.From);
+            SubscriptionRequest?.Invoke(presence.From);
         }
 
         /// <summary>
@@ -2238,7 +2203,7 @@ namespace Sharp.Xmpp.Im
         /// the parsed roster items.</returns>
         private Roster ParseRoster(XmlElement query)
         {
-            Roster roster = new Roster();
+            Roster roster = new();
             var states = new Dictionary<string, SubscriptionState>() {
                 { "none", SubscriptionState.None },
                 { "to", SubscriptionState.To },
@@ -2254,7 +2219,7 @@ namespace Sharp.Xmpp.Im
                 string name = item.GetAttribute("name");
                 if (name == String.Empty)
                     name = null;
-                List<string> groups = new List<string>();
+                List<string> groups = new();
                 foreach (XmlElement group in item.GetElementsByTagName("group"))
                     groups.Add(group.InnerText);
                 string s = item.GetAttribute("subscription");
@@ -2294,7 +2259,7 @@ namespace Sharp.Xmpp.Im
                     string name = item.GetAttribute("name");
                     if (name == String.Empty)
                         name = null;
-                    List<string> groups = new List<string>();
+                    List<string> groups = new();
                     foreach (XmlElement group in item.GetElementsByTagName("group"))
                         groups.Add(group.InnerText);
                     string s = item.GetAttribute("subscription");
@@ -2302,7 +2267,7 @@ namespace Sharp.Xmpp.Im
                     if (states.ContainsKey(s))
                         state = states[s];
                     string ask = item.GetAttribute("ask");
-                    RosterItem ri = new RosterItem(jid, name, state, ask == "subscribe", groups);
+                    RosterItem ri = new(jid, name, state, ask == "subscribe", groups);
                     RosterUpdated.Raise(this, new RosterUpdatedEventArgs(ri, s == "remove"));
                 }
                 // Acknowledge IQ request.

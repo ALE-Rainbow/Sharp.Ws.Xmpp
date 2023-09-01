@@ -17,12 +17,12 @@ namespace Sharp.Xmpp.Extensions.Dataforms
         /// <summary>
         /// The values of the field.
         /// </summary>
-        private XmlCollection<string> values;
+        private readonly XmlCollection<string> values;
 
         /// <summary>
         /// The options of the field.
         /// </summary>
-        private XmlCollection<Option> options;
+        private readonly XmlCollection<Option> options;
 
         /// <summary>
         /// Gets an enumerable collection of selected values.

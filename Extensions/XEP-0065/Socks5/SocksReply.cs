@@ -99,7 +99,7 @@ namespace Sharp.Xmpp.Extensions.Socks5
             buffer.ThrowIfNull("buffer");
             using (var ms = new MemoryStream(buffer))
             {
-                using (BinaryReader r = new BinaryReader(ms))
+                using (BinaryReader r = new(ms))
                 {
                     if (r.ReadByte() != version)
                         throw new SerializationException("Invalid SOCKS5 reply.");

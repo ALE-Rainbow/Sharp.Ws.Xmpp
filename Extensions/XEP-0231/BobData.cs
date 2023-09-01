@@ -132,7 +132,7 @@ namespace Sharp.Xmpp.Extensions
             using (var sha1 = SHA1.Create())
             {
                 byte[] hash = sha1.ComputeHash(data);
-                StringBuilder builder = new StringBuilder();
+                StringBuilder builder = new();
                 foreach (byte h in hash)
                     builder.Append(h.ToString("x2"));
                 return builder.ToString();

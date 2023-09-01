@@ -67,7 +67,7 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         public override void Initialize()
         {
-            pep = im.GetExtension<Pep>();
+            pep = im.GetExtension(typeof(Pep)) as Pep;
             pep.Subscribe("http://jabber.org/protocol/activity", onActivity);
         }
 
@@ -145,8 +145,7 @@ namespace Sharp.Xmpp.Extensions
                         specific = (SpecificActivity)v;
                 }
             }
-            string text = activityElement["text"] != null ?
-                activityElement["text"].InnerText : null;
+            string text = activityElement["text"]?.InnerText;
             // Raise the 'ActivityChanged' event.
             if (activity.HasValue)
             {
@@ -163,7 +162,7 @@ namespace Sharp.Xmpp.Extensions
         /// <returns>The XML element name of the specified activity value.</returns>
         private string GeneralActivityToTagName(GeneralActivity activity)
         {
-            StringBuilder b = new StringBuilder();
+            StringBuilder b = new();
             string s = activity.ToString();
             for (int i = 0; i < s.Length; i++)
             {
@@ -182,7 +181,7 @@ namespace Sharp.Xmpp.Extensions
         /// <returns>The XML element name of the specified activity value.</returns>
         private string SpecificActivityToTagName(SpecificActivity activity)
         {
-            StringBuilder b = new StringBuilder();
+            StringBuilder b = new();
             string s = activity.ToString();
             for (int i = 0; i < s.Length; i++)
             {

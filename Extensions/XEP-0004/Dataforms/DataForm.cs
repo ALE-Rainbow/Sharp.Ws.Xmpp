@@ -12,7 +12,7 @@ namespace Sharp.Xmpp.Extensions.Dataforms
         /// <summary>
         /// The fields contained in the data-form.
         /// </summary>
-        private FieldList fields;
+        private readonly FieldList fields;
 
         /// <summary>
         /// The underlying XML element representing the data-form.

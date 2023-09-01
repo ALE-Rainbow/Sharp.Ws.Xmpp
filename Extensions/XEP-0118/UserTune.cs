@@ -66,7 +66,7 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         public override void Initialize()
         {
-            pep = im.GetExtension<Pep>();
+            pep = im.GetExtension(typeof(Pep)) as Pep;
             pep.Subscribe("http://jabber.org/protocol/tune", onTune);
         }
 
@@ -176,7 +176,7 @@ namespace Sharp.Xmpp.Extensions
             int rating = 0;
             if (tune["rating"] != null)
                 rating = int.Parse(tune["rating"].InnerText);
-            TuneInformation info = new TuneInformation(
+            TuneInformation info = new(
                 GetField(tune, "title"), GetField(tune, "artist"), GetField(tune, "track"),
                 length, rating, GetField(tune, "source"), GetField(tune, "uri"));
             // Raise the 'Tune' event.
@@ -192,7 +192,7 @@ namespace Sharp.Xmpp.Extensions
         /// <returns>The inner text of the specified element or null.</returns>
         private string GetField(XmlElement tune, string name)
         {
-            return tune[name] != null ? tune[name].InnerText : null;
+            return tune[name]?.InnerText;
         }
     }
 }

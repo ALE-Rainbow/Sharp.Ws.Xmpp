@@ -16,11 +16,6 @@ namespace Sharp.Xmpp.Extensions
     internal class VCardAvatars : XmppExtension, IInputFilter<Iq>, IInputFilter<Im.Presence>
     {
         /// <summary>
-        /// A reference to the 'Entity Capabilities' extension instance.
-        /// </summary>
-        private EntityCapabilities ecapa;
-
-        /// <summary>
 		/// The event that is raised when a VCard is Changed
 		/// avatar image.
 		/// </summary>
@@ -59,7 +54,6 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         public override void Initialize()
         {
-            ecapa = im.GetExtension<EntityCapabilities>();
         }
 
         /// <summary>
@@ -115,7 +109,7 @@ namespace Sharp.Xmpp.Extensions
             string mimeType = "image/png";
 
             string hash = String.Empty, base64Data = String.Empty;
-            MemoryStream ms = new MemoryStream();
+            MemoryStream ms = new();
             stream.CopyTo(ms);
             using (ms)
             {
@@ -205,10 +199,7 @@ namespace Sharp.Xmpp.Extensions
                                     {
                                         file.Write(data, 0, data.Length);
                                     }
-                                    if (callback != null)
-                                    {
-                                        callback.Invoke();
-                                    }
+                                    callback?.Invoke();
                                 }
                             }
                             catch (Exception e)

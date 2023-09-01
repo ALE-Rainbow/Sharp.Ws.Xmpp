@@ -77,8 +77,10 @@ namespace Sharp.Xmpp.Extensions
         public void SetChatState(Jid jid, MessageType type, ChatState state)
         {
             jid.ThrowIfNull("jid");
-            Message m = new Message(jid);
-            m.Type = type;
+            Message m = new(jid)
+            {
+                Type = type
+            };
             m.Data.Child(Xml.Element(state.ToString().ToLowerInvariant(),
                 "http://jabber.org/protocol/chatstates"));
             im.SendMessage(m);

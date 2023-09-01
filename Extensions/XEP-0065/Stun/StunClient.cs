@@ -65,8 +65,7 @@ namespace Sharp.Xmpp.Extensions.Stun
             // Prefer IPv4 addresses if any.
             var ipAddress = addresses.FirstOrDefault(
                 a => a.AddressFamily == AddressFamily.InterNetwork);
-            if (ipAddress == null)
-                ipAddress = addresses[0];
+            ipAddress ??= addresses[0];
             return Query(ipAddress, port, timeout);
         }
 
@@ -97,10 +96,10 @@ namespace Sharp.Xmpp.Extensions.Stun
         {
             address.ThrowIfNull("address");
             port.ThrowIfOutOfRange("port", 0, 65535);
-            IPEndPoint IpEp = new IPEndPoint(address, port);
+            IPEndPoint IpEp = new(address, port);
             var request = new BindingRequest().Serialize();
             int rto = initialRto;
-            using (UdpClient udp = new UdpClient())
+            using (UdpClient udp = new())
             {
                 // The timeout mechanism is similar to TCP. For details,
                 // refer to RFC 5389, Section 7.2.1. Sending over UDP.
@@ -119,7 +118,7 @@ namespace Sharp.Xmpp.Extensions.Stun
                     {
                         if (e.ErrorCode != connectionTimeout)
                             throw;
-                        timeout = timeout - rto;
+                        timeout -= rto;
                         if (timeout <= 0)
                             throw new TimeoutException("The timeout has expired.");
                     }
@@ -130,7 +129,7 @@ namespace Sharp.Xmpp.Extensions.Stun
                     }
                     // Increase the timeout value.
                     if (tries < (rc - 1))
-                        rto = rto * 2;
+                        rto *= 2;
                     else
                         rto = initialRto * rm;
                     if (timeout < rto)

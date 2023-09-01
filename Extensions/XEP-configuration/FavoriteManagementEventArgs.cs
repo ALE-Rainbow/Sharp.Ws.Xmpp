@@ -66,8 +66,7 @@ namespace Sharp.Xmpp.Extensions
             Type = type;
             PeerId = peerId;
 
-            int val;
-            if (Int32.TryParse(position, out val))
+            if (Int32.TryParse(position, out int val))
                 Position = val;
             else
                 Position = 0;

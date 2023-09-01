@@ -67,7 +67,7 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         public override void Initialize()
         {
-            pep = im.GetExtension<Pep>();
+            pep = im.GetExtension(typeof(Pep)) as Pep;
             pep.Subscribe("http://jabber.org/protocol/mood", onMood);
         }
 
@@ -124,8 +124,7 @@ namespace Sharp.Xmpp.Extensions
                         mood = (Mood)v;
                 }
             }
-            string text = moodElement["text"] != null ?
-                moodElement["text"].InnerText : null;
+            string text = moodElement["text"]?.InnerText;
             // Raise the 'MoodChanged' event.
             if (mood.HasValue)
                 MoodChanged.Raise(this, new MoodChangedEventArgs(jid, mood.Value, text));
@@ -139,7 +138,7 @@ namespace Sharp.Xmpp.Extensions
         /// <returns>The XML element name of the specified mood value.</returns>
         private string MoodToTagName(Mood mood)
         {
-            StringBuilder b = new StringBuilder();
+            StringBuilder b = new();
             string s = mood.ToString();
             for (int i = 0; i < s.Length; i++)
             {

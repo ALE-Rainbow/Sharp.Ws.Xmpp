@@ -12,7 +12,7 @@ namespace Sharp.Xmpp.Im
         /// <summary>
         /// The set of rules that make up the privacy list.
         /// </summary>
-        private ISet<PrivacyRule> rules = new HashSet<PrivacyRule>();
+        private readonly ISet<PrivacyRule> rules = new HashSet<PrivacyRule>();
 
         /// <summary>
         /// The name of the privacy list.

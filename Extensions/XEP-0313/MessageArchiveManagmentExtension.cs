@@ -17,13 +17,6 @@ namespace Sharp.Xmpp.Extensions
         private readonly ILogger log;
 
         /// <summary>
-        /// A reference to the 'Entity Capabilities' extension instance.
-        /// 
-        /// Not yet supported
-        /// </summary>
-        private EntityCapabilities ecapa;
-
-        /// <summary>
         /// An enumerable collection of XMPP namespaces the extension implements.
         /// </summary>
         /// <remarks>This is used for compiling the list of supported extensions
@@ -53,7 +46,6 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         public override void Initialize()
         {
-            ecapa = im.GetExtension<EntityCapabilities>();
         }
 
         /// <summary>

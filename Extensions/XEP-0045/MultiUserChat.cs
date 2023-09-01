@@ -154,9 +154,11 @@ namespace Sharp.Xmpp.Extensions
                         person = new Occupant(
                            stanza.From,
                            item.GetAttribute("affiliation"),
-                           item.GetAttribute("role"));
-                        person.RealJid = item.GetAttribute("jid");
-					}
+                           item.GetAttribute("role"))
+                        {
+                            RealJid = item.GetAttribute("jid")
+                        };
+                    }
 				}
 
 
@@ -215,7 +217,7 @@ namespace Sharp.Xmpp.Extensions
             if (!string.IsNullOrEmpty(password))
                 elem.Child(Xml.Element("password").Text(password));
 
-            Jid joinRequest = new Jid(jid.Domain, jid.Node, nickname);
+            Jid joinRequest = new(jid.Domain, jid.Node, nickname);
             var msg = new Im.Presence(joinRequest, im.Jid, PresenceType.Available, null, null, elem);
             im.SendPresence(msg);
         }
@@ -225,7 +227,7 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         public void LeaveRoom(Jid jid, string nickname)
         {
-            Jid groupSpecificJid = new Jid(jid.Domain, jid.Node, nickname);
+            Jid groupSpecificJid = new(jid.Domain, jid.Node, nickname);
             var msg = new Im.Presence(jid, groupSpecificJid, PresenceType.Unavailable);
             im.SendPresence(msg);
         }
@@ -270,7 +272,7 @@ namespace Sharp.Xmpp.Extensions
             room.ThrowIfNull("room");
             nickname.ThrowIfNullOrEmpty("nickname");
 
-            Jid request = new Jid(room.Domain, room.Node, nickname);
+            Jid request = new(room.Domain, room.Node, nickname);
             var msg = new Core.Presence(request, im.Jid, null, null, null);
 
             im.SendPresence(new Im.Presence(msg));
@@ -306,7 +308,7 @@ namespace Sharp.Xmpp.Extensions
                 new DataField(requestedRole)
             };
 
-            SubmitForm form = new SubmitForm(fields);
+            SubmitForm form = new(fields);
             var message = new Core.Message(room, im.Jid, form.ToXmlElement());
             SendMessage(message);
         }
@@ -397,7 +399,7 @@ namespace Sharp.Xmpp.Extensions
         public void EditRoomSubject(Jid room, string subject)
         {
             subject.ThrowIfNull("subject");
-            Im.Message message = new Im.Message(room, null, subject, null, MessageType.Groupchat);
+            Im.Message message = new(room, null, subject, null, MessageType.Groupchat);
             SendMessage(message);
         }
 

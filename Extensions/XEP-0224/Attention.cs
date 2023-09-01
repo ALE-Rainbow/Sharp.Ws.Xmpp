@@ -44,7 +44,7 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         public override void Initialize()
         {
-            ecapa = im.GetExtension<EntityCapabilities>();
+            ecapa = im.GetExtension(typeof(EntityCapabilities)) as EntityCapabilities;
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace Sharp.Xmpp.Extensions
                 throw new NotSupportedException("The XMPP entity does not support the " +
                     "'Attention' extension.");
             }
-            Im.Message m = new Im.Message(jid, message);
+            Im.Message m = new(jid, message);
             // Add the 'attention' element to the message.
             m.Data.Child(Xml.Element("attention", "urn:xmpp:attention:0"));
             im.SendMessage(m);

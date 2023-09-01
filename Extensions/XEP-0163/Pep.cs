@@ -29,7 +29,7 @@ namespace Sharp.Xmpp.Extensions
         /// <summary>
         /// A dictionary of callback methods registered for specific events.
         /// </summary>
-        private IDictionary<string, Action<Jid, XmlElement>> callbacks =
+        private readonly IDictionary<string, Action<Jid, XmlElement>> callbacks =
             new Dictionary<string, Action<Jid, XmlElement>>();
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         public override void Initialize()
         {
-            ecapa = im.GetExtension<EntityCapabilities>();
+            ecapa = im.GetExtension(typeof(EntityCapabilities)) as EntityCapabilities;
         }
 
         /// <summary>

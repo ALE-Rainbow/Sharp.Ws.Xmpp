@@ -46,7 +46,7 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         public override void Initialize()
         {
-            ecapa = im.GetExtension<EntityCapabilities>();
+            ecapa = im.GetExtension(typeof(EntityCapabilities)) as EntityCapabilities;
         }
 
         /// <summary>
@@ -73,7 +73,7 @@ namespace Sharp.Xmpp.Extensions
             //It has not to do with the semantics of the message
             XmlElement query = stanza.Data["customiq"];
 
-            XmlDocument targetDocument = new XmlDocument();
+            XmlDocument targetDocument = new();
 
             CopyNodes(targetDocument, targetDocument, query.FirstChild);
 
@@ -155,10 +155,7 @@ namespace Sharp.Xmpp.Extensions
                     try
                     {
                         //An empty response means the message was received
-                        if (callback != null)
-                        {
-                            callback.Invoke(jid, id);
-                        }
+                        callback?.Invoke(jid, id);
                     }
                     catch (Exception e)
                     {

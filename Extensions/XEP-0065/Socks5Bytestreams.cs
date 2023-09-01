@@ -27,11 +27,6 @@ namespace Sharp.Xmpp.Extensions
         private SIFileTransfer siFileTransfer;
 
         /// <summary>
-        /// A reference to the 'Entity Capabilities' extension instance.
-        /// </summary>
-        private EntityCapabilities ecapa;
-
-        /// <summary>
         /// A reference to the 'Service Discovery' extension instance.
         /// </summary>
         private ServiceDiscovery sdisco;
@@ -184,10 +179,9 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         public override void Initialize()
         {
-            ecapa = im.GetExtension<EntityCapabilities>();
-            siFileTransfer = im.GetExtension<SIFileTransfer>();
-            sdisco = im.GetExtension<ServiceDiscovery>();
-            serverIpCheck = im.GetExtension<ServerIpCheck>();
+            siFileTransfer = im.GetExtension(typeof(SIFileTransfer)) as SIFileTransfer;
+            sdisco = im.GetExtension(typeof(ServiceDiscovery)) as ServiceDiscovery;
+            serverIpCheck = im.GetExtension(typeof(ServerIpCheck)) as ServerIpCheck;
         }
 
         /// <summary>
@@ -346,7 +340,7 @@ namespace Sharp.Xmpp.Extensions
             using (var sha1 = SHA1.Create())
             {
                 byte[] hash = sha1.ComputeHash(Encoding.UTF8.GetBytes(s));
-                StringBuilder builder = new StringBuilder();
+                StringBuilder builder = new();
                 foreach (byte h in hash)
                     builder.Append(h.ToString("x2"));
                 return builder.ToString();
@@ -461,9 +455,7 @@ namespace Sharp.Xmpp.Extensions
         /// valid SI session.</exception>
         private void ReceiveData(Iq stanza, string sid, Stream stream)
         {
-            SISession session = siFileTransfer.GetSession(sid, stanza.From, stanza.To);
-            if (session == null)
-                throw new XmppException("Invalid session-id: " + sid);
+            SISession session = siFileTransfer.GetSession(sid, stanza.From, stanza.To) ?? throw new XmppException("Invalid session-id: " + sid);
             long left = session.Size;
             try
             {
@@ -473,10 +465,10 @@ namespace Sharp.Xmpp.Extensions
                     int read = stream.Read(buffer, 0, buffer.Length);
                     if (read <= 0)
                         break;
-                    left = left - read;
+                    left -= read;
                     session.Stream.Write(buffer, 0, read);
                     // Update the byte count and raise the 'BytesTransferred' event.
-                    session.Count = session.Count + read;
+                    session.Count += read;
                     BytesTransferred.Raise(this, new BytesTransferredEventArgs(session));
                 }
             }
@@ -677,17 +669,7 @@ namespace Sharp.Xmpp.Extensions
         private static IEnumerable<IPAddress> WindowsGetIpAddresses(IPAddress address = null)
         {
             ISet<IPAddress> set = new HashSet<IPAddress>();
-            var netInterfaces = NetworkInterface.GetAllNetworkInterfaces();
-            //FIXME
-            //NetworkInterface.GetAllNetworkInterfaces does not work in XAMARIN, in Android etc.
-            //Thus an exception is raised and we catch it upstream
-            //FIXME
-            //http://stackoverflow.com/questions/17868420/networkinterface-getallnetworkinterfaces-returns-interfaces-with-operationalst
-            //http://developer.xamarin.com/recipes/ios/network/reachability/detect_if_network_is_available/
-            if (netInterfaces == null)
-            {
-                throw new NotImplementedException();
-            }
+            var netInterfaces = NetworkInterface.GetAllNetworkInterfaces() ?? throw new NotImplementedException();
             //END FIXME
             foreach (var ni in netInterfaces)
             {
@@ -725,20 +707,10 @@ namespace Sharp.Xmpp.Extensions
         /// <remarks>This only accounts for IPv4 addresses.</remarks>
         private static IEnumerable<IPAddress> AndroidGetIpAddresses(IPAddress address = null)
         {
-            ISet<IPAddress> set = new HashSet<IPAddress>();
+            //ISet<IPAddress> set = new HashSet<IPAddress>();
             //var connectivityManager = (ConnectivityManager)GetSystemService(ConnectivityService);
 
-            var netInterfaces = NetworkInterface.GetAllNetworkInterfaces();
-            //FIXME
-            //NetworkInterface.GetAllNetworkInterfaces does not work in XAMARIN, in Android etc.
-            //Thus an exception is raised and we catch it upstream
-            //FIXME
-            //http://stackoverflow.com/questions/17868420/networkinterface-getallnetworkinterfaces-returns-interfaces-with-operationalst
-            //http://developer.xamarin.com/recipes/ios/network/reachability/detect_if_network_is_available/
-            if (netInterfaces == null)
-            {
-                throw new NotImplementedException();
-            }
+            var netInterfaces = NetworkInterface.GetAllNetworkInterfaces() ?? throw new NotImplementedException();
             return null;
         }
 
@@ -897,13 +869,9 @@ namespace Sharp.Xmpp.Extensions
             }
             if (query.GetAttribute("sid") != session.Sid)
                 throw new XmppException("Invalid session identifier.");
-            var used = query["streamhost-used"];
-            if (used == null)
-                throw new XmppException("Missing streamhost-used element.");
+            var used = query["streamhost-used"] ?? throw new XmppException("Missing streamhost-used element.");
             var proxyJid = used.GetAttribute("jid");
-            var streamhost = proxies.FirstOrDefault(proxy => proxy.Jid == proxyJid);
-            if (streamhost == null)
-                throw new XmppException("Invalid streamhost JID.");
+            var streamhost = proxies.FirstOrDefault(proxy => proxy.Jid == proxyJid) ?? throw new XmppException("Invalid streamhost JID.");
             return streamhost;
         }
 
@@ -996,9 +964,9 @@ namespace Sharp.Xmpp.Extensions
                         stream.Write(buffer, 0, read);
                     else
                         break;
-                    left = left - read;
+                    left -= read;
                     // Update the byte count and raise the 'BytesTransferred' event.
-                    session.Count = session.Count + read;
+                    session.Count += read;
                     BytesTransferred.Raise(this, new BytesTransferredEventArgs(session));
                 }
             }

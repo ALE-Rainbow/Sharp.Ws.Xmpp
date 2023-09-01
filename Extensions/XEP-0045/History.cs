@@ -155,7 +155,7 @@ namespace Sharp.Xmpp.Extensions
         private int? GetValueAsInteger(string attributeName)
         {
             XmlElement node = HistoryElement;
-            string v = node == null ? null : node.GetAttribute(attributeName);
+            string v = node?.GetAttribute(attributeName);
 
             int? result = null;
             if (!string.IsNullOrEmpty(v))
@@ -167,7 +167,7 @@ namespace Sharp.Xmpp.Extensions
         private DateTime? GetValueAsDateTime(string attributeName)
         {
             XmlElement node = HistoryElement;
-            string v = node == null ? null : node.GetAttribute(attributeName);
+            string v = node?.GetAttribute(attributeName);
 
             DateTime? result = null;
             if (!string.IsNullOrEmpty(v))

@@ -21,21 +21,16 @@ namespace Sharp.Xmpp.Extensions
         private StreamInitiation streamInitiation;
 
         /// <summary>
-        /// A reference to the 'Entity Capabilities' extension instance.
-        /// </summary>
-        private EntityCapabilities ecapa;
-
-        /// <summary>
         /// A dictionary of negotiated sessions for file-transfers.
         /// </summary>
-        private ConcurrentDictionary<string, SISession> siSessions =
-            new ConcurrentDictionary<string, SISession>();
+        private readonly ConcurrentDictionary<string, SISession> siSessions =
+            new();
 
         /// <summary>
         /// A dictionary of file meta-data.
         /// </summary>
-        private ConcurrentDictionary<string, FileMetaData> metaData =
-            new ConcurrentDictionary<string, FileMetaData>();
+        private readonly ConcurrentDictionary<string, FileMetaData> metaData =
+            new();
 
         /// <summary>
         /// There is no easy way to determine the mime-type of a file
@@ -116,19 +111,18 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         public override void Initialize()
         {
-            streamInitiation = im.GetExtension<StreamInitiation>();
+            streamInitiation = im.GetExtension(typeof(StreamInitiation)) as StreamInitiation;
             // Register the 'file-transfer' profile.
             streamInitiation.RegisterProfile(
                 "http://jabber.org/protocol/si/profile/file-transfer",
                 OnStreamInitiationRequest
             );
-            ecapa = im.GetExtension<EntityCapabilities>();
             // Sign up for the 'BytesTransferred' and 'TransferAborted' events of each
             // data-stream extension that we support.
             foreach (var type in supportedMethods)
             {
                 var ext = im.GetExtension(type);
-                if (ext == null || !(ext is IDataStream))
+                if (ext == null || ext is not IDataStream)
                     throw new XmppException("Invalid data-stream type: " + type);
                 IDataStream dataStream = ext as IDataStream;
                 dataStream.BytesTransferred += OnBytesTransferred;
@@ -152,8 +146,7 @@ namespace Sharp.Xmpp.Extensions
             sid.ThrowIfNull("sid");
             from.ThrowIfNull("from");
             to.ThrowIfNull("to");
-            SISession value;
-            if (!siSessions.TryGetValue(sid, out value))
+            if (!siSessions.TryGetValue(sid, out SISession value))
                 return null;
             if (value.From != from || value.To != to)
                 return null;
@@ -169,11 +162,9 @@ namespace Sharp.Xmpp.Extensions
         public void InvalidateSession(string sid)
         {
             sid.ThrowIfNull("sid");
-            SISession value;
-            if (siSessions.TryRemove(sid, out value))
+            if (siSessions.TryRemove(sid, out SISession value))
             {
-                if (value.Stream != null)
-                    value.Stream.Dispose();
+                value.Stream?.Dispose();
             }
         }
 
@@ -216,7 +207,7 @@ namespace Sharp.Xmpp.Extensions
         {
             to.ThrowIfNull("to");
             path.ThrowIfNull("path");
-            FileInfo info = new FileInfo(path);
+            FileInfo info = new(path);
             return InitiateFileTransfer(to, File.OpenRead(path), info.Name, info.Length,
                 description, cb);
         }
@@ -308,12 +299,8 @@ namespace Sharp.Xmpp.Extensions
         {
             transfer.ThrowIfNull("transfer");
             SISession session = GetSession(transfer.SessionId, transfer.From,
-                transfer.To);
-            if (session == null)
-            {
-                throw new ArgumentException("The specified transfer instance does not " +
+                transfer.To) ?? throw new ArgumentException("The specified transfer instance does not " +
                     "represent an active data-transfer operation.");
-            }
             session.Extension.CancelTransfer(session);
         }
 
@@ -347,17 +334,17 @@ namespace Sharp.Xmpp.Extensions
                     return new XmppError(ErrorType.Cancel, ErrorCondition.Conflict).Data;
                 // Extract file information and hand to user.
                 var file = si["file"];
-                string desc = file["desc"] != null ? file["desc"].InnerText : null,
+                string desc = file["desc"]?.InnerText,
                     name = file.GetAttribute("name");
                 int size = int.Parse(file.GetAttribute("size"));
-                FileTransfer transfer = new FileTransfer(from, im.Jid, name, size,
+                FileTransfer transfer = new(from, im.Jid, name, size,
                     sid, desc);
                 string savePath = TransferRequest.Invoke(transfer);
                 // User has rejected the request.
                 if (savePath == null)
                     return new XmppError(ErrorType.Cancel, ErrorCondition.NotAcceptable).Data;
                 // Create an SI session instance.
-                SISession session = new SISession(sid, File.OpenWrite(savePath),
+                SISession session = new(sid, File.OpenWrite(savePath),
                     size, true, from, im.Jid, im.GetExtension(method) as IDataStream);
                 siSessions.TryAdd(sid, session);
                 // Store the file's meta data.
@@ -509,7 +496,7 @@ namespace Sharp.Xmpp.Extensions
         private void OnInitiationResult(InitiationResult result, Jid to, string name,
             Stream stream, long size, string description, Action<bool, FileTransfer> cb)
         {
-            FileTransfer transfer = new FileTransfer(im.Jid, to, name, size, null,
+            FileTransfer transfer = new(im.Jid, to, name, size, null,
                 description);
             try
             {
@@ -517,14 +504,13 @@ namespace Sharp.Xmpp.Extensions
                 // selected.
                 IDataStream ext = im.GetExtension(result.Method) as IDataStream;
                 // Register the session.
-                SISession session = new SISession(result.SessionId, stream, size, false,
+                SISession session = new(result.SessionId, stream, size, false,
                     im.Jid, to, ext);
                 siSessions.TryAdd(result.SessionId, session);
                 // Store the file's meta data.
                 metaData.TryAdd(result.SessionId, new FileMetaData(name, description));
                 // Invoke user-provided callback.
-                if (cb != null)
-                    cb.Invoke(true, transfer);
+                cb?.Invoke(true, transfer);
                 // Perform the actual data-transfer.
                 try
                 {
@@ -540,8 +526,7 @@ namespace Sharp.Xmpp.Extensions
             {
                 // Something went wrong. Invoke user-provided callback to let them know
                 // the file-transfer can't be performed.
-                if (cb != null)
-                    cb.Invoke(false, transfer);
+                cb?.Invoke(false, transfer);
             }
         }
 
@@ -554,8 +539,7 @@ namespace Sharp.Xmpp.Extensions
         private void OnBytesTransferred(object sender, BytesTransferredEventArgs e)
         {
             // Get the Metadata of the file.
-            FileMetaData meta;
-            if (metaData.TryGetValue(e.Session.Sid, out meta))
+            if (metaData.TryGetValue(e.Session.Sid, out FileMetaData meta))
             {
                 // Raise the 'FileTransferProgress' event.
                 FileTransferProgress.Raise(this, new FileTransferProgressEventArgs(
@@ -572,8 +556,7 @@ namespace Sharp.Xmpp.Extensions
         private void OnTransferAborted(object sender, TransferAbortedEventArgs e)
         {
             // Get the Metadata of the file.
-            FileMetaData meta;
-            if (metaData.TryGetValue(e.Session.Sid, out meta))
+            if (metaData.TryGetValue(e.Session.Sid, out FileMetaData meta))
             {
                 // Raise the 'FileTransferAborted' event.
                 FileTransferAborted.Raise(this, new FileTransferAbortedEventArgs(

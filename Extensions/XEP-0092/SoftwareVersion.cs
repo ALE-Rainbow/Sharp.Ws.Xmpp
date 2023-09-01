@@ -55,7 +55,7 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         public override void Initialize()
         {
-            ecapa = im.GetExtension<EntityCapabilities>();
+            ecapa = im.GetExtension(typeof(EntityCapabilities)) as EntityCapabilities;
         }
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace Sharp.Xmpp.Extensions
                 throw new XmppException("Erroneous server response: " + response);
             if (query["name"] == null || query["version"] == null)
                 throw new XmppException("Missing name or version element: " + response);
-            string os = query["os"] != null ? query["os"].InnerText : null;
+            string os = query["os"]?.InnerText;
             return new VersionInformation(query["name"].InnerText,
                 query["version"].InnerText, os);
         }

@@ -28,18 +28,18 @@ namespace Sharp.Xmpp.Core
         private bool webSocketOpened = false;
 
         private bool rootElement;
-        private string uri;
+        private readonly string uri;
 
-        private readonly object writeLock = new object();
-        private readonly object closedLock = new object();
+        private readonly object writeLock = new();
+        private readonly object closedLock = new();
 
-        private BlockingCollection<string> actionsToPerform;
-        private BlockingCollection<string> messagesToSend;
-        private BlockingCollection<string> messagesReceived;
-        private BlockingCollection<Iq> iqMessagesReceived;
-        private HashSet<String> iqIdList;
+        private readonly BlockingCollection<string> actionsToPerform;
+        private readonly BlockingCollection<string> messagesToSend;
+        private readonly BlockingCollection<string> messagesReceived;
+        private readonly BlockingCollection<Iq> iqMessagesReceived;
+        private readonly HashSet<String> iqIdList;
 
-        private WebProxy webProxy = null;
+        private readonly WebProxy webProxy = null;
 
         private ClientWebSocket clientWebSocket = null;
 
@@ -130,7 +130,7 @@ namespace Sharp.Xmpp.Core
             try
             {
                 // Create the token source.
-                CancellationTokenSource cts = new CancellationTokenSource();
+                CancellationTokenSource cts = new();
                 Task result = clientWebSocket.ConnectAsync(new Uri(uri), cts.Token);
                 if(!result.Wait(TIMEOUT_WS_DEFAULT_VALUE))
                 {
@@ -228,7 +228,7 @@ namespace Sharp.Xmpp.Core
         {
             Task.Factory.StartNew( async() =>
                 {
-                    ArraySegment<Byte> buffer = new ArraySegment<byte>(new Byte[8192]);
+                    ArraySegment<Byte> buffer = new(new Byte[8192]);
 
                     WebSocketReceiveResult result = null;
                     Boolean readingCorrectly = true;
@@ -357,8 +357,7 @@ namespace Sharp.Xmpp.Core
 
         private string DequeueMessageToSend()
         {
-            String message;
-            if (messagesToSend.TryTake(out message, 50))
+            if (messagesToSend.TryTake(out string message, 50))
                 return message;
             return null;
         }
@@ -369,7 +368,7 @@ namespace Sharp.Xmpp.Core
         {
             lock (writeLock)
             {
-                XmlDocument xmlDocument = new XmlDocument();
+                XmlDocument xmlDocument = new();
                 try
                 {
                     // Check if we have a valid XML message - if not an exception is raised

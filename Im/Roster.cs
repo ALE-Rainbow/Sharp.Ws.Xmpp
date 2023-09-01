@@ -12,7 +12,7 @@ namespace Sharp.Xmpp.Im
         /// <summary>
         /// The set of items that form the roster.
         /// </summary>
-        private ISet<RosterItem> items = new HashSet<RosterItem>();
+        private readonly ISet<RosterItem> items = new HashSet<RosterItem>();
 
         /// <summary>
         /// The number of items on the roster.
