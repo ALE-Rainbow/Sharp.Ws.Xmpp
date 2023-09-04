@@ -1556,7 +1556,10 @@ namespace Sharp.Xmpp.Core
                         ActionToPerform(this, new TextEventArgs(action));
                     }
                 }
-                catch { }
+                catch (Exception exc)
+                {
+                    log.LogError("[ReadAction] - Exception:[{exception}]", exc);
+                }
             }
         }
 
@@ -1591,7 +1594,7 @@ namespace Sharp.Xmpp.Core
 
                         xmlDocument = new XmlDocument();
                         xmlDocument.LoadXml(message);
-                        
+
                         elem = xmlDocument.DocumentElement;
 
                         switch (elem.Name)
@@ -1599,15 +1602,15 @@ namespace Sharp.Xmpp.Core
                             case "challenge":
                                 //log.LogDebug("challenge received");
                                 response = saslMechanism.GetResponse(elem.InnerText);
-                                xmlResponse = Xml.Element("response", 
+                                xmlResponse = Xml.Element("response",
                                     "urn:ietf:params:xml:ns:xmpp-sasl").Text(response);
                                 Send(xmlResponse, false);
                                 break;
 
                             case "success":
                                 //log.LogDebug("success received");
-                                if ( saslMechanism.IsCompleted ||
-                                        (saslMechanism.GetResponse(elem.InnerText) == String.Empty) )
+                                if (saslMechanism.IsCompleted ||
+                                        (saslMechanism.GetResponse(elem.InnerText) == String.Empty))
                                 {
                                     Authenticated = true;
 
@@ -1622,7 +1625,7 @@ namespace Sharp.Xmpp.Core
 
                             case "failure":
                                 log.LogWarning("Failure received");
-                                if(elem.NamespaceURI == "urn:ietf:params:xml:ns:xmpp-sasl")
+                                if (elem.NamespaceURI == "urn:ietf:params:xml:ns:xmpp-sasl")
                                 {
                                     var status = new ConnectionStatusEventArgs(false, "fatal", "Invalid username or password");
                                     RaiseConnectionStatus(status);
@@ -1746,10 +1749,10 @@ namespace Sharp.Xmpp.Core
                             case "stream:error":
                                 String reason = null;
                                 String details = null;
-                                if(elem.FirstChild != null)
+                                if (elem.FirstChild != null)
                                 {
                                     reason = elem.FirstChild.Name.ToLower();
-                                    if(elem.FirstChild.NextSibling?.Name == "text")
+                                    if (elem.FirstChild.NextSibling?.Name == "text")
                                         details = elem.FirstChild.NextSibling.InnerText;
                                 }
 
@@ -1768,6 +1771,10 @@ namespace Sharp.Xmpp.Core
                         log.LogError($"ReadXmlWebSocketMessage - Exception:[{exc}");
                     }
                 }
+            }
+            catch (ThreadAbortException)
+            {
+                log.LogInformation($"ReadXmlWebSocketMessage - ThreadAbortException");
             }
             catch (Exception e)
             {
@@ -1901,20 +1908,26 @@ namespace Sharp.Xmpp.Core
                     else if (stanza is StreamManagementStanza sms)
                         StreamManagementStanza.Raise(this, new StreamManagementStanzaEventArgs(sms));
                     else
-                        log.LogError("DispatchEvents - not a valide stanza ....");
+                        log.LogError("DispatchEvents - not a valid stanza ....");
                 }
                 catch (OperationCanceledException)
                 {
                     // Quit the task if it's been cancelled.
-                    log.LogError("DispatchEvents - OperationCanceledException - ERROR");
+                    log.LogInformation("DispatchEvents - OperationCanceledException - ERROR");
+                    return;
+                }
+                catch (ThreadAbortException)
+                {
+                    // Quit the task if it's been cancelled.
+                    log.LogInformation("DispatchEvents - ThreadAbortException");
                     return;
                 }
                 catch (Exception e)
                 {
                     // FIXME: What should we do if an exception is thrown in one of the
                     // event handlers?
-                    log.LogError("DispatchEvents - global exception - ERROR");
-                    System.Diagnostics.Debug.WriteLine("Error in XMPP Core: " + e.StackTrace + e.ToString());
+                    log.LogError($"DispatchEvents - global exception - Exception:[{e}]");
+                    //System.Diagnostics.Debug.WriteLine("Error in XMPP Core: " + e.StackTrace + e.ToString());
                     //throw e;
                 }
             }

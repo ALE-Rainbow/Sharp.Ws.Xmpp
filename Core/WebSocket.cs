@@ -92,10 +92,7 @@ namespace Sharp.Xmpp.Core
                         // Nothing to do more
                     }
                 }
-            }
-
-            if (clientWebSocket != null)
-            { 
+           
                 try
                 {
                     clientWebSocket.Dispose();
@@ -384,9 +381,9 @@ namespace Sharp.Xmpp.Core
                         ReadRootElement(xmlDocument);
                     }
                 }
-                catch
+                catch (Exception exc)
                 {
-                    log.LogError("QueueMessageReceived - ERROR");
+                    log.LogError("[QueueMessageReceived] - Exception:[{exception}]", exc);
                 }
             }
         }
