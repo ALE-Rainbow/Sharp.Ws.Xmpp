@@ -130,7 +130,7 @@ namespace Sharp.Xmpp.Extensions
                 }
                 else
                 {
-                    MessageReceived.Raise(this, new MessageEventArgs(message.ToString()));
+                    MessageReceived.Raise(this, new MessageEventArgs(message.Data["callservice"].ToXmlString()));
                     return true;
                 }
             }
