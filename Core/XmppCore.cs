@@ -1400,8 +1400,12 @@ namespace Sharp.Xmpp.Core
         {
             // Precedence: SCRAM-SHA-1, DIGEST-MD5, PLAIN.
             //string[] m = new string[] { "SCRAM-SHA-1", "DIGEST-MD5", "PLAIN" };
-            // ONLY PLAIN IS SUPPORTED - see also SaslFactory
-            string[] m = new string[] { "PLAIN" };
+
+            // /!\ MD5 IS NOT WORKING - TESTED 2023-22-19
+
+            /// Precedence: SCRAM-SHA-1, PLAIN.
+            string[] m = new string[] { "SCRAM-SHA-1", "PLAIN" }; 
+
             for (int i = 0; i < m.Length; i++)
             {
                 if (mechanisms.Contains(m[i], StringComparer.InvariantCultureIgnoreCase))
