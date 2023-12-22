@@ -195,7 +195,7 @@ namespace Sharp.Xmpp.Client
         /// <summary>
         /// Provides the Rainbow extension
         /// </summary>
-        private Rainbow rainbow;
+        private Sharp.Xmpp.Extensions.Rainbow rainbow;
 
         /// <summary>
         /// Provides the Conference extension
@@ -3083,7 +3083,7 @@ namespace Sharp.Xmpp.Client
 
             im.AddExtension(jingleMessageInitiation = new JingleMessageInitiation(im, loggerPrefix));
             im.AddExtension(configuration = new Configuration(im, loggerPrefix));
-            im.AddExtension(rainbow = new Rainbow(im, loggerPrefix));
+            im.AddExtension(rainbow = new Sharp.Xmpp.Extensions.Rainbow(im, loggerPrefix));
             im.AddExtension(conference = new Conference(im, loggerPrefix));
             im.AddExtension(adHocCommand = new AdHocCommand(im, loggerPrefix));
             im.AddExtension(callLog = new CallLog(im, loggerPrefix));

@@ -1352,9 +1352,9 @@ namespace Sharp.Xmpp.Core
             string password, string hostname)
         {
             string name = SelectMechanism(mechanisms);
-            SaslMechanism m = SaslFactory.Create(name);
-            m.Properties.Add("Username", username);
-            m.Properties.Add("Password", password);
+
+
+            SaslMechanism m = SaslFactory.Create(name, Username, Password);
             var xml = Xml.Element("auth", "urn:ietf:params:xml:ns:xmpp-sasl")
                 .Attr("mechanism", name)
                 .Text(m.HasInitial ? m.GetResponse(String.Empty) : String.Empty);
@@ -1398,15 +1398,9 @@ namespace Sharp.Xmpp.Core
         /// the list of mechanisms advertised by the server.</exception>
         private string SelectMechanism(IEnumerable<string> mechanisms)
         {
-            // Precedence: SCRAM-SHA-1, DIGEST-MD5, PLAIN.
-            //string[] m = new string[] { "SCRAM-SHA-1", "DIGEST-MD5", "PLAIN" };
+            var m = SaslMechanism.Mechanisms; 
 
-            // /!\ MD5 IS NOT WORKING - TESTED 2023-22-19
-
-            /// Precedence: SCRAM-SHA-1, PLAIN.
-            string[] m = new string[] { "SCRAM-SHA-1", "PLAIN" }; 
-
-            for (int i = 0; i < m.Length; i++)
+            for (int i = 0; i < m.Count; i++)
             {
                 if (mechanisms.Contains(m[i], StringComparer.InvariantCultureIgnoreCase))
                     return m[i];
@@ -1650,9 +1644,7 @@ namespace Sharp.Xmpp.Core
                                         mech = mech.NextSibling;
                                     }
                                     string name = SelectMechanism(list);
-                                    saslMechanism = SaslFactory.Create(name);
-                                    saslMechanism.Properties.Add("Username", username);
-                                    saslMechanism.Properties.Add("Password", password);
+                                    saslMechanism = SaslFactory.Create(name, Username, Password);
                                     xmlResponse = Xml.Element("auth", "urn:ietf:params:xml:ns:xmpp-sasl")
                                         .Attr("mechanism", name)
                                         .Text(saslMechanism.HasInitial ? saslMechanism.GetResponse(String.Empty) : String.Empty);
