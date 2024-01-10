@@ -261,23 +261,14 @@ namespace Sharp.Xmpp.Core.Sasl
               encoding
               );
 
-            try
-            {
-                var task = client.ChallengeOrThrowOnErrorAsync(challengeArguments);
-                (var bytesWritten, var challengeResult) = task.Result;
+            var task = client.ChallengeOrThrowOnErrorAsync(challengeArguments);
+            (var bytesWritten, var challengeResult) = task.Result;
 
-                if (bytesWritten > 0)
-                {
-                    byte[] result = new byte[bytesWritten];
-                    Array.Copy(writeArray.Array, result, bytesWritten);
-                    return result;
-                }
-            }
-            catch
-            {
+            if (challengeResult == SASLChallengeResult.Completed)
+                return new byte[0];
 
-            }
-            return new byte[0];
+            throw new Exception("Server signature has not been verified with success");
+
         }
 
 
