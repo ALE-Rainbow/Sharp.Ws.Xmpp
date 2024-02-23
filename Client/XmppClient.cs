@@ -198,6 +198,11 @@ namespace Sharp.Xmpp.Client
         private Sharp.Xmpp.Extensions.Rainbow rainbow;
 
         /// <summary>
+        /// Provides the RainbowMessage extension
+        /// </summary>
+        private Sharp.Xmpp.Extensions.RainbowMessage rainbowMessage;
+
+        /// <summary>
         /// Provides the Conference extension
         /// </summary>
         private AdHocCommand adHocCommand;
@@ -1285,6 +1290,23 @@ namespace Sharp.Xmpp.Client
                 rainbow.AckMessage -= value;
             }
         }
+
+
+        /// <summary>
+        /// The event raised when an ApplicationMessage has been recevied
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> ApplicationMessage
+        {
+            add
+            {
+                rainbowMessage.ApplicationMessage += value;
+            }
+            remove
+            {
+                rainbowMessage.ApplicationMessage -= value;
+            }
+        }
+
 
         /// <summary>
         /// The event that is raised when the current user password has been updated
@@ -3084,6 +3106,7 @@ namespace Sharp.Xmpp.Client
             im.AddExtension(jingleMessageInitiation = new JingleMessageInitiation(im, loggerPrefix));
             im.AddExtension(configuration = new Configuration(im, loggerPrefix));
             im.AddExtension(rainbow = new Sharp.Xmpp.Extensions.Rainbow(im, loggerPrefix));
+            im.AddExtension(rainbowMessage = new Sharp.Xmpp.Extensions.RainbowMessage(im, loggerPrefix));
             im.AddExtension(conference = new Conference(im, loggerPrefix));
             im.AddExtension(adHocCommand = new AdHocCommand(im, loggerPrefix));
             im.AddExtension(callLog = new CallLog(im, loggerPrefix));

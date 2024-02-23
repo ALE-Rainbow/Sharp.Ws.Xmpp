@@ -1353,22 +1353,21 @@ namespace Sharp.Xmpp.Core
         {
             string name = SelectMechanism(mechanisms);
 
-
-            SaslMechanism m = SaslFactory.Create(name, Username, Password);
+            saslMechanism = SaslFactory.Create(name, Username, Password);
             var xml = Xml.Element("auth", "urn:ietf:params:xml:ns:xmpp-sasl")
                 .Attr("mechanism", name)
-                .Text(m.HasInitial ? m.GetResponse(String.Empty) : String.Empty);
+                .Text(saslMechanism.HasInitial ? saslMechanism.GetResponse(String.Empty) : String.Empty);
             Send(xml, false);
             while (true)
             {
                 XmlElement ret = parser.NextElement("challenge", "success", "failure");
                 if (ret.Name == "failure")
                     throw new SaslException("SASL authentication failed.");
-                if (ret.Name == "success" && m.IsCompleted)
+                if (ret.Name == "success" && saslMechanism.IsCompleted)
                     break;
                 // Server has successfully authenticated us, but mechanism still needs
                 // to verify server's signature.
-                string response = m.GetResponse(ret.InnerText);
+                string response = saslMechanism.GetResponse(ret.InnerText);
                 // If the response is the empty string, the server's signature has been
                 // verified.
                 if (ret.Name == "success")
@@ -1398,7 +1397,7 @@ namespace Sharp.Xmpp.Core
         /// the list of mechanisms advertised by the server.</exception>
         private string SelectMechanism(IEnumerable<string> mechanisms)
         {
-            var m = SaslMechanism.Mechanisms; 
+            var m = Mechanisms.ListByPriority; 
 
             for (int i = 0; i < m.Count; i++)
             {
