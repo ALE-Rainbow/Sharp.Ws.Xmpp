@@ -1,21 +1,28 @@
 ﻿using Rainbow.Cryptography.Util;
-using Rainbow.Cryptography.SASL.SCRAM;
 using Rainbow.Cryptography.SASL;
+using Rainbow.Cryptography.SASL.SCRAM;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Sharp.Xmpp.Core.Sasl
 {
-    internal class SaslMechanism
+
+    public static class Mechanisms
     {
+        /// <summary>
+        /// List mechanism to use by priority: Can only contain "SCRAM-SHA-512", "SCRAM-SHA-256", "SCRAM-SHA-1" or "PLAIN"
+        /// </summary>
         // List by priority order
-        static public readonly List<String> Mechanisms = new List<String>() { 
-            { "SCRAM-SHA-512" }, 
+        static public List<String> ListByPriority = new List<String>() {
+            { "SCRAM-SHA-512" },
             { "SCRAM-SHA-256" },
             { "SCRAM-SHA-1" },
             { "PLAIN" } };
+    }
 
+    internal class SaslMechanism
+    {
         String type;
 
         private int Step = 0;
