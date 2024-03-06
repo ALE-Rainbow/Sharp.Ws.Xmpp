@@ -5,7 +5,7 @@
 	<AssemblyName>Sharp.Ws.Xmpp</AssemblyName>
 	<RootNamespace>Sharp.Xmpp</RootNamespace>
 	<LangVersion>10</LangVersion>
-    <Version>2.6.21</Version>
+    <Version>2.6.22</Version>
     <Authors>Christophe Irles</Authors>
     <Company>ALE International</Company>
     <Product>Sharp.Ws.Xmpp</Product>
@@ -23,7 +23,7 @@ Several extensions have been added to support Rainbow features (https://openrain
   </ItemGroup>
 	
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
   </ItemGroup>
 	
   <ItemGroup>
