@@ -1243,6 +1243,21 @@ namespace Sharp.Xmpp.Client
         }
 
         /// <summary>
+        /// The event raised when an Open Invite message has been received
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> OpenInvite
+        {
+            add
+            {
+                configuration.OpenInvite += value;
+            }
+            remove
+            {
+                configuration.OpenInvite -= value;
+            }
+        }
+
+        /// <summary>
         /// The event raised when the synhcronisation status with a provider has changed
         /// </summary>
         public event EventHandler<Sharp.Xmpp.Extensions.SynchroProviderStatusEventArgs> SynchroProviderStatus

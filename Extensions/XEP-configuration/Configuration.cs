@@ -104,6 +104,11 @@ namespace Sharp.Xmpp.Extensions
         public event EventHandler<MessageEventArgs> RecordingFile;
 
         /// <summary>
+        /// The event raised when an Open Invite message has been received
+        /// </summary>
+        public event EventHandler<MessageEventArgs> OpenInvite;
+
+        /// <summary>
         /// The event raised when the synhcronisation status with a provider has changed
         /// </summary>
         public event EventHandler<SynchroProviderStatusEventArgs> SynchroProviderStatus;
@@ -359,6 +364,11 @@ namespace Sharp.Xmpp.Extensions
                 {
                     XmlElement e = message.Data["recordingfile"];
                     RecordingFile.Raise(this, new MessageEventArgs(e.ToXmlString()));
+                }
+                else if (message.Data["openinvite"] != null)
+                {
+                    XmlElement e = message.Data["openinvite"];
+                    OpenInvite.Raise(this, new MessageEventArgs(e.ToXmlString()));
                 }
                 else
                     log.LogInformation("[Input] Message not managed");
