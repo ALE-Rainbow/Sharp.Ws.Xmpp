@@ -350,7 +350,7 @@ namespace Sharp.Xmpp.Extensions
         }
 
 
-        public void DeleteAllArchivedMessages(String with, string queryId, String toJidString)
+        public void DeleteAllArchivedMessages(String with, string queryId, String toJidString, Action<string, Iq> callback = null)
         {
             /*
              * 
@@ -405,13 +405,7 @@ namespace Sharp.Xmpp.Extensions
                 jidTo = new Jid(toJidString);
 
             //The Request is Async
-            im.IqRequestAsync(IqType.Set, jidTo, null, rootElement, null, (id, iq) =>
-            {
-                if (iq.Type == IqType.Error)
-                {
-                    // TODO
-                }
-            });
+            im.IqRequestAsync(IqType.Set, jidTo, null, rootElement, null, callback);
         }
 
 

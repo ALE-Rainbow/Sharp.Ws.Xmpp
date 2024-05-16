@@ -2185,10 +2185,10 @@ namespace Sharp.Xmpp.Client
             mam.RequestArchivedMessages(jid, queryId, maxNumber, isRoom, before, after);
         }
 
-        public void DeleteAllArchivedMessages(String with, string queryId,String toJid)
+        public void DeleteAllArchivedMessages(String with, string queryId, String toJid, Action<string, Sharp.Xmpp.Core.Iq> callback = null)
         {
             AssertValid();
-            mam.DeleteAllArchivedMessages(with, queryId, toJid);
+            mam.DeleteAllArchivedMessages(with, queryId, toJid, callback);
         }
 
         public void RequestCallLogs(string queryId, int maxNumber, string before = null, string after = null)
