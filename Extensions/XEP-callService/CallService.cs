@@ -86,10 +86,11 @@ namespace Sharp.Xmpp.Extensions
             {
                 if (message.Data["callservice"]["forwarded"] != null)
                 {
-                    String forwardType = message.Data["callservice"]["forwarded"].GetAttribute("forwardType");
-                    String forwardTo = message.Data["callservice"]["forwarded"].GetAttribute("forwardTo");
-
-                    CallForwardUpdated.Raise(this, new CallForwardEventArgs(forwardType, forwardTo));
+                    var forwarded = message.Data["callservice"]["forwarded"];
+                    String forwardType = forwarded.GetAttribute("forwardType");
+                    String forwardTo = forwarded.GetAttribute("forwardTo");
+                    String pbxForwardType = forwarded.GetAttribute("pbxForwardType");
+                    CallForwardUpdated.Raise(this, new CallForwardEventArgs(forwardType, forwardTo, pbxForwardType));
 
                     return true;
                 }
