@@ -1258,6 +1258,21 @@ namespace Sharp.Xmpp.Client
         }
 
         /// <summary>
+        /// The event raised when an SupervisionGroup message has been received
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> SupervisionGroup
+        {
+            add
+            {
+                configuration.SupervisionGroup += value;
+            }
+            remove
+            {
+                configuration.SupervisionGroup -= value;
+            }
+        }
+
+        /// <summary>
         /// The event raised when the synhcronisation status with a provider has changed
         /// </summary>
         public event EventHandler<Sharp.Xmpp.Extensions.SynchroProviderStatusEventArgs> SynchroProviderStatus
