@@ -104,6 +104,16 @@ namespace Sharp.Xmpp.Extensions
         public event EventHandler<MessageEventArgs> RecordingFile;
 
         /// <summary>
+        /// The event raised when an Open Invite message has been received
+        /// </summary>
+        public event EventHandler<MessageEventArgs> OpenInvite;
+
+        /// <summary>
+        /// The event raised when a SupervisionGroup message has been received
+        /// </summary>
+        public event EventHandler<MessageEventArgs> SupervisionGroup;
+
+        /// <summary>
         /// The event raised when the synhcronisation status with a provider has changed
         /// </summary>
         public event EventHandler<SynchroProviderStatusEventArgs> SynchroProviderStatus;
@@ -258,8 +268,8 @@ namespace Sharp.Xmpp.Extensions
                     RoomManagement.Raise(this, new RoomManagementEventArgs(roomId, roomJid, userJid, status, privilege, name, topic, lastAvatarUpdateDate, avatarAction));
                 }
                 // Do we receive message about visualvoicemail
-                else if (message.Data["visualvoicemail"] != null)
-                {
+                //else if (message.Data["visualvoicemail"] != null)
+                //{
                     // WE DO NOTHING HERE
                     // WE USE "file" message and file descriptor to manage voice message
 
@@ -278,7 +288,7 @@ namespace Sharp.Xmpp.Extensions
 
                     ////log.LogDebug("duration:[{0}]", duration);
                     //VoiceMailManagement.Raise(this, new VoiceMailManagementEventArgs(msgId, fileId, action, url, mimeType, fileName, size, md5, duration));
-                }
+                //}
                 // Do we receive message about file
                 else if (message.Data["file"] != null)
                 {
@@ -359,6 +369,16 @@ namespace Sharp.Xmpp.Extensions
                 {
                     XmlElement e = message.Data["recordingfile"];
                     RecordingFile.Raise(this, new MessageEventArgs(e.ToXmlString()));
+                }
+                else if (message.Data["openinvite"] != null)
+                {
+                    XmlElement e = message.Data["openinvite"];
+                    OpenInvite.Raise(this, new MessageEventArgs(e.ToXmlString()));
+                }
+                else if (message.Data["supervisiongroup"] != null)
+                {
+                    XmlElement e = message.Data["supervisiongroup"];
+                    SupervisionGroup.Raise(this, new MessageEventArgs(e.ToXmlString()));
                 }
                 else
                     log.LogInformation("[Input] Message not managed");

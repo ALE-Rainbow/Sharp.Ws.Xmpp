@@ -25,11 +25,22 @@ namespace Sharp.Xmpp.Extensions
             private set;
         }
 
- 
-        public CallForwardEventArgs(String type, String to)
+        /// <summary>
+        /// Forward Type: "immediate", "busy", "noreply" (aka No Answer), "busy_or_noreply", "no_forward" (forward deactivation)
+        /// "to_voicemail" (Reserved : not yet implemented), "do_not_disturb" (Reserved : not yet implemented)
+        /// </summary>
+        public String ForwardType
+        {
+            get;
+            private set;
+        }
+
+
+        public CallForwardEventArgs(String type, String to, String forwardType)
         {
             Type = type;
             To = to;
+            ForwardType = forwardType;
         }
 
     }

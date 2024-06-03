@@ -198,6 +198,11 @@ namespace Sharp.Xmpp.Client
         private Sharp.Xmpp.Extensions.Rainbow rainbow;
 
         /// <summary>
+        /// Provides the RainbowMessage extension
+        /// </summary>
+        private Sharp.Xmpp.Extensions.RainbowMessage rainbowMessage;
+
+        /// <summary>
         /// Provides the Conference extension
         /// </summary>
         private AdHocCommand adHocCommand;
@@ -1243,6 +1248,36 @@ namespace Sharp.Xmpp.Client
         }
 
         /// <summary>
+        /// The event raised when an Open Invite message has been received
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> OpenInvite
+        {
+            add
+            {
+                configuration.OpenInvite += value;
+            }
+            remove
+            {
+                configuration.OpenInvite -= value;
+            }
+        }
+
+        /// <summary>
+        /// The event raised when an SupervisionGroup message has been received
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> SupervisionGroup
+        {
+            add
+            {
+                configuration.SupervisionGroup += value;
+            }
+            remove
+            {
+                configuration.SupervisionGroup -= value;
+            }
+        }
+
+        /// <summary>
         /// The event raised when the synhcronisation status with a provider has changed
         /// </summary>
         public event EventHandler<Sharp.Xmpp.Extensions.SynchroProviderStatusEventArgs> SynchroProviderStatus
@@ -1290,6 +1325,23 @@ namespace Sharp.Xmpp.Client
                 rainbow.AckMessage -= value;
             }
         }
+
+
+        /// <summary>
+        /// The event raised when an ApplicationMessage has been recevied
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> ApplicationMessage
+        {
+            add
+            {
+                rainbowMessage.ApplicationMessage += value;
+            }
+            remove
+            {
+                rainbowMessage.ApplicationMessage -= value;
+            }
+        }
+
 
         /// <summary>
         /// The event that is raised when the current user password has been updated
@@ -2169,10 +2221,10 @@ namespace Sharp.Xmpp.Client
             mam.RequestArchivedMessages(jid, queryId, maxNumber, isRoom, before, after);
         }
 
-        public void DeleteAllArchivedMessages(String with, string queryId,String toJid)
+        public void DeleteAllArchivedMessages(String with, string queryId, String toJid, Action<string, Sharp.Xmpp.Core.Iq> callback = null)
         {
             AssertValid();
-            mam.DeleteAllArchivedMessages(with, queryId, toJid);
+            mam.DeleteAllArchivedMessages(with, queryId, toJid, callback);
         }
 
         public void RequestCallLogs(string queryId, int maxNumber, string before = null, string after = null)
@@ -3105,6 +3157,7 @@ namespace Sharp.Xmpp.Client
             im.AddExtension(jingleMessageInitiation = new JingleMessageInitiation(im, loggerPrefix));
             im.AddExtension(configuration = new Configuration(im, loggerPrefix));
             im.AddExtension(rainbow = new Sharp.Xmpp.Extensions.Rainbow(im, loggerPrefix));
+            im.AddExtension(rainbowMessage = new Sharp.Xmpp.Extensions.RainbowMessage(im, loggerPrefix));
             im.AddExtension(conference = new Conference(im, loggerPrefix));
             im.AddExtension(adHocCommand = new AdHocCommand(im, loggerPrefix));
             im.AddExtension(callLog = new CallLog(im, loggerPrefix));

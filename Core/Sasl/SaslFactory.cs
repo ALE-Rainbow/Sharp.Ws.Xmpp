@@ -20,7 +20,7 @@ namespace Sharp.Xmpp.Core.Sasl
         public static SaslMechanism Create(string name, String userName, String password)
         {
             name.ThrowIfNull("name");
-            if (!SaslMechanism.Mechanisms.Contains(name))
+            if (!Mechanisms.ListByPriority.Contains(name))
             {
                 throw new SaslException("A Sasl mechanism with the specified name " +
                     "is not registered with Sasl.SaslFactory.");
