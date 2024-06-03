@@ -42,7 +42,7 @@ namespace Sharp.Xmpp.Extensions
         }
 
         /// <summary>
-        /// The event that is raised when a call log item has been deleted
+        /// The event that is raised when a service request is received
         /// </summary>
         public event EventHandler<ServiceRequestEventArgs> ServiceRequest;
 
@@ -67,8 +67,15 @@ namespace Sharp.Xmpp.Extensions
             var name = service["name"];
             var roomId = service["room-id"];
             var requester = service["requester"];
+            var _action = service["action"];
 
-            if (name == null || roomId == null || requester == null)
+            
+            if (name == null || roomId == null || requester == null || _action == null)
+            {
+                return false;
+            }
+
+            if( ! Enum.TryParse(_action.InnerText, out ActionType action))
             {
                 return false;
             }
@@ -85,7 +92,7 @@ namespace Sharp.Xmpp.Extensions
                 }
             }
 
-            ServiceRequest.Raise(this, new ServiceRequestEventArgs(name.InnerText, roomId.InnerText, requester.InnerText, metadataDictionary));
+            ServiceRequest.Raise(this, new ServiceRequestEventArgs(name.InnerText, roomId.InnerText, requester.InnerText, action, metadataDictionary));
 
             // Pass the message to the next handler.
             return false;
