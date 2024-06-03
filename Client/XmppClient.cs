@@ -226,6 +226,11 @@ namespace Sharp.Xmpp.Client
         /// Provides the StreamManagement extension
         /// </summary>
         private StreamManagement streamManagement;
+        
+        /// <summary>
+        /// Provides the CallService extension
+        /// </summary>
+        private RainbowService rainbowService;
 
         public WebProxy WebProxy
         {
@@ -1417,6 +1422,22 @@ namespace Sharp.Xmpp.Client
             remove
             {
                 streamManagement.Resumed -= value;
+            }
+        }
+
+        /// <summary>
+        /// The event that is raised if a Rainbow Service request is received
+        /// </summary>
+        public event EventHandler<ServiceRequestEventArgs> ServiceRequest
+        {
+            add
+            {
+                rainbowService.ServiceRequest += value;
+
+            }
+            remove
+            {
+                rainbowService.ServiceRequest -= value;
             }
         }
 
@@ -3090,6 +3111,8 @@ namespace Sharp.Xmpp.Client
             im.AddExtension(cap = new Cap(im, loggerPrefix));
             im.AddExtension(msgDeliveryReceipt = new MessageDeliveryReceipts(im, loggerPrefix));
             im.AddExtension(callService = new CallService(im, loggerPrefix));
+
+            im.AddExtension(rainbowService = new RainbowService(im, loggerPrefix));
         }
     }
 }
