@@ -213,8 +213,12 @@
         /// <summary>
         /// An extension added by Rainbow Hub to manage specific message
         /// </summary>
-        Rainbow
+        Rainbow,
 
+        /// <summary>
+        /// An extension to manage rainbow services
+        /// </summary>
+        RainbowService
 
     }
 }
