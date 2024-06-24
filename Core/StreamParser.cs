@@ -160,7 +160,7 @@ namespace Sharp.Xmpp.Core
                             // Remember the default language communicated by the server.
                             string lang = reader.GetAttribute("xml:lang");
                             if (!String.IsNullOrEmpty(lang))
-                                Language = new CultureInfo(lang);
+                                Language = Util.GetCultureInfo(lang);
                             return;
                         }
                         throw new XmlException("Unexpected document root: " + reader.Name);

@@ -315,7 +315,7 @@ namespace Sharp.Xmpp.Extensions
                         LDAPGroup = f.Values.FirstOrDefault();
                         break;
                     case MucNs.InfoLanguage:
-                        Language = ConvertToCultureInfo(f.Values.FirstOrDefault());
+                        Language = Util.GetCultureInfo(f.Values.FirstOrDefault());
                         break;
                     case MucNs.InfoLogs:
                         LogUrl = f.Values.FirstOrDefault();
@@ -342,22 +342,6 @@ namespace Sharp.Xmpp.Extensions
             }
 
             return false;
-        }
-
-        private CultureInfo ConvertToCultureInfo(string value)
-        {
-            CultureInfo tmp = null;
-
-            try
-            {
-                tmp = CultureInfo.GetCultureInfo(value);
-            }
-            catch (CultureNotFoundException)
-            {
-                // Suppress missing cultures
-            }
-
-            return tmp;
         }
 
         private DateTime? ConvertToDateTime(string value)

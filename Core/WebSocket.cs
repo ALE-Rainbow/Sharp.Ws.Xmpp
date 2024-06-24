@@ -460,7 +460,7 @@ namespace Sharp.Xmpp.Core
                 rootElement = true;
                 string lang = Open.GetAttribute("xml:lang");
                 if (!String.IsNullOrEmpty(lang))
-                    Language = new CultureInfo(lang);
+                    Language = Util.GetCultureInfo(lang);
             }
             else
             {

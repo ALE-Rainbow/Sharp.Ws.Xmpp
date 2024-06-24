@@ -501,7 +501,7 @@ namespace Sharp.Xmpp.Core
         public void SetLanguage()
         {
             Language ??= webSocketClient.Language;
-            Language ??= new CultureInfo("en");
+            Language ??= Util.GetCultureInfo("en");
         }
 
         /// <summary>
@@ -1291,7 +1291,7 @@ namespace Sharp.Xmpp.Core
             parser = new StreamParser(stream, true);
             // Remember the default language of the stream. The server is required to
             // include this, but we make sure nonetheless.
-            Language = parser.Language ?? new CultureInfo("en");
+            Language = parser.Language ?? Util.GetCultureInfo("en");
             // The first element of the stream must be <stream:features>.
             return parser.NextElement("stream:features");
         }

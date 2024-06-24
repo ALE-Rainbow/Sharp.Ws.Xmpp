@@ -94,7 +94,7 @@ namespace Sharp.Xmpp.Core
             get
             {
                 string v = element.GetAttribute("xml:lang");
-                return String.IsNullOrEmpty(v) ? null : new CultureInfo(v);
+                return String.IsNullOrEmpty(v) ? null : Util.GetCultureInfo(v);
             }
 
             set
