@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Net.Security;
 using System.Xml;
@@ -1655,7 +1654,7 @@ namespace Sharp.Xmpp.Client
         /// <include file='Examples.xml' path='S22/Xmpp/Client/XmppClient[@name="SendMessage-1"]/*'/>
         public void SendMessage(string id, Jid to, string body, string subject = null,
             string thread = null, MessageType type = MessageType.Normal,
-            CultureInfo language = null, Dictionary<String, String> oobInfo = null)
+            String language = null, Dictionary<String, String> oobInfo = null)
         {
             AssertValid();
             to.ThrowIfNull("to");
@@ -1695,7 +1694,7 @@ namespace Sharp.Xmpp.Client
         /// <include file='Examples.xml' path='S22/Xmpp/Client/XmppClient[@name="SendMessage-2"]/*'/>
         public void SendMessage(Jid to, IDictionary<string, string> bodies,
             IDictionary<string, string> subjects = null, string thread = null,
-            MessageType type = MessageType.Normal, CultureInfo language = null, Dictionary<String, String> oobInfo = null)
+            MessageType type = MessageType.Normal, String language = null, Dictionary<String, String> oobInfo = null)
         {
             AssertValid();
             to.ThrowIfNull("to");
@@ -1751,7 +1750,7 @@ namespace Sharp.Xmpp.Client
         /// <exception cref="IOException">There was a failure while writing to the
         /// network.</exception>
         public void IqRequestAsync(Core.IqType type, Jid to = null, Jid from = null,
-            XmlElement data = null, CultureInfo language = null,
+            XmlElement data = null, String language = null,
             Action<string, Core.Iq> callback = null)
         {
             im.IqRequestAsync(type, to, from, data, language, callback);
@@ -1777,7 +1776,7 @@ namespace Sharp.Xmpp.Client
         /// <exception cref="IOException">There was a failure while writing to the
         /// network.</exception>
         public void IqResponse(Core.IqType type, string id, Jid to = null, Jid from = null,
-            XmlElement data = null, CultureInfo language = null)
+            XmlElement data = null, String language = null)
         {
             im.IqResponse(type, id, to, from, data, language);
         }
@@ -1905,7 +1904,7 @@ namespace Sharp.Xmpp.Client
         /// <exception cref="ObjectDisposedException">The XmppClient object has been
         /// disposed.</exception>
         public void SetStatus(Availability availability, string message = null,
-            sbyte priority = 0, XmlElement elementToAdd = null, CultureInfo language = null)
+            sbyte priority = 0, XmlElement elementToAdd = null, String language = null)
         {
             AssertValid();
             im.SetStatus(availability, message, priority, elementToAdd, language);

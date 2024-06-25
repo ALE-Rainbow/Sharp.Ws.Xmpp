@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 
 namespace Sharp.Xmpp.Im
@@ -97,15 +96,16 @@ namespace Sharp.Xmpp.Im
         /// <param name="language">The language of the description of the
         /// availability state.</param>
         public Status(Availability availability, string message = null,
-            sbyte priority = 0, CultureInfo language = null)
+            sbyte priority = 0, String language = null)
         {
             Availability = availability;
             Priority = priority;
             Messages = new Dictionary<string, string>();
             Until = DateTime.MinValue;
-            language ??= CultureInfo.CurrentCulture;
+            if (String.IsNullOrEmpty(language))
+                language = Util.GetCultureName();
             if (message != null)
-                Messages.Add(language.Name, message);
+                Messages.Add(language, message);
         }
 
         /// <summary>

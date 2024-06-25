@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.WebSockets;
@@ -43,7 +42,7 @@ namespace Sharp.Xmpp.Core
 
         private ClientWebSocket clientWebSocket = null;
 
-        public CultureInfo Language
+        public String Language
         {
             get;
             private set;
@@ -460,7 +459,7 @@ namespace Sharp.Xmpp.Core
                 rootElement = true;
                 string lang = Open.GetAttribute("xml:lang");
                 if (!String.IsNullOrEmpty(lang))
-                    Language = Util.GetCultureInfo(lang);
+                    Language = lang;
             }
             else
             {

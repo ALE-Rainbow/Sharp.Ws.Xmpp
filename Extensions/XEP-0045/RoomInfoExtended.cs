@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using Sharp.Xmpp.Extensions.Dataforms;
 
@@ -20,7 +19,7 @@ namespace Sharp.Xmpp.Extensions
         private int maxHistoryFetch;
         private bool canChangeSubject;
         private DateTime? creationDate;
-        private CultureInfo language;
+        private String language;
 
         private readonly IList<Jid> contactAddresses;
         private readonly ISet<Jid> occupants;
@@ -197,7 +196,7 @@ namespace Sharp.Xmpp.Extensions
         /// <summary>
         /// The language of the room.
         /// </summary>
-        public CultureInfo Language
+        public String Language
         {
             get { return language; }
             protected set { language = value; }
@@ -315,7 +314,7 @@ namespace Sharp.Xmpp.Extensions
                         LDAPGroup = f.Values.FirstOrDefault();
                         break;
                     case MucNs.InfoLanguage:
-                        Language = Util.GetCultureInfo(f.Values.FirstOrDefault());
+                        Language = f.Values.FirstOrDefault();
                         break;
                     case MucNs.InfoLogs:
                         LogUrl = f.Values.FirstOrDefault();

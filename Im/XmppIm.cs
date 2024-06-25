@@ -3,7 +3,6 @@ using Sharp.Xmpp.Extensions;
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Security;
@@ -763,7 +762,7 @@ namespace Sharp.Xmpp.Im
         /// disposed.</exception>
         public void SendMessage(string id, Jid to, string body, string subject = null,
             string thread = null, MessageType type = MessageType.Normal,
-            CultureInfo language = null, Dictionary<String, String> oobInfo = null)
+            String language = null, Dictionary<String, String> oobInfo = null)
         {
             AssertValid();
             to.ThrowIfNull("to");
@@ -802,7 +801,7 @@ namespace Sharp.Xmpp.Im
         /// disposed.</exception>
         public void SendMessage(Jid to, IDictionary<string, string> bodies,
             IDictionary<string, string> subjects = null, string thread = null,
-            MessageType type = MessageType.Normal, CultureInfo language = null, Dictionary<String, String> oobInfo = null)
+            MessageType type = MessageType.Normal, String language = null, Dictionary<String, String> oobInfo = null)
         {
             AssertValid();
             to.ThrowIfNull("to");
@@ -970,7 +969,7 @@ namespace Sharp.Xmpp.Im
         /// <exception cref="ObjectDisposedException">The XmppIm object has been
         /// disposed.</exception>
         public void SetStatus(Availability availability, string message = null,
-            sbyte priority = 0, XmlElement elementToAdd = null, CultureInfo language = null)
+            sbyte priority = 0, XmlElement elementToAdd = null, String language = null)
         {
             AssertValid();
             if (availability == Availability.Offline)
@@ -1699,7 +1698,7 @@ namespace Sharp.Xmpp.Im
         /// <exception cref="TimeoutException">A timeout was specified and it
         /// expired.</exception>
         internal Iq IqRequest(IqType type, Jid to = null, Jid from = null,
-            XmlElement data = null, CultureInfo language = null,
+            XmlElement data = null, String language = null,
             int millisecondsTimeout = -1)
         {
             Iq iq = new(type, XmppCore.GetId(), to, from, data, language);
@@ -1735,7 +1734,7 @@ namespace Sharp.Xmpp.Im
         /// <exception cref="IOException">There was a failure while writing to the
         /// network.</exception>
         internal string IqRequestAsync(IqType type, Jid to = null, Jid from = null,
-            XmlElement data = null, CultureInfo language = null,
+            XmlElement data = null, String language = null,
             Action<string, Iq> callback = null)
         {
             Iq iq = new(type, XmppCore.GetId(), to, from, data, language);
@@ -1768,7 +1767,7 @@ namespace Sharp.Xmpp.Im
         /// <exception cref="IOException">There was a failure while writing to the
         /// network.</exception>
         internal void IqResponse(IqType type, string id, Jid to = null, Jid from = null,
-            XmlElement data = null, CultureInfo language = null)
+            XmlElement data = null, String language = null)
         {
             AssertValid(false);
             Iq iq = new(type, id, to, from, data, language);
@@ -2115,10 +2114,9 @@ namespace Sharp.Xmpp.Im
             var dict = new Dictionary<string, string>();
             if (String.IsNullOrEmpty(lang))
             {
-                if (core.Language == null)
+                if (String.IsNullOrEmpty(core.Language))
                     core.SetLanguage();
-
-                lang = core.Language.Name;
+                lang = core.Language;
             }
             foreach (XmlNode node in presence.Data.GetElementsByTagName("status"))
             {

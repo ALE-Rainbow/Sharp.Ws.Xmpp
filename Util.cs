@@ -1,6 +1,5 @@
 ﻿using Sharp.Xmpp.Core;
 using System;
-using System.Globalization;
 using System.Xml;
 
 namespace Sharp.Xmpp
@@ -29,18 +28,26 @@ namespace Sharp.Xmpp
     /// </summary>
     internal static class Util
     {
-        public static CultureInfo GetCultureInfo(string name)
+        internal static String _cultureName = "en";
+
+        /// <summary>
+        /// Get the culture name
+        /// By default it's "en"
+        /// </summary>
+        /// <returns></returns>
+        public static String GetCultureName()
         {
-            CultureInfo result;
-            try
-            {
-                result = new CultureInfo(name);
-            }
-            catch
-            {
-                result = CultureInfo.InvariantCulture;
-            }
-            return result;
+            return _cultureName;
+        }
+
+        /// <summary>
+        /// To set culture name. Must be in the foramt languagecode2-cournty/regioncode 2
+        /// See System.Globalization.CultureInfo.Name
+        /// </summary>
+        /// <param name="name"></param>
+        public static void SetCultureName(string name)
+        {
+            _cultureName = name;
         }
 
         /// <summary>

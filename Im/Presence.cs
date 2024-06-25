@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using System.Xml;
 
 namespace Sharp.Xmpp.Im
@@ -96,7 +95,7 @@ namespace Sharp.Xmpp.Im
         /// the stanza.</param>
         public Presence(Jid to = null, Jid from = null,
             PresenceType type = PresenceType.Available, string id = null,
-            CultureInfo language = null, params XmlElement[] data)
+            String language = null, params XmlElement[] data)
             : base(to, from, id, language, data)
         {
             Type = type;

@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Security;
@@ -449,10 +448,10 @@ namespace Sharp.Xmpp.Core
         /// <summary>
         /// The default language of the XML stream.
         /// </summary>
-        public CultureInfo Language
+        public String Language
         {
             get;
-            private set;
+            internal set;
         }
 
         /// <summary>
@@ -500,8 +499,10 @@ namespace Sharp.Xmpp.Core
 
         public void SetLanguage()
         {
-            Language ??= webSocketClient.Language;
-            Language ??= Util.GetCultureInfo("en");
+            if(String.IsNullOrEmpty(Language))
+                Language = webSocketClient.Language;
+            if (String.IsNullOrEmpty(Language))
+                Language = Util.GetCultureName();
         }
 
         /// <summary>
@@ -767,7 +768,7 @@ namespace Sharp.Xmpp.Core
                 .Attr("to", hostname)
                 .Attr("version", "1.0")
                 .Attr("xmlns:stream", "http://etherx.jabber.org/streams")
-                .Attr("xml:lang", CultureInfo.CurrentCulture.Name);
+                .Attr("xml:lang", Util.GetCultureName());
             Send(xml.ToXmlString(xmlDeclaration: true, leaveOpen: false), false);
         }
 
@@ -826,7 +827,7 @@ namespace Sharp.Xmpp.Core
         /// <exception cref="IOException">There was a failure while writing to the
         /// network.</exception>
         public void SendMessage(Jid to = null, Jid from = null, XmlElement data = null,
-            string id = null, CultureInfo language = null)
+            string id = null, String language = null)
         {
             AssertValid();
             Send(new Message(to, from, data, id, language));
@@ -869,7 +870,7 @@ namespace Sharp.Xmpp.Core
         /// <exception cref="IOException">There was a failure while writing to the
         /// network.</exception>
         public void SendPresence(Jid to = null, Jid from = null, string id = null,
-            CultureInfo language = null, params XmlElement[] data)
+            String language = null, params XmlElement[] data)
         {
             AssertValid();
             Send(new Presence(to, from, id, language, data));
@@ -921,7 +922,7 @@ namespace Sharp.Xmpp.Core
         /// <exception cref="TimeoutException">A timeout was specified and it
         /// expired.</exception>
         public Iq IqRequest(IqType type, Jid to = null, Jid from = null,
-            XmlElement data = null, CultureInfo language = null,
+            XmlElement data = null, String language = null,
             int millisecondsTimeout = -1)
         {
             AssertValid();
@@ -1038,7 +1039,7 @@ namespace Sharp.Xmpp.Core
         /// <exception cref="IOException">There was a failure while writing to the
         /// network.</exception>
         public string IqRequestAsync(IqType type, Jid to = null, Jid from = null,
-            XmlElement data = null, CultureInfo language = null,
+            XmlElement data = null, String language = null,
             Action<string, Iq> callback = null)
         {
             AssertValid();
@@ -1096,10 +1097,10 @@ namespace Sharp.Xmpp.Core
         /// <exception cref="IOException">There was a failure while writing to the
         /// network.</exception>
         public void IqResponse(IqType type, string id, Jid to = null, Jid from = null,
-            XmlElement data = null, CultureInfo language = null)
+            XmlElement data = null, String language = null)
         {
             AssertValid();
-            IqResponse(new Iq(type, id, to, from, data, null));
+            IqResponse(new Iq(type, id, to, from, data, language));
         }
 
         /// <summary>
@@ -1284,14 +1285,14 @@ namespace Sharp.Xmpp.Core
                 .Attr("to", hostname)
                 .Attr("version", "1.0")
                 .Attr("xmlns:stream", "http://etherx.jabber.org/streams")
-                .Attr("xml:lang", CultureInfo.CurrentCulture.Name);
+                .Attr("xml:lang", Util.GetCultureName());
             Send(xml.ToXmlString(xmlDeclaration: true, leaveOpen: true), false);
             // Create a new parser instance.
             parser?.Close();
             parser = new StreamParser(stream, true);
             // Remember the default language of the stream. The server is required to
             // include this, but we make sure nonetheless.
-            Language = parser.Language ?? Util.GetCultureInfo("en");
+            Language = String.IsNullOrEmpty(parser.Language) ? Util.GetCultureName() : parser.Language;
             // The first element of the stream must be <stream:features>.
             return parser.NextElement("stream:features");
         }
@@ -1615,7 +1616,7 @@ namespace Sharp.Xmpp.Core
                                             .Attr("to", hostname)
                                             .Attr("version", "1.0")
                                             .Attr("xmlns:stream", "http://etherx.jabber.org/streams")
-                                            .Attr("xml:lang", CultureInfo.CurrentCulture.Name);
+                                            .Attr("xml:lang", Util.GetCultureName());
                                     Send(elem.ToXmlString(xmlDeclaration: true, leaveOpen: false), false);
                                 }
                                 break;

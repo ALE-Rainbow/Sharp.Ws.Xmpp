@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Xml;
@@ -32,7 +31,7 @@ namespace Sharp.Xmpp.Core
         /// The default language of any human-readable XML character send over
         /// that stream.
         /// </summary>
-        public CultureInfo Language
+        public String Language
         {
             get;
             private set;
@@ -160,7 +159,7 @@ namespace Sharp.Xmpp.Core
                             // Remember the default language communicated by the server.
                             string lang = reader.GetAttribute("xml:lang");
                             if (!String.IsNullOrEmpty(lang))
-                                Language = Util.GetCultureInfo(lang);
+                                Language = lang;
                             return;
                         }
                         throw new XmlException("Unexpected document root: " + reader.Name);

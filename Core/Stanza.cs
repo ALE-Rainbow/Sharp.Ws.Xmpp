@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using System.Xml;
 
 namespace Sharp.Xmpp.Core
@@ -89,12 +88,12 @@ namespace Sharp.Xmpp.Core
         /// The language of the XML character data if the stanza contains data that is
         /// intended to be presented to a human user.
         /// </summary>
-        public CultureInfo Language
+        public String Language
         {
             get
             {
                 string v = element.GetAttribute("xml:lang");
-                return String.IsNullOrEmpty(v) ? null : Util.GetCultureInfo(v);
+                return String.IsNullOrEmpty(v) ? Util.GetCultureName() : v ;
             }
 
             set
@@ -102,7 +101,7 @@ namespace Sharp.Xmpp.Core
                 if (value == null)
                     element.RemoveAttribute("xml:lang");
                 else
-                    element.SetAttribute("xml:lang", value.Name);
+                    element.SetAttribute("xml:lang", value);
             }
         }
 
@@ -139,7 +138,7 @@ namespace Sharp.Xmpp.Core
         /// the stanza.</param>
         /// <param name="data">The content of the stanza.</param>
         public Stanza(string @namespace = null, Jid to = null,
-            Jid from = null, string id = null, CultureInfo language = null,
+            Jid from = null, string id = null, String language = null,
             params XmlElement[] data)
         {
             element = Xml.Element(RootElementName, @namespace);

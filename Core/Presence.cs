@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using System.Xml;
 
 namespace Sharp.Xmpp.Core
@@ -19,7 +18,7 @@ namespace Sharp.Xmpp.Core
         /// <param name="language">The language of the XML character data of
         /// the stanza.</param>
         public Presence(Jid to = null, Jid from = null, string id = null,
-            CultureInfo language = null, params XmlElement[] data)
+            String language = null, params XmlElement[] data)
             : base(null, to, from, id, language, data)
         {
         }
