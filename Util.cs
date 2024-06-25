@@ -26,7 +26,7 @@ namespace Sharp.Xmpp
     /// <summary>
     /// Contains utility and extension methods.
     /// </summary>
-    internal static class Util
+    public static class Util
     {
         internal static String _cultureName = "en";
 
