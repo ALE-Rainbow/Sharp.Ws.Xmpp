@@ -5,11 +5,11 @@
 	<AssemblyName>Sharp.Ws.Xmpp</AssemblyName>
 	<RootNamespace>Sharp.Xmpp</RootNamespace>
 	<LangVersion>10</LangVersion>
-    <Version>2.6.23.6</Version>
+    <Version>2.6.24</Version>
     <Authors>Christophe Irles</Authors>
     <Company>ALE International</Company>
     <Product>Sharp.Ws.Xmpp</Product>
-    <Description>Based on project Sharp.Xmpp, this package allow XMPP features using Web socket
+    <Description>Based on project Sharp.Xmpp, this package allows XMPP features using Web socket
 Several extensions have been added to support Rainbow features (https://openrainbow.com)</Description>
     <PackageProjectUrl>https://github.com/ALE-Rainbow/Sharp.Xmpp</PackageProjectUrl>
     <Copyright>ALE International</Copyright>
