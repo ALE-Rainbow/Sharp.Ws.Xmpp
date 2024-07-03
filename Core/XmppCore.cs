@@ -1740,7 +1740,7 @@ namespace Sharp.Xmpp.Core
                                 // Server has closed the session
                                 // We need to answer to it
                                 // And We need to cancel any resume info
-                                Send("<close/>", false);
+                                Send("<close xmlns='urn:ietf:params:xml:ns:xmpp-framing'/>", false);
                                 StreamManagementResumeId = "";
                                 break;
 
@@ -1968,10 +1968,9 @@ namespace Sharp.Xmpp.Core
             if (!Connected)
                 return;
 
-
             // Close the XML stream.
             if (normalClosure)
-                Send("</stream:stream>", false);
+                Send("<close xmlns='urn:ietf:params:xml:ns:xmpp-framing'/>", false);
 
             //if (useWebSocket)
             //{
