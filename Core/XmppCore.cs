@@ -1738,7 +1738,9 @@ namespace Sharp.Xmpp.Core
 
                             case "close":
                                 // Server has closed the session
-                                // We need to cancel any resume info
+                                // We need to answer to it
+                                // And We need to cancel any resume info
+                                Send("<close/>", false);
                                 StreamManagementResumeId = "";
                                 break;
 
