@@ -91,27 +91,27 @@ namespace Sharp.Xmpp.Extensions
         /// <summary>
         /// The event raised when a ChannelItem is created, updated, deleted
         /// </summary>
-        public event EventHandler<MessageEventArgs> ChanneItemManagement;
+        public event EventHandler<XmlElementEventArgs> ChanneItemManagement;
 
         /// <summary>
         /// The event raised when a Group is created, updated, deleted but also when a member is added / remove in a group
         /// </summary>
-        public event EventHandler<MessageEventArgs> GroupManagement;
+        public event EventHandler<XmlElementEventArgs> GroupManagement;
 
         /// <summary>
         /// The event raised when a record has been done in a conference. We receive a RecordingFile info node
         /// </summary>
-        public event EventHandler<MessageEventArgs> RecordingFile;
+        public event EventHandler<XmlElementEventArgs> RecordingFile;
 
         /// <summary>
         /// The event raised when an Open Invite message has been received
         /// </summary>
-        public event EventHandler<MessageEventArgs> OpenInvite;
+        public event EventHandler<XmlElementEventArgs> OpenInvite;
 
         /// <summary>
         /// The event raised when a SupervisionGroup message has been received
         /// </summary>
-        public event EventHandler<MessageEventArgs> SupervisionGroup;
+        public event EventHandler<XmlElementEventArgs> SupervisionGroup;
 
         /// <summary>
         /// The event raised when the synhcronisation status with a provider has changed
@@ -363,22 +363,22 @@ namespace Sharp.Xmpp.Extensions
                 else if (message.Data["group"] != null)
                 {
                     XmlElement e = message.Data["group"];
-                    GroupManagement.Raise(this, new MessageEventArgs(e.ToXmlString()));
+                    GroupManagement.Raise(this, new XmlElementEventArgs(e));
                 }
                 else if (message.Data["recordingfile"] != null)
                 {
                     XmlElement e = message.Data["recordingfile"];
-                    RecordingFile.Raise(this, new MessageEventArgs(e.ToXmlString()));
+                    RecordingFile.Raise(this, new XmlElementEventArgs(e));
                 }
                 else if (message.Data["openinvite"] != null)
                 {
                     XmlElement e = message.Data["openinvite"];
-                    OpenInvite.Raise(this, new MessageEventArgs(e.ToXmlString()));
+                    OpenInvite.Raise(this, new XmlElementEventArgs(e));
                 }
                 else if (message.Data["supervisiongroup"] != null)
                 {
                     XmlElement e = message.Data["supervisiongroup"];
-                    SupervisionGroup.Raise(this, new MessageEventArgs(e.ToXmlString()));
+                    SupervisionGroup.Raise(this, new XmlElementEventArgs(e));
                 }
                 else
                     log.LogInformation("[Input] Message not managed");
@@ -434,12 +434,12 @@ namespace Sharp.Xmpp.Extensions
                     XmlElement e = message.Data["event", "http://jabber.org/protocol/pubsub#event"];
                     if(e["items"] != null)
                     {
-                        ChanneItemManagement.Raise(this, new MessageEventArgs(e["items"].ToXmlString()));
+                        ChanneItemManagement.Raise(this, new XmlElementEventArgs(e["items"]));
                         return true;
                     }
                     else if(e["update"] != null)
                     {
-                        ChanneItemManagement.Raise(this, new MessageEventArgs(e["update"].ToXmlString()));
+                        ChanneItemManagement.Raise(this, new XmlElementEventArgs(e["update"]));
                         return true;
                     }
                 }

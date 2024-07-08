@@ -28,7 +28,7 @@ namespace Sharp.Xmpp.Extensions
             }
         }
 
-        public event EventHandler<MessageEventArgs> ApplicationMessage;
+        public event EventHandler<XmlElementEventArgs> ApplicationMessage;
 
         static RainbowMessage()
         {
@@ -51,7 +51,7 @@ namespace Sharp.Xmpp.Extensions
                 if (xmlElement != null)
                 {
                     flag = true;
-                    ApplicationMessage.Raise<MessageEventArgs>(this, new MessageEventArgs(xmlElement.ToXmlString(false, false)));
+                    ApplicationMessage.Raise(this, new XmlElementEventArgs(xmlElement));
                 }
             }
 

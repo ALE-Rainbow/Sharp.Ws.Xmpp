@@ -66,12 +66,12 @@ namespace Sharp.Xmpp.Extensions
         /// <summary>
         /// The event that is raised when a call service message not specifically managed is received
         /// </summary>
-        public event EventHandler<MessageEventArgs> MessageReceived;
+        public event EventHandler<XmlElementEventArgs> MessageReceived;
 
         /// <summary>
         /// The event that is raised when we asked and have PBX calls in progress
         /// </summary>
-        public event EventHandler<MessageEventArgs> PBXCallsInProgress;
+        public event EventHandler<XmlElementEventArgs> PBXCallsInProgress;
 
         /// <summary>
         /// Invoked when a message stanza has been received.
@@ -131,7 +131,7 @@ namespace Sharp.Xmpp.Extensions
                 }
                 else
                 {
-                    MessageReceived.Raise(this, new MessageEventArgs(message.Data["callservice"].ToXmlString()));
+                    MessageReceived.Raise(this, new XmlElementEventArgs(message.Data["callservice"]));
                     return true;
                 }
             }
@@ -171,7 +171,7 @@ namespace Sharp.Xmpp.Extensions
                         {
                             XmlElement connectionsNode = iq.Data["callservice"]["connections"];
                             if(connectionsNode.HasChildNodes)
-                                PBXCallsInProgress.Raise(this, new MessageEventArgs(connectionsNode.ToXmlString()));
+                                PBXCallsInProgress.Raise(this, new XmlElementEventArgs(connectionsNode));
                             return;
                         }
                     }

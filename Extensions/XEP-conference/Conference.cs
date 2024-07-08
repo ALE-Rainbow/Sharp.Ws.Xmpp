@@ -17,7 +17,7 @@ namespace Sharp.Xmpp.Extensions
         /// <summary>
         /// Event raised when a conference has been updated
         /// </summary>
-        public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> ConferenceUpdated;
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> ConferenceUpdated;
 
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace Sharp.Xmpp.Extensions
 
                 if(conferenceInfo != null)
                 {
-                    ConferenceUpdated.Raise(this, new Sharp.Xmpp.Extensions.MessageEventArgs(conferenceInfo.ToXmlString()));
+                    ConferenceUpdated.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(conferenceInfo));
                     return true;
                 }
             }

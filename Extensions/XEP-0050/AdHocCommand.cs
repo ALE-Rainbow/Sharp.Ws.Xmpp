@@ -43,7 +43,7 @@ namespace Sharp.Xmpp.Extensions
         /// <summary>
         /// Event raised when a Ad-Hoc Command has been updated
         /// </summary>
-        public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> AdHocCommandReceived;
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> AdHocCommandReceived;
 
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace Sharp.Xmpp.Extensions
             if (command == null || command.NamespaceURI != NamespaceAdHocCommandIq)
                 return false;
 
-            AdHocCommandReceived.Raise(this, new MessageEventArgs(stanza.Data.ToXmlString()));
+            AdHocCommandReceived.Raise(this, new XmlElementEventArgs(stanza.Data));
             return true;
         }
 

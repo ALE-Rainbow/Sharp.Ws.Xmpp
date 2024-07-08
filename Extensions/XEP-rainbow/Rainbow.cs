@@ -43,7 +43,7 @@ namespace Sharp.Xmpp.Extensions
         /// <summary>
         /// The event raised when an AckMessage has been received
         /// </summary>
-        public event EventHandler<MessageEventArgs> AckMessage;
+        public event EventHandler<XmlElementEventArgs> AckMessage;
 
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace Sharp.Xmpp.Extensions
             if (conversation == null || conversation.NamespaceURI != namespaceUsed)
                 return false;
 
-            AckMessage.Raise(this, new MessageEventArgs(stanza.Data.ToXmlString()));
+            AckMessage.Raise(this, new XmlElementEventArgs(stanza.Data));
 
             // We took care of this IQ request, so intercept it and don't pass it
             // on to other handlers.

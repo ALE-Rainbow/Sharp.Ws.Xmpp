@@ -1038,7 +1038,7 @@ namespace Sharp.Xmpp.Client
         /// <summary>
         /// The event that is raised when a call service message not specifically managed is received
         /// </summary>
-        public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> CallServiceMessageReceived
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> CallServiceMessageReceived
         {
             add
             {
@@ -1053,7 +1053,7 @@ namespace Sharp.Xmpp.Client
         /// <summary>
         /// The event that is raised when we asked and have PBX calls in progress
         /// </summary>
-        public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> PBXCallsInProgress
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> PBXCallsInProgress
         {
             add
             {
@@ -1144,7 +1144,7 @@ namespace Sharp.Xmpp.Client
         /// <summary>
         /// Event raised when a conference has been updated
         /// </summary>
-        public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> ConferenceUpdated
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> ConferenceUpdated
         {
             add
             {
@@ -1159,7 +1159,7 @@ namespace Sharp.Xmpp.Client
         /// <summary>
         /// Event raised when a AdHocCommand has been receibed
         /// </summary>
-        public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> AdHocCommandReceived
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> AdHocCommandReceived
         {
             add
             {
@@ -1204,7 +1204,7 @@ namespace Sharp.Xmpp.Client
         /// <summary>
         /// The event raised when a ChannelItem is created, updated, deleted
         /// </summary>
-        public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> ChanneItemManagement
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> ChanneItemManagement
         {
             add
             {
@@ -1219,7 +1219,7 @@ namespace Sharp.Xmpp.Client
         /// <summary>
         /// The event raised when a Group is created, updated, deleted but alos when a member is added / remove in a group
         /// </summary>
-        public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> GroupManagement
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> GroupManagement
         {
             add
             {
@@ -1234,7 +1234,7 @@ namespace Sharp.Xmpp.Client
         /// <summary>
         /// The event raised when a record has been done in a conference. We receive a RecordingFile info node
         /// </summary>
-        public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> RecordingFile
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> RecordingFile
         {
             add
             {
@@ -1249,7 +1249,7 @@ namespace Sharp.Xmpp.Client
         /// <summary>
         /// The event raised when an Open Invite message has been received
         /// </summary>
-        public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> OpenInvite
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> OpenInvite
         {
             add
             {
@@ -1264,7 +1264,7 @@ namespace Sharp.Xmpp.Client
         /// <summary>
         /// The event raised when an SupervisionGroup message has been received
         /// </summary>
-        public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> SupervisionGroup
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> SupervisionGroup
         {
             add
             {
@@ -1313,7 +1313,7 @@ namespace Sharp.Xmpp.Client
         /// <summary>
         /// The event raised when an AckMessage has been recevied
         /// </summary>
-        public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> AckMessage
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> AckMessage
         {
             add
             {
@@ -1329,7 +1329,7 @@ namespace Sharp.Xmpp.Client
         /// <summary>
         /// The event raised when an ApplicationMessage has been recevied
         /// </summary>
-        public event EventHandler<Sharp.Xmpp.Extensions.MessageEventArgs> ApplicationMessage
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> ApplicationMessage
         {
             add
             {
