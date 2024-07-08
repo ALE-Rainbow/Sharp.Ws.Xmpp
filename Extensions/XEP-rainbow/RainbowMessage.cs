@@ -45,10 +45,15 @@ namespace Sharp.Xmpp.Extensions
             XmlElement xmlElement;
             bool flag = false;
 
-            if ((message.Data["sent"] != null) && (message.Data["sent"]["forwarded"] != null) && (message.Data["sent"]["forwarded"]["message"] != null))
+            if (message.Data["rainbow-cpaas", RainbowMessage.namespaceUsed] != null)
             {
-                xmlElement = message.Data["sent"]["forwarded"]["message"]["rainbow-cpaas", RainbowMessage.namespaceUsed];
-                if (xmlElement != null)
+                flag = true;
+                ApplicationMessage.Raise(this, new XmlElementEventArgs(message.Data));
+            }
+            else if ((message.Data["sent"] != null) && (message.Data["sent"]["forwarded"] != null) && (message.Data["sent"]["forwarded"]["message"] != null))
+            {
+                xmlElement = message.Data["sent"]["forwarded"]["message"];
+                if (xmlElement["rainbow-cpaas", RainbowMessage.namespaceUsed] != null)
                 {
                     flag = true;
                     ApplicationMessage.Raise(this, new XmlElementEventArgs(xmlElement));
