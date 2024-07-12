@@ -1417,6 +1417,21 @@ namespace Sharp.Xmpp.Client
             }
         }
 
+        /// <summary>
+        /// The event that is raised when a archived messages using bulk have been found
+        /// </summary>
+        public event EventHandler<XmlElementEventArgs> MessageArchiveResultsRetrieved
+        {
+            add
+            {
+                mam.MessageArchiveResultsRetrieved += value;
+            }
+            remove
+            {
+                mam.MessageArchiveResultsRetrieved -= value;
+            }
+        }
+
         public event EventHandler<JidEventArgs> MessagesAllDeleted
         {
             add
@@ -2214,10 +2229,10 @@ namespace Sharp.Xmpp.Client
             mam.RequestArchivedMessagesByDate(toJid, fromJid, withJid, queryId, startDate, endDate);
         }
 
-        public void RequestArchivedMessages(Jid jid, string queryId, int maxNumber, bool isRoom, string before = null, string after = null)
+        public void RequestArchivedMessages(Jid jid, string queryId, int maxNumber, bool isRoom, string before = null, string after = null, Boolean useBulk = false)
         {
             AssertValid();
-            mam.RequestArchivedMessages(jid, queryId, maxNumber, isRoom, before, after);
+            mam.RequestArchivedMessages(jid, queryId, maxNumber, isRoom, before, after, useBulk);
         }
 
         public void DeleteAllArchivedMessages(String with, string queryId, String toJid, Action<string, Sharp.Xmpp.Core.Iq> callback = null)

@@ -71,13 +71,23 @@ namespace Sharp.Xmpp.Extensions
             private set;
         }
 
-        public MessageArchiveManagementResultEventArgs(String queryId, MamResult result, int count, string first, string last)
+        /// <summary>
+        /// True is bulk is used
+        /// </summary>
+        public Boolean UseBulk
+        {
+            get;
+            private set;
+        }
+
+        public MessageArchiveManagementResultEventArgs(String queryId, MamResult result, int count, string first, string last, Boolean useBulk)
         {
             QueryId = queryId;
             Result = result;
             Count = count;
             First = first;
             Last = last;
+            UseBulk = useBulk;
         }
 
         public MessageArchiveManagementResultEventArgs()

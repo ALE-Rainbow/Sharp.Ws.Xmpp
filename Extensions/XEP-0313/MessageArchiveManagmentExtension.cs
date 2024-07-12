@@ -58,12 +58,15 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         public event EventHandler<MessageArchiveEventArgs> MessageArchiveRetrieved;
 
+        /// <summary>
+        /// The event that is raised when a archived messages using bulk have been found
+        /// </summary>
+        public event EventHandler<XmlElementEventArgs> MessageArchiveResultsRetrieved;
 
         /// <summary>
         /// Event raised when all messages in conversations is deleted
         /// </summary>
         public event EventHandler<JidEventArgs> MessagesAllDeleted;
-
 
         /// <summary>
         /// Invoked when a message stanza has been received.
@@ -73,13 +76,18 @@ namespace Sharp.Xmpp.Extensions
         /// on to the next handler.</returns>
         public bool Input(Sharp.Xmpp.Im.Message message)
         {
-            if ( (message.Data["result"] != null)
-                && (message.Data["result"].NamespaceURI == "urn:xmpp:mam:1") )
+            if (message.Data["result", "urn:xmpp:mam:1"] != null)
             {
                 String queryId = message.Data["result"].GetAttribute("queryid");
                 String resultId = message.Data["result"].GetAttribute("id");
 
                 MessageArchiveRetrieved.Raise(this, new MessageArchiveEventArgs(queryId, resultId, message));
+                return true;
+            }
+
+            if (message.Data["results", "urn:xmpp:mam:1:bulk"] != null)
+            {
+                MessageArchiveResultsRetrieved.Raise(this, new XmlElementEventArgs(message.Data));
                 return true;
             }
 
@@ -98,7 +106,6 @@ namespace Sharp.Xmpp.Extensions
 
             return false;
         }
-
 
         /// <summary>
         /// Requests archived messages according options specified
@@ -220,10 +227,9 @@ namespace Sharp.Xmpp.Extensions
                     }
                 }
 
-                MessageArchiveManagementResult.Raise(this, new MessageArchiveManagementResultEventArgs(localQueryId, complete, count, first, last));
+                MessageArchiveManagementResult.Raise(this, new MessageArchiveManagementResultEventArgs(localQueryId, complete, count, first, last, false));
             });
         }
-
 
         /// <summary>
         /// Requests archived messages according options specified
@@ -243,19 +249,18 @@ namespace Sharp.Xmpp.Extensions
         /// error condition.</exception>
         /// <exception cref="XmppException">The server returned invalid data or another
         /// unspecified XMPP error occurred.</exception>
-        public void RequestArchivedMessages(Jid jid, string queryId, int max, bool isRoom, string before = null, string after = null)
+        public void RequestArchivedMessages(Jid jid, string queryId, int max, bool isRoom, string before = null, string after = null, Boolean useBulk = false)
         {
             jid.ThrowIfNull("jid");
-
 
             XmlElement rootElement;
             XmlElement subElement;
             XmlElement fieldElement;
             XmlElement valueElement;
 
-            rootElement = Xml.Element("query", "urn:xmpp:mam:1");
+            String ns = $"urn:xmpp:mam:1{(useBulk ? ":bulk" : "")}";
+            rootElement = Xml.Element("query", ns);
             rootElement.SetAttribute("queryid", queryId);
-
 
             subElement = Xml.Element("x", "jabber:x:data");
             subElement.SetAttribute("type", "submit");
@@ -324,7 +329,10 @@ namespace Sharp.Xmpp.Extensions
                             XmlElement e = iq.Data["fin"];
 
                             queryid = e.GetAttribute("queryid");
-                            complete = (e.GetAttribute("complete") == "false") ? MamResult.InProgress : MamResult.Complete;
+                            if (useBulk)
+                                complete = MamResult.Complete;
+                            else
+                                complete = (e.GetAttribute("complete") == "false") ? MamResult.InProgress : MamResult.Complete;
 
                             if(e["set"]["count"] != null)
                                 count = Int16.Parse(e["set"]["count"].InnerText);
@@ -335,7 +343,7 @@ namespace Sharp.Xmpp.Extensions
                             if (e["set"]["last"] != null)
                                 last = e["set"]["last"].InnerText;
 
-                            MessageArchiveManagementResult.Raise(this, new MessageArchiveManagementResultEventArgs(queryid, complete, count, first, last));
+                            MessageArchiveManagementResult.Raise(this, new MessageArchiveManagementResultEventArgs(queryid, complete, count, first, last, useBulk));
                             return;
                         }
                     }
@@ -344,11 +352,10 @@ namespace Sharp.Xmpp.Extensions
                         log.LogError("RequestCustomIqAsync - an error occurred ...");
                     }
 
-                    MessageArchiveManagementResult.Raise(this, new MessageArchiveManagementResultEventArgs(queryid, MamResult.Error, count, first, last));
+                    MessageArchiveManagementResult.Raise(this, new MessageArchiveManagementResultEventArgs(queryid, MamResult.Error, count, first, last, useBulk));
                 }
             });
         }
-
 
         public void DeleteAllArchivedMessages(String with, string queryId, String toJidString, Action<string, Iq> callback = null)
         {
@@ -407,7 +414,6 @@ namespace Sharp.Xmpp.Extensions
             //The Request is Async
             im.IqRequestAsync(IqType.Set, jidTo, null, rootElement, null, callback);
         }
-
 
         /// <summary>
         /// Initializes a new instance of the CustomIq class.
