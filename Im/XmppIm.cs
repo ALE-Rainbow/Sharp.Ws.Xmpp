@@ -2043,15 +2043,22 @@ namespace Sharp.Xmpp.Im
                 }
             }
 
+            Boolean used = false;
+
             // Only raise the Message event, if the message stanza actually contains
             // a body.
             if (message.Data["body"] != null)
+            {
+                used = true;
                 Message.Raise(this, new MessageEventArgs(message.From, message));
+            }
 
             // Also raise when the messages comes from an archive
             // Due to the different format the inner message is sent forward with the external timestamp included
             if (message.Data["result"] != null && message.Data["result"]["forwarded"] != null)
             {
+                used = true;
+
                 var realMessageNode = message.Data["result"]["forwarded"]["message"];
                 var timestamp = message.Data["result"]["forwarded"]["delay"];
                 realMessageNode.AppendChild(timestamp);
@@ -2061,6 +2068,8 @@ namespace Sharp.Xmpp.Im
 
             if (message.Data["event"] != null && message.Data["event"]["items"] != null && message.Data["event"]["items"]["item"] != null && message.Data["event"]["items"]["item"]["message"] != null)
             {
+                used = true;
+
                 var realMessageNode = message.Data["event"]["items"]["item"]["message"];
                 var realMessage = new Message(new Core.Message(realMessageNode));
                 
@@ -2070,13 +2079,16 @@ namespace Sharp.Xmpp.Im
             // Manage carbon copy
             if ( (message.Data["sent"] != null) && (message.Data["sent"]["forwarded"] != null) && (message.Data["sent"]["forwarded"]["message"] != null) && (message.Data["sent"]["forwarded"]["message"]["body"] != null))
             {
+                used = true;
+
                 var realMessageNode = message.Data["sent"]["forwarded"]["message"];
                 var realMessage = new Message(new Core.Message(realMessageNode));
 
                 Message.Raise(this, new MessageEventArgs(realMessage.From, realMessage, true));
             }
 
-            log.LogDebug("[OnMessage] Message not managed");
+            if(!used)
+                log.LogDebug("[OnMessage] Message not managed");
         }
 
         /// <summary>
