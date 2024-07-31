@@ -1,10 +1,11 @@
-﻿using Sharp.Xmpp.Core.Sasl;
-
+﻿using Microsoft.Extensions.Logging;
+using Sharp.Xmpp.Core.Sasl;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
@@ -12,9 +13,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-
-using Microsoft.Extensions.Logging;
-using System.Net;
 
 namespace Sharp.Xmpp.Core
 {
@@ -847,10 +845,15 @@ namespace Sharp.Xmpp.Core
         /// network.</exception>
         public void SendMessage(Message message)
         {
+            AsyncHelper.RunSync(async () => await SendMessageAsync(message).ConfigureAwait(false));
+        }
+
+        public async Task<Boolean> SendMessageAsync(Message message)
+        {
             AssertValid();
             message.ThrowIfNull("message");
             message.Id ??= GetId();
-            Send(message);
+            return await SendAsync(message);
         }
 
         /// <summary>
@@ -890,9 +893,14 @@ namespace Sharp.Xmpp.Core
         /// network.</exception>
         public void SendPresence(Presence presence)
         {
+            AsyncHelper.RunSync(async () => await SendPresenceAsync(presence).ConfigureAwait(false));
+        }
+
+        public async Task<Boolean> SendPresenceAsync(Presence presence)
+        {
             AssertValid();
             presence.ThrowIfNull("presence");
-            Send(presence);
+            return await SendAsync(presence);
         }
 
         /// <summary>
@@ -1119,11 +1127,16 @@ namespace Sharp.Xmpp.Core
         /// network.</exception>
         public void IqResponse(Iq response)
         {
+            AsyncHelper.RunSync(async () => await IqResponseAsync(response).ConfigureAwait(false));
+        }
+
+        public async Task<Boolean> IqResponseAsync(Iq response)
+        {
             AssertValid();
             response.ThrowIfNull("response");
             if (response.Type != IqType.Result && response.Type != IqType.Error)
                 throw new ArgumentException("The IQ type must be either 'result' or 'error'.");
-            Send(response);
+            return await SendAsync(response);
         }
 
         /// <summary>
@@ -1451,6 +1464,12 @@ namespace Sharp.Xmpp.Core
             Send(element.ToXmlString(), isStanza);
         }
 
+        internal async Task<Boolean> SendAsync(XmlElement element, Boolean isStanza)
+        {
+            element.ThrowIfNull("element");
+            return await SendAsync(element.ToXmlString(), isStanza);
+        }
+
         /// <summary>
         /// Sends the specified string to the server.
         /// </summary>
@@ -1460,13 +1479,19 @@ namespace Sharp.Xmpp.Core
         /// the network.</exception>
         private void Send(string xml, Boolean isStanza)
         {
+            AsyncHelper.RunSync(async () => await SendAsync(xml, isStanza).ConfigureAwait(false));
+        }
+
+        private async Task<Boolean> SendAsync(string xml, Boolean isStanza)
+        {
             xml.ThrowIfNull("xml");
-            
+
+            Boolean result = false;
             if (useWebSocket)
             {
                 try
                 {
-                    webSocketClient.Send(xml);
+                    result = await webSocketClient.SendAsync(xml);
                     if (isStanza && StreamManagementEnabled)
                         StreamManagementRequestAcknowledgement.Raise(this, null);
                 }
@@ -1474,27 +1499,22 @@ namespace Sharp.Xmpp.Core
                 {
                     RaiseConnectionStatus(false);
                 }
-                return;
+                return result;
             }
 
-            lock (writeLock)
-            {
-                // XMPP is guaranteed to be UTF-8.
-                byte[] buf = Encoding.UTF8.GetBytes(xml);
+            // XMPP is guaranteed to be UTF-8.
+            byte[] buf = Encoding.UTF8.GetBytes(xml);
 
-                //FIXME
-                //If we have an IOexception immediatelly we make a disconnection, is it correct?
-                try
-                {
-                    stream.Write(buf, 0, buf.Length);
-                    if (debugStanzas) System.Diagnostics.Debug.WriteLine(xml);
-                }
-                catch (IOException e)
-                {
-                    RaiseConnectionStatus(false);
-                    throw new XmppDisconnectionException(e.Message, e);
-                }
-                //FIXME
+            try
+            {
+                await stream.WriteAsync(buf, 0, buf.Length);
+                if (debugStanzas) System.Diagnostics.Debug.WriteLine(xml);
+                return true;
+            }
+            catch (IOException e)
+            {
+                RaiseConnectionStatus(false);
+                return false;
             }
         }
 
@@ -1509,6 +1529,12 @@ namespace Sharp.Xmpp.Core
         {
             stanza.ThrowIfNull("stanza");
             Send(stanza.ToString(), true);
+        }
+
+        private async Task<Boolean> SendAsync(Stanza stanza)
+        {
+            stanza.ThrowIfNull("stanza");
+            return await SendAsync(stanza.ToString(), true);
         }
 
         /// <summary>
@@ -1659,10 +1685,10 @@ namespace Sharp.Xmpp.Core
                                     // /!\ Need to RESUME session here (if needed) and AVOID to do a binding in this case
                                     if (StreamManagementAvailable && StreamManagementResume)
                                     {
-                                        var xml = Xml.Element("resume", "urn:xmpp:sm:3");
-                                        xml.SetAttribute("h", StreamManagementLastStanzaReceivedAndHandledByClient.ToString());
-                                        xml.SetAttribute("previd", StreamManagementResumeId);
-                                        Send(xml, false);
+                                        xmlResponse = Xml.Element("resume", "urn:xmpp:sm:3");
+                                        xmlResponse.SetAttribute("h", StreamManagementLastStanzaReceivedAndHandledByClient.ToString());
+                                        xmlResponse.SetAttribute("previd", StreamManagementResumeId);
+                                        Send(xmlResponse, false);
                                     }
                                     else
                                     {

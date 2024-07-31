@@ -33,7 +33,6 @@ namespace Sharp.Xmpp.Core
         private readonly object closedLock = new();
 
         private readonly BlockingCollection<string> actionsToPerform;
-        private readonly BlockingCollection<string> messagesToSend;
         private readonly BlockingCollection<string> messagesReceived;
         private readonly BlockingCollection<Iq> iqMessagesReceived;
         private readonly HashSet<String> iqIdList;
@@ -60,7 +59,6 @@ namespace Sharp.Xmpp.Core
             this.webProxy = webProxy;
 
             actionsToPerform = new BlockingCollection<string>(new ConcurrentQueue<string>());
-            messagesToSend = new BlockingCollection<string>(new ConcurrentQueue<string>());
             messagesReceived = new BlockingCollection<string>(new ConcurrentQueue<string>());
             iqMessagesReceived = new BlockingCollection<Iq>(new ConcurrentQueue<Iq>());
             iqIdList = new HashSet<string>();
@@ -162,61 +160,11 @@ namespace Sharp.Xmpp.Core
                 // Manage next incoming message
                 ManageIncomingMessage();
 
-                // Manage outgoing message
-                ManageOutgoingMessage();
             }
             catch (Exception exc)
             {
                 log.LogWarning($"[CreateAndManageWebSocket] Exception:[{Util.SerializeException(exc)}]");
                 RaiseWebSocketClosed();
-            }
-        }
-
-        private async void ManageOutgoingMessage()
-        {
-            string message;
-
-            // Loop used to send message when they are avaialble
-            while (true)
-            {
-                if (clientWebSocket != null)
-                {
-                    if (clientWebSocket.State != System.Net.WebSockets.WebSocketState.Open)
-                    {
-                        ClientWebSocketClosed();
-                        return;
-                    }
-                    else
-                    {
-                        message = DequeueMessageToSend();
-                        if (message != null)
-                        {
-                            // Log webRTC stuff
-                            if ((logWebRTC != null)
-                                && (
-                                    message.Contains("<jingle")
-                                    || message.Contains("urn:xmpp:jingle"))
-                                    )
-                                logWebRTC.LogDebug("[ManageOutgoingMessage]: {0}", message);
-                            else
-                                log.LogDebug("[ManageOutgoingMessage]: {0}", message);
-
-
-                            var sendBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(message));
-                            try
-                            {
-                                await clientWebSocket.SendAsync(sendBuffer, WebSocketMessageType.Text, true, CancellationToken.None);
-                            }
-                            catch
-                            {
-                                // Nothing to do - if a pb occur here, it means that the socket has been closed
-                                // The loop will take this into account
-                            }
-                        }
-                    }
-                }
-                else
-                    return;
             }
         }
 
@@ -345,19 +293,6 @@ namespace Sharp.Xmpp.Core
         }
 #endregion
 
-#region Messages to send
-        private void QueueMessageToSend(String message)
-        {
-            messagesToSend.Add(message);
-        }
-
-        private string DequeueMessageToSend()
-        {
-            if (messagesToSend.TryTake(out string message, 50))
-                return message;
-            return null;
-        }
-#endregion
 
 #region Messages received
         public void QueueMessageReceived(String message)
@@ -396,9 +331,45 @@ namespace Sharp.Xmpp.Core
         }
 #endregion
 
+        public async Task<Boolean> SendAsync(string message)
+        {
+            if (String.IsNullOrEmpty(message))
+                return false;
+
+            if (clientWebSocket == null)
+                return false;
+
+            if (clientWebSocket.State != System.Net.WebSockets.WebSocketState.Open)
+            {
+                ClientWebSocketClosed();
+                return false;
+            }
+
+            // Log webRTC stuff
+            if ((logWebRTC != null)
+                && (
+                    message.Contains("<jingle")
+                    || message.Contains("urn:xmpp:jingle"))
+                    )
+                logWebRTC.LogDebug("[ManageOutgoingMessage]: {0}", message);
+            else
+                log.LogDebug("[ManageOutgoingMessage]: {0}", message);
+
+            var sendBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(message));
+            try
+            {
+                await clientWebSocket.SendAsync(sendBuffer, WebSocketMessageType.Text, true, CancellationToken.None);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public void Send(string xml)
         {
-            QueueMessageToSend(xml);
+            AsyncHelper.RunSync(async () => await SendAsync(xml).ConfigureAwait(false));
         }
 
         private void ClientWebSocketClosed()

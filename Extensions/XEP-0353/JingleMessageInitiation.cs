@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Xml;
-
+﻿using Microsoft.Extensions.Logging;
 using Sharp.Xmpp.Core;
 using Sharp.Xmpp.Im;
-
-using Microsoft.Extensions.Logging;
-
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Xml;
 
 namespace Sharp.Xmpp.Extensions
 {
@@ -175,6 +173,11 @@ namespace Sharp.Xmpp.Extensions
         /// <param name="jingleMessage">Jingle Message to send</param>
         public void Send(JingleMessage jingleMessage)
         {
+            AsyncHelper.RunSync(async () => await SendAsync(jingleMessage).ConfigureAwait(false));
+        }
+
+        public async Task<Boolean> SendAsync(JingleMessage jingleMessage)
+        {
             Sharp.Xmpp.Im.Message message = new(jingleMessage.ToJid);
             XmlElement e = message.Data;
 
@@ -185,8 +188,8 @@ namespace Sharp.Xmpp.Extensions
             actionElement.SetAttribute("id", jingleMessage.Id);
 
             // Unified Plan
-            if ( (jingleMessage.UnifiedPlan)
-                && ( (jingleMessage.Action == "propose") || (jingleMessage.Action == "proceed") ) )
+            if ((jingleMessage.UnifiedPlan)
+                && ((jingleMessage.Action == "propose") || (jingleMessage.Action == "proceed")))
             {
                 XmlElement unifiedplan = e.OwnerDocument.CreateElement("unifiedplan", "urn:xmpp:jingle:apps:jsep:1");
                 actionElement.AppendChild(unifiedplan);
@@ -218,7 +221,7 @@ namespace Sharp.Xmpp.Extensions
                 }
             }
 
-            im.SendMessage(message);
+            return await im.SendMessageAsync(message);
         }
 
         /// <summary>

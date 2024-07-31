@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml;
 using Sharp.Xmpp.Core;
 using Sharp.Xmpp.Extensions.Dataforms;
@@ -212,6 +213,11 @@ namespace Sharp.Xmpp.Extensions
         /// <param name="password">(Optional) Password</param>
         public void JoinRoom(Jid jid, string nickname, string password = null)
         {
+            AsyncHelper.RunSync(async () => await JoinRoomAsync(jid, nickname, password).ConfigureAwait(false));
+        }
+
+        public async Task<Boolean> JoinRoomAsync(Jid jid, string nickname, string password = null)
+        {
             XmlElement elem = Xml.Element("x", MucNs.NsMain);
 
             if (!string.IsNullOrEmpty(password))
@@ -219,7 +225,7 @@ namespace Sharp.Xmpp.Extensions
 
             Jid joinRequest = new(jid.Domain, jid.Node, nickname);
             var msg = new Im.Presence(joinRequest, im.Jid, PresenceType.Available, null, null, elem);
-            im.SendPresence(msg);
+            return await im.SendPresenceAsync(msg);
         }
 
         /// <summary>

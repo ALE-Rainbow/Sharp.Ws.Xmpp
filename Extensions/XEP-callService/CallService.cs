@@ -1,11 +1,10 @@
+using Microsoft.Extensions.Logging;
 using Sharp.Xmpp.Core;
 using Sharp.Xmpp.Im;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Xml;
-
-using Microsoft.Extensions.Logging;
-
 
 namespace Sharp.Xmpp.Extensions
 {
@@ -81,8 +80,8 @@ namespace Sharp.Xmpp.Extensions
         /// on to the next handler.</returns>
         public bool Input(Sharp.Xmpp.Im.Message message)
         {
-            if ( (message.Data["callservice"] != null)
-                && (message.Data["callservice"].NamespaceURI == "urn:xmpp:pbxagent:callservice:1") )
+            if ((message.Data["callservice"] != null)
+                && (message.Data["callservice"].NamespaceURI == "urn:xmpp:pbxagent:callservice:1"))
             {
                 if (message.Data["callservice"]["forwarded"] != null)
                 {
@@ -105,8 +104,8 @@ namespace Sharp.Xmpp.Extensions
 
                     return true;
                 }
-                else if ( (message.Data["callservice"]["messaging"] != null)
-                    && (message.Data["callservice"]["messaging"]["voiceMessageCounter"] != null) )
+                else if ((message.Data["callservice"]["messaging"] != null)
+                    && (message.Data["callservice"]["messaging"]["voiceMessageCounter"] != null))
                 {
                     String msg = message.Data["callservice"]["messaging"]["voiceMessageCounter"].InnerText;
                     VoiceMessagesUpdated.Raise(this, new VoiceMessagesEventArgs(msg));
@@ -147,41 +146,37 @@ namespace Sharp.Xmpp.Extensions
         /// <param name="onSecondary">To we want info about the SECONDARY device or not</param>
         public void AskPBXCallsInProgress(String to, Boolean onSecondary)
         {
+            AsyncHelper.RunSync(async () => await AskPBXCallsInProgressAsync(to, onSecondary).ConfigureAwait(false));
+        }
+
+        public async Task<(string Id, Iq Iq)> AskPBXCallsInProgressAsync(String to, Boolean onSecondary)
+        {
             var xml = Xml.Element("callservice", CALLSERVICE_NS);
             var connections = Xml.Element("connections");
             if (onSecondary)
                 connections.SetAttribute("deviceType", "SECONDARY");
             xml.Child(connections);
 
-            //The Request is Async
-            im.IqRequestAsync(IqType.Get, to, im.Jid, xml, null, (id, iq) =>
+            (String id, Iq iq) = await im.IqRequestAsync(IqType.Get, to, im.Jid, xml, null, 60000);
+
+            if (iq.Type == IqType.Result)
             {
-                //For any reply we execute the callback
-                if (iq.Type == IqType.Error)
+                try
                 {
-                    log.LogError("AskPBXCalls - Iq sent not valid - server sent an error as response");
-                    return;
+                    if ((iq.Data["callservice"] != null) && (iq.Data["callservice"]["connections"] != null))
+                    {
+                        XmlElement connectionsNode = iq.Data["callservice"]["connections"];
+                        if (connectionsNode.HasChildNodes)
+                            PBXCallsInProgress.Raise(this, new XmlElementEventArgs(connectionsNode));
+                    }
                 }
-
-                if (iq.Type == IqType.Result)
+                catch (Exception)
                 {
-                    try
-                    {
-                        if ( (iq.Data["callservice"] != null) && (iq.Data["callservice"]["connections"] != null) )
-                        {
-                            XmlElement connectionsNode = iq.Data["callservice"]["connections"];
-                            if(connectionsNode.HasChildNodes)
-                                PBXCallsInProgress.Raise(this, new XmlElementEventArgs(connectionsNode));
-                            return;
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        log.LogError("AskPbxAgentInfo - an error occurred ...");
-                    }
-
+                    log.LogError("AskPbxAgentInfo - an error occurred ...");
                 }
-            });
+            }
+
+            return (id, iq);
         }
 
         /// <summary>
@@ -190,20 +185,15 @@ namespace Sharp.Xmpp.Extensions
         /// <param name="to">The JID to send the request</param>
         public void AskVoiceMessagesNumber(String to)
         {
+            AsyncHelper.RunSync(async () => await AskVoiceMessagesNumberAsync(to).ConfigureAwait(false));
+        }
+
+        public async Task<(string Id, Iq Iq)> AskVoiceMessagesNumberAsync(String to)
+        {
             var xml = Xml.Element("callservice", CALLSERVICE_NS);
             xml.Child(Xml.Element("messaging"));
-            //The Request is Async
-            im.IqRequestAsync(IqType.Get, to, im.Jid, xml, null, (id, iq) =>
-            {
-                //For any reply we execute the callback
-                if (iq.Type == IqType.Error)
-                {
-                    log.LogError("AskVoiceMessagesNumber - Iq sent not valid - server sent an error as response");
-                    return;
-                }
 
-                // Nothing to more - we will receive a specific message with voice message counter
-            });
+            return await im.IqRequestAsync(IqType.Get, to, im.Jid, xml, null, 60000);
         }
 
         /// <summary>
@@ -212,42 +202,37 @@ namespace Sharp.Xmpp.Extensions
         /// <param name="to">The JID to send the request</param>
         public void AskPbxAgentInfo(String to)
         {
+            AsyncHelper.RunSync(async () => await AskPbxAgentInfoAsync(to).ConfigureAwait(false));
+        }
+
+        public async Task<(string Id, Iq Iq)> AskPbxAgentInfoAsync(String to)
+        {
             var xml = Xml.Element("pbxagentstatus", "urn:xmpp:pbxagent:monitoring:1");
-            //The Request is Async
-            im.IqRequestAsync(IqType.Get, to, im.Jid, xml, null, (id, iq) =>
+
+            (String id, Iq iq) = await im.IqRequestAsync(IqType.Get, to, im.Jid, xml, null, 60000);
+
+            if (iq.Type == IqType.Result)
             {
-                //For any reply we execute the callback
-                if (iq.Type == IqType.Error)
+                try
                 {
-                    log.LogError("AskPbxAgentInfo - Iq sent not valid - server sent an error as response");
-                    return;
-                }
+                    if (iq.Data["pbxagentstatus"] != null)
+                    {
+                        XmlElement e = iq.Data["pbxagentstatus"];
 
-                if (iq.Type == IqType.Result)
+                        String phoneapi = (iq.Data["pbxagentstatus"]["phoneapi"] != null) ? iq.Data["pbxagentstatus"]["phoneapi"].InnerText : "";
+                        String xmppagent = (iq.Data["pbxagentstatus"]["xmppagent"] != null) ? iq.Data["pbxagentstatus"]["xmppagent"].InnerText : "";
+                        String version = (iq.Data["pbxagentstatus"]["version"] != null) ? iq.Data["pbxagentstatus"]["version"].InnerText : "";
+                        String features = (iq.Data["pbxagentstatus"]["features"] != null) ? iq.Data["pbxagentstatus"]["features"].InnerText : "";
+
+                        PbxAgentInfoUpdated.Raise(this, new PbxAgentInfoEventArgs(phoneapi, xmppagent, version, features));
+                    }
+                }
+                catch (Exception)
                 {
-                    try
-                    {
-                        if (iq.Data["pbxagentstatus"] != null)
-                        {
-                            XmlElement e = iq.Data["pbxagentstatus"];
-
-                            String phoneapi = (iq.Data["pbxagentstatus"]["phoneapi"] != null) ? iq.Data["pbxagentstatus"]["phoneapi"].InnerText : "";
-                            String xmppagent = (iq.Data["pbxagentstatus"]["xmppagent"] != null) ? iq.Data["pbxagentstatus"]["xmppagent"].InnerText : "";
-                            String version = (iq.Data["pbxagentstatus"]["version"] != null) ? iq.Data["pbxagentstatus"]["version"].InnerText : "";
-                            String features = (iq.Data["pbxagentstatus"]["features"] != null) ? iq.Data["pbxagentstatus"]["features"].InnerText : "";
-
-                            PbxAgentInfoUpdated.Raise(this, new PbxAgentInfoEventArgs(phoneapi, xmppagent, version, features));
-
-                            return;
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        log.LogError("AskPbxAgentInfo - an error occurred ...");
-                    }
-
+                    log.LogError("AskPbxAgentInfo - an error occurred ...");
                 }
-            });
+            }
+            return (id, iq);
         }
 
         /// <summary>

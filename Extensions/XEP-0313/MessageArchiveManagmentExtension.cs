@@ -1,11 +1,11 @@
+using Microsoft.Extensions.Logging;
 using Sharp.Xmpp.Core;
 using Sharp.Xmpp.Im;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Threading.Tasks;
 using System.Xml;
-
-using Microsoft.Extensions.Logging;
-
 
 namespace Sharp.Xmpp.Extensions
 {
@@ -251,6 +251,11 @@ namespace Sharp.Xmpp.Extensions
         /// unspecified XMPP error occurred.</exception>
         public void RequestArchivedMessages(Jid jid, string queryId, int max, bool isRoom, string before = null, string after = null, Boolean useBulk = false)
         {
+            AsyncHelper.RunSync(async () => await RequestArchivedMessagesAsync(jid, queryId, max, isRoom, before, after, useBulk).ConfigureAwait(false));
+        }
+
+        public async Task<Boolean> RequestArchivedMessagesAsync(Jid jid, string queryId, int max, bool isRoom, string before = null, string after = null, Boolean useBulk = false)
+        {
             jid.ThrowIfNull("jid");
 
             XmlElement rootElement;
@@ -289,9 +294,8 @@ namespace Sharp.Xmpp.Extensions
 
             rootElement.Child(subElement);
 
-
             subElement = Xml.Element("set", "http://jabber.org/protocol/rsm");
-            if ( max > 0 ) subElement.Child(Xml.Element("max").Text(max.ToString()));
+            if (max > 0) subElement.Child(Xml.Element("max").Text(max.ToString()));
             if (before == null)
                 subElement.Child(Xml.Element("before"));
             else
@@ -305,56 +309,49 @@ namespace Sharp.Xmpp.Extensions
             if (isRoom)
                 to = jid;
 
-            //The Request is Async
-            im.IqRequestAsync(IqType.Set, to, null, rootElement, null, (id, iq) =>
+            (string id, Iq iq) = await im.IqRequestAsync(IqType.Set, to, null, rootElement, null, 60000);
+
+            string queryid = "";
+            MamResult complete = MamResult.Error;
+            int count = 0;
+            string first = "";
+            string last = "";
+
+            if (iq.Type == IqType.Result)
             {
-                //For any reply we execute the callback
-                if (iq.Type == IqType.Error)
+                try
                 {
-                    MessageArchiveManagementResult.Raise(this, new MessageArchiveManagementResultEventArgs());
-                    return;
-                }
+                    if ((iq.Data["fin"] != null) && (iq.Data["fin"]["set"] != null))
+                    {
+                        XmlElement e = iq.Data["fin"];
 
-                if (iq.Type == IqType.Result)
+                        queryid = e.GetAttribute("queryid");
+                        if (useBulk)
+                            complete = MamResult.Complete;
+                        else
+                            complete = (e.GetAttribute("complete") == "false") ? MamResult.InProgress : MamResult.Complete;
+
+                        if (e["set"]["count"] != null)
+                            count = Int16.Parse(e["set"]["count"].InnerText);
+
+                        if (e["set"]["first"] != null)
+                            first = e["set"]["first"].InnerText;
+
+                        if (e["set"]["last"] != null)
+                            last = e["set"]["last"].InnerText;
+
+                        MessageArchiveManagementResult.Raise(this, new MessageArchiveManagementResultEventArgs(queryid, complete, count, first, last, useBulk));
+                        return true;
+                    }
+                }
+                catch (Exception)
                 {
-                    string queryid = "";
-                    MamResult complete = MamResult.Error;
-                    int count = 0;
-                    string first = "";
-                    string last = "";
-                    try
-                    {
-                        if ( (iq.Data["fin"] != null) && (iq.Data["fin"]["set"] != null) )
-                        {
-                            XmlElement e = iq.Data["fin"];
-
-                            queryid = e.GetAttribute("queryid");
-                            if (useBulk)
-                                complete = MamResult.Complete;
-                            else
-                                complete = (e.GetAttribute("complete") == "false") ? MamResult.InProgress : MamResult.Complete;
-
-                            if(e["set"]["count"] != null)
-                                count = Int16.Parse(e["set"]["count"].InnerText);
-
-                            if (e["set"]["first"] != null)
-                                first = e["set"]["first"].InnerText;
-
-                            if (e["set"]["last"] != null)
-                                last = e["set"]["last"].InnerText;
-
-                            MessageArchiveManagementResult.Raise(this, new MessageArchiveManagementResultEventArgs(queryid, complete, count, first, last, useBulk));
-                            return;
-                        }
-                    }
-                    catch (Exception )
-                    {
-                        log.LogError("RequestCustomIqAsync - an error occurred ...");
-                    }
-
-                    MessageArchiveManagementResult.Raise(this, new MessageArchiveManagementResultEventArgs(queryid, MamResult.Error, count, first, last, useBulk));
+                    log.LogError("RequestCustomIqAsync - an error occurred ...");
                 }
-            });
+            }
+
+            MessageArchiveManagementResult.Raise(this, new MessageArchiveManagementResultEventArgs(queryid, MamResult.Error, count, first, last, useBulk));
+            return false;
         }
 
         public void DeleteAllArchivedMessages(String with, string queryId, String toJidString, Action<string, Iq> callback = null)

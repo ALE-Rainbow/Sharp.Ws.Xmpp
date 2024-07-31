@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Security;
-using System.Xml;
-
+﻿using Microsoft.Extensions.Logging;
 using Sharp.Xmpp.Extensions;
 using Sharp.Xmpp.Im;
-
-using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net;
+using System.Net.Security;
+using System.Threading.Tasks;
+using System.Xml;
 
 namespace Sharp.Xmpp.Client
 {
@@ -1732,14 +1731,24 @@ namespace Sharp.Xmpp.Client
         /// disposed.</exception>
         public void SendMessage(Message message)
         {
+            AsyncHelper.RunSync(async () => await SendMessageAsync(message).ConfigureAwait(false));
+        }
+
+        public async Task<Boolean> SendMessageAsync(Message message)
+        {
             AssertValid();
             message.ThrowIfNull("message");
-            im.SendMessage(message);
+            return await im.SendMessageAsync(message);
         }
 
         public void SendJingleMessage(JingleMessage jingleMessage)
         {
             jingleMessageInitiation?.Send(jingleMessage);
+        }
+
+        public async Task<Boolean> SendJingleMessageAsync(JingleMessage jingleMessage)
+        {
+            return await jingleMessageInitiation?.SendAsync(jingleMessage);
         }
 
         /// <summary>
@@ -1771,6 +1780,12 @@ namespace Sharp.Xmpp.Client
             im.IqRequestAsync(type, to, from, data, language, callback);
         }
 
+        public async Task<(string Id, Core.Iq Iq)> IqRequestAsync(Core.IqType type, Jid to = null, Jid from = null,
+            XmlElement data = null, String language = null, int msDelay = 60000)
+        {
+            return await im.IqRequestAsync(type, to, from, data, language, msDelay);
+        }
+
         /// <summary>
         /// Sends an IQ response for the IQ request with the specified id.
         /// </summary>
@@ -1796,9 +1811,20 @@ namespace Sharp.Xmpp.Client
             im.IqResponse(type, id, to, from, data, language);
         }
 
+        public async Task<Boolean> IqResponseAsync(Core.IqType type, string id, Jid to = null, Jid from = null,
+            XmlElement data = null, String language = null)
+        {
+            return await im.IqResponseAsync(type, id, to, from, data, language);
+        }
+
         public void DeleteCallLog(String callId)
         {
             callLog?.DeleteCallLog(callId);
+        }
+
+        public async Task<Boolean> DeleteCallLogAsync(String callId)
+        {
+            return await callLog?.DeleteCallLogAsync(callId);
         }
 
         public void DeleteCallsLogForContact(String contactJid)
@@ -1806,14 +1832,29 @@ namespace Sharp.Xmpp.Client
             callLog?.DeleteCallsLogForContact(contactJid);
         }
 
+        public async Task<Boolean> DeleteCallsLogForContactAsync(String contactJid)
+        {
+            return await callLog?.DeleteCallsLogForContactAsync(contactJid);
+        }
+
         public void DeleteAllCallsLog()
         {
             callLog?.DeleteAllCallsLog();
         }
 
+        public async Task<Boolean> DeleteAllCallsLogAsync()
+        {
+            return await callLog?.DeleteAllCallsLogAsync();
+        }
+
         public void MarkCallLogAsRead(String callId)
         {
             callLog?.MarkCallLogAsRead(callId);
+        }
+
+        public async Task<Boolean> MarkCallLogAsReadAsync(String callId)
+        {
+            return await callLog?.MarkCallLogAsReadAsync(callId);
         }
 
         /// <summary>
@@ -1823,32 +1864,15 @@ namespace Sharp.Xmpp.Client
         /// <param name="messageId">The ID of the message to mark as read</param>
         public void MarkMessageAsRead(Jid jid, string messageId, MessageType messageType)
         {
-            Message message = new(jid)
-            {
-                Type = messageType
-            };
-
-            XmlElement e = message.Data;
-
-            XmlElement timestamp = e.OwnerDocument.CreateElement("timestamp", "urn:xmpp:receipts");
-            timestamp.SetAttribute("value", DateTime.UtcNow.ToString("o"));
-            e.AppendChild(timestamp);
-
-            XmlElement received = e.OwnerDocument.CreateElement("received", "urn:xmpp:receipts");
-            received.SetAttribute("entity", "client");
-            received.SetAttribute("event", "read");
-            received.SetAttribute("id", messageId);
-            e.AppendChild(received);
-
-            im.SendMessage(message);
+            AsyncHelper.RunSync(async () => await MarkMessageAsync(jid, messageId, messageType, "read").ConfigureAwait(false));
         }
 
-        /// <summary>
-        /// Mark a message as received (XEP-0184: Message Delivery Receipts). Must be done only on message of type Chat
-        /// </summary>
-        /// <param name="jid">the JID who send the message</param>
-        /// <param name="messageId">The ID of the message to mark as read</param>
-        public void MarkMessageAsReceive(Jid jid, string messageId, MessageType messageType)
+        public async Task<Boolean> MarkMessageAsReadAsync(Jid jid, string messageId, MessageType messageType)
+        {
+            return await MarkMessageAsync(jid, messageId, messageType, "read");
+        }
+
+        private async Task<Boolean> MarkMessageAsync(Jid jid, string messageId, MessageType messageType, String eventValue)
         {
             Message message = new(jid)
             {
@@ -1863,13 +1887,27 @@ namespace Sharp.Xmpp.Client
 
             XmlElement received = e.OwnerDocument.CreateElement("received", "urn:xmpp:receipts");
             received.SetAttribute("entity", "client");
-            received.SetAttribute("event", "received");
+            received.SetAttribute("event", eventValue);
             received.SetAttribute("id", messageId);
             e.AppendChild(received);
 
-            im.SendMessage(message);
+            return await im.SendMessageAsync(message);
         }
 
+        /// <summary>
+        /// Mark a message as received (XEP-0184: Message Delivery Receipts). Must be done only on message of type Chat
+        /// </summary>
+        /// <param name="jid">the JID who send the message</param>
+        /// <param name="messageId">The ID of the message to mark as read</param>
+        public void MarkMessageAsReceive(Jid jid, string messageId, MessageType messageType)
+        {
+            AsyncHelper.RunSync(async () => await MarkMessageAsync(jid, messageId, messageType, "received").ConfigureAwait(false));
+        }
+
+        public async Task<Boolean> MarkMessageAsReceiveAsync(Jid jid, string messageId, MessageType messageType)
+        {
+            return await MarkMessageAsync(jid, messageId, messageType, "received");
+        }
 
         /// <summary>
         /// Sets the chat-state for the conversation with the XMPP user with the
@@ -1883,6 +1921,11 @@ namespace Sharp.Xmpp.Client
         public void SetChatState(Jid jid, MessageType type, ChatState state)
         {
             chatStateNotifications.SetChatState(jid, type, state);
+        }
+
+        public async Task<Boolean> SetChatStateAsync(Jid jid, MessageType type, ChatState state)
+        {
+            return await chatStateNotifications.SetChatStateAsync(jid, type, state);
         }
 
         /// <summary>
@@ -1923,6 +1966,13 @@ namespace Sharp.Xmpp.Client
         {
             AssertValid();
             im.SetStatus(availability, message, priority, elementToAdd, language);
+        }
+
+        public async Task<Boolean> SetStatusAsync(Availability availability, string message = null,
+            sbyte priority = 0, XmlElement elementToAdd = null, String language = null)
+        {
+            AssertValid();
+            return await im.SetStatusAsync(availability, message, priority, elementToAdd, language);
         }
 
         /// <summary>
@@ -2235,6 +2285,12 @@ namespace Sharp.Xmpp.Client
             mam.RequestArchivedMessages(jid, queryId, maxNumber, isRoom, before, after, useBulk);
         }
 
+        public async Task<Boolean> RequestArchivedMessagesAsync(Jid jid, string queryId, int maxNumber, bool isRoom, string before = null, string after = null, Boolean useBulk = false)
+        {
+            AssertValid();
+            return await mam.RequestArchivedMessagesAsync(jid, queryId, maxNumber, isRoom, before, after, useBulk);
+        }
+
         public void DeleteAllArchivedMessages(String with, string queryId, String toJid, Action<string, Sharp.Xmpp.Core.Iq> callback = null)
         {
             AssertValid();
@@ -2244,27 +2300,35 @@ namespace Sharp.Xmpp.Client
         public void RequestCallLogs(string queryId, int maxNumber, string before = null, string after = null)
         {
             AssertValid();
-            callLog.RequestCustomIqAsync(queryId, maxNumber, before, after);
+            callLog.RequestCallLogs(queryId, maxNumber, before, after);
+        }
+
+        public async Task<Boolean> RequestCallLogsAsync(string queryId, int maxNumber, string before = null, string after = null)
+        {
+            AssertValid();
+            return await callLog.RequestCallLogsAsync(queryId, maxNumber, before, after);
         }
 
         /// <summary>
         /// Ask PBX agent Agent info (iq request)
         /// </summary>
         /// <param name="to">The JID to send the request</param>
-        public void AskPbxAgentInfo(String to)
+        public async Task<Boolean> AskPbxAgentInfoAsync(String to)
         {
             AssertValid();
-            callService.AskPbxAgentInfo(to);
+            var result = await callService.AskPbxAgentInfoAsync(to);
+            return result.Iq.Type != Core.IqType.Error;
         }
 
         /// <summary>
         /// Ask then number of voice messages
         /// </summary>
         /// <param name="to">The JID to send the request</param>
-        public void AskVoiceMessagesNumber(String to)
+        public async Task<Boolean> AskVoiceMessagesNumberAsync(String to)
         {
             AssertValid();
-            callService.AskVoiceMessagesNumber(to);
+            var result = await callService.AskVoiceMessagesNumberAsync(to);
+            return result.Iq.Type != Core.IqType.Error;
         }
 
         /// <summary>
@@ -2272,10 +2336,11 @@ namespace Sharp.Xmpp.Client
         /// </summary>
         /// <param name="to">The JID to send the request</param>
         /// <param name="onSecondary">To we want info about the SECONDARY device or not</param>
-        public void AskPBXCallsInProgress(String to, Boolean onSecondary)
+        public async Task<Boolean> AskPBXCallsInProgressAsync(String to, Boolean onSecondary)
         {
             AssertValid();
-            callService.AskPBXCallsInProgress(to, onSecondary);
+            var result = await callService.AskPBXCallsInProgressAsync(to, onSecondary);
+            return result.Iq.Type != Core.IqType.Error;
         }
 
         /// <summary>
@@ -2919,6 +2984,12 @@ namespace Sharp.Xmpp.Client
         {
             AssertValid();
             groupChat.JoinRoom(chatRoom, nickname, password);
+        }
+
+        public async Task<Boolean> JoinRoomAsync(Jid chatRoom, string nickname, string password = null)
+        {
+            AssertValid();
+            return await groupChat.JoinRoomAsync(chatRoom, nickname, password);
         }
 
         /// <summary>

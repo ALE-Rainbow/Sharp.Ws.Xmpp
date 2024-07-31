@@ -1,17 +1,17 @@
-﻿using Sharp.Xmpp.Core;
+﻿using Microsoft.Extensions.Logging;
+using Sharp.Xmpp.Core;
 using Sharp.Xmpp.Extensions;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
-
-using Microsoft.Extensions.Logging;
-using System.Net;
 
 namespace Sharp.Xmpp.Im
 {
@@ -829,6 +829,11 @@ namespace Sharp.Xmpp.Im
         /// disposed.</exception>
         public void SendMessage(Message message)
         {
+            AsyncHelper.RunSync(async () => await SendMessageAsync(message).ConfigureAwait(false));
+        }
+
+        public async Task<Boolean> SendMessageAsync(Message message)
+        {
             AssertValid();
             message.ThrowIfNull("message");
             // "Stamp" the sender's JID onto the message.
@@ -839,7 +844,7 @@ namespace Sharp.Xmpp.Im
                 if (ext is IOutputFilter<Message> filter)
                     filter.Output(message);
             }
-            core.SendMessage(message);
+            return await core.SendMessageAsync(message);
         }
 
         /// <summary>
@@ -971,6 +976,12 @@ namespace Sharp.Xmpp.Im
         public void SetStatus(Availability availability, string message = null,
             sbyte priority = 0, XmlElement elementToAdd = null, String language = null)
         {
+            AsyncHelper.RunSync(async () => await SetStatusAsync(availability, message, priority, elementToAdd, language).ConfigureAwait(false));
+        }
+
+        public async Task<Boolean> SetStatusAsync(Availability availability, string message = null,
+            sbyte priority = 0, XmlElement elementToAdd = null, String language = null)
+        {
             AssertValid();
             if (availability == Availability.Offline)
                 throw new ArgumentException("Invalid availability state.");
@@ -995,7 +1006,7 @@ namespace Sharp.Xmpp.Im
                 elems.Add(Xml.Element("status").Text(message));
             Presence p = new(null, null, PresenceType.Available, null,
                 language, elems.ToArray());
-            SendPresence(p);
+            return await SendPresenceAsync(p);
         }
 
         /// <summary>
@@ -1651,6 +1662,11 @@ namespace Sharp.Xmpp.Im
         /// disposed.</exception>
         internal void SendPresence(Presence presence)
         {
+            AsyncHelper.RunSync(async () => await SendPresenceAsync(presence).ConfigureAwait(false));
+        }
+
+        internal async Task<Boolean> SendPresenceAsync(Presence presence)
+        {
             presence.ThrowIfNull("presence");
             // Invoke IOutput<Presence> Plugins.
             foreach (var ext in extensions.Values)
@@ -1658,7 +1674,7 @@ namespace Sharp.Xmpp.Im
                 if (ext is IOutputFilter<Presence> filter)
                     filter.Output(presence);
             }
-            core.SendPresence(presence);
+            return await core.SendPresenceAsync(presence);
         }
 
         /// <summary>
@@ -1668,6 +1684,11 @@ namespace Sharp.Xmpp.Im
         internal void Send(XmlElement element, Boolean isStanza)
         {
             core.Send(element, isStanza);
+        }
+
+        internal async Task<Boolean> SendAsync(XmlElement element, Boolean isStanza)
+        {
+            return await core.SendAsync(element, isStanza);
         }
 
 
@@ -1747,6 +1768,33 @@ namespace Sharp.Xmpp.Im
             return core.IqRequestAsync(iq, callback);
         }
 
+        public async Task<(string Id, Iq Iq)> IqRequestAsync(IqType type, Jid to = null, Jid from = null,
+            XmlElement data = null, String language = null, int msDelay = 60000)
+        {
+            var tcs = new TaskCompletionSource<(string id, Iq iq)>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            var ct = new CancellationTokenSource(msDelay);
+            var tokenRegistration = ct.Token.Register(() =>
+            {
+                tcs.TrySetResult(("", new Iq(IqType.Error, "")));
+            }
+            , useSynchronizationContext: false);
+
+            IqRequestAsync(type, to, from, data, language, (id, iq) =>
+            {
+                // We no more need the token registration
+                tokenRegistration.Dispose();
+
+                if (iq != null)
+                    tcs.TrySetResult((id, iq));
+                else
+                    tcs.TrySetResult(("", new Iq(IqType.Error, "")));
+            });
+
+            return await tcs.Task;
+        }
+
+
         /// <summary>
         /// Sends an IQ response for the IQ request with the specified id.
         /// </summary>
@@ -1778,6 +1826,20 @@ namespace Sharp.Xmpp.Im
                     filter.Output(iq);
             }
             core.IqResponse(iq);
+        }
+
+        internal async Task<Boolean> IqResponseAsync(IqType type, string id, Jid to = null, Jid from = null,
+            XmlElement data = null, String language = null)
+        {
+            AssertValid(false);
+            Iq iq = new(type, id, to, from, data, language);
+            // Invoke IOutput<Iq> Plugins.
+            foreach (var ext in extensions.Values)
+            {
+                if (ext is IOutputFilter<Iq> filter)
+                    filter.Output(iq);
+            }
+            return await core.IqResponseAsync(iq);
         }
 
         /// <summary>

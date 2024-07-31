@@ -1,11 +1,10 @@
+using Microsoft.Extensions.Logging;
 using Sharp.Xmpp.Core;
 using Sharp.Xmpp.Im;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Xml;
-
-using Microsoft.Extensions.Logging;
-
 
 namespace Sharp.Xmpp.Extensions
 {
@@ -198,7 +197,12 @@ namespace Sharp.Xmpp.Extensions
         /// error condition.</exception>
         /// <exception cref="XmppException">The server returned invalid data or another
         /// unspecified XMPP error occurred.</exception>
-        public void RequestCustomIqAsync(string queryId, int max, string before = null, string after = null)
+        public void RequestCallLogs(string queryId, int max, string before = null, string after = null)
+        {
+            AsyncHelper.RunSync(async () => await RequestCallLogsAsync(queryId, max, before, after).ConfigureAwait(false));
+        }
+
+        public async Task<Boolean> RequestCallLogsAsync(string queryId, int max, string before = null, string after = null)
         {
             var xml = Xml.Element("query", "jabber:iq:telephony:call_log");
             xml.SetAttribute("queryid", queryId);
@@ -212,55 +216,55 @@ namespace Sharp.Xmpp.Extensions
                 xmlParam.Child(Xml.Element("after").Text(after));
             xml.Child(xmlParam);
 
-            //The Request is Async
-            im.IqRequestAsync(IqType.Set, null, im.Jid, xml, null, (id, iq) =>
+            var result = await im.IqRequestAsync(IqType.Set, null, im.Jid, xml, null, 60000);
+
+            var iq = result.Iq;
+            //For any reply we execute the callback
+            if (iq.Type == IqType.Error)
             {
-                //For any reply we execute the callback
-                if (iq.Type == IqType.Error)
+                CallLogResult.Raise(this, new CallLogResultEventArgs());
+                return false;
+            }
+
+            if (iq.Type == IqType.Result)
+            {
+                string queryid = "";
+                CallLogResult complete = Sharp.Xmpp.Extensions.CallLogResult.Error;
+                int count = 0;
+                string first = "";
+                string last = "";
+                try
                 {
-                    CallLogResult.Raise(this, new CallLogResultEventArgs());
-                    return;
+                    if ((iq.Data["query"] != null) && (iq.Data["query"]["set"] != null))
+                    {
+                        XmlElement e = iq.Data["query"];
+
+                        queryid = e.GetAttribute("queryid");
+                        complete = (e.GetAttribute("complete") == "false") ? Sharp.Xmpp.Extensions.CallLogResult.InProgress : Sharp.Xmpp.Extensions.CallLogResult.Complete;
+
+                        if (e["set"]["count"] != null)
+                            count = Int16.Parse(e["set"]["count"].InnerText);
+
+                        if (e["set"]["first"] != null)
+                            first = e["set"]["first"].InnerText;
+
+                        if (e["set"]["last"] != null)
+                            last = e["set"]["last"].InnerText;
+
+                        //log.LogDebug("[Input] call log result received - queryid:[{0}] - complete:[{1}] - count:[{2}] - first:[{3}] - last:[{4}]"
+                        //                , queryid, complete, count, first, last);
+                        CallLogResult.Raise(this, new CallLogResultEventArgs(queryid, complete, count, first, last));
+                        return true;
+                    }
+                }
+                catch (Exception)
+                {
+                    log.LogError("RequestCustomIqAsync - an error occurred ...");
                 }
 
-                if (iq.Type == IqType.Result)
-                {
-                    string queryid = "";
-                    CallLogResult complete = Sharp.Xmpp.Extensions.CallLogResult.Error;
-                    int count = 0;
-                    string first = "";
-                    string last = "";
-                    try
-                    {
-                        if ((iq.Data["query"] != null) && (iq.Data["query"]["set"] != null))
-                        {
-                            XmlElement e = iq.Data["query"];
-
-                            queryid = e.GetAttribute("queryid");
-                            complete = (e.GetAttribute("complete") == "false") ? Sharp.Xmpp.Extensions.CallLogResult.InProgress : Sharp.Xmpp.Extensions.CallLogResult.Complete;
-
-                            if (e["set"]["count"] != null)
-                                count = Int16.Parse(e["set"]["count"].InnerText);
-
-                            if (e["set"]["first"] != null)
-                                first = e["set"]["first"].InnerText;
-
-                            if (e["set"]["last"] != null)
-                                last = e["set"]["last"].InnerText;
-
-                            //log.LogDebug("[Input] call log result received - queryid:[{0}] - complete:[{1}] - count:[{2}] - first:[{3}] - last:[{4}]"
-                            //                , queryid, complete, count, first, last);
-                            CallLogResult.Raise(this, new CallLogResultEventArgs(queryid, complete, count, first, last));
-                            return;
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        log.LogError("RequestCustomIqAsync - an error occurred ...");
-                    }
-
-                    CallLogResult.Raise(this, new CallLogResultEventArgs(queryid, Sharp.Xmpp.Extensions.CallLogResult.Error, count, first, last));
-                }
-            });
+                CallLogResult.Raise(this, new CallLogResultEventArgs(queryid, Sharp.Xmpp.Extensions.CallLogResult.Error, count, first, last));
+            }
+            return false;
         }
 
         /// <summary>
@@ -269,28 +273,36 @@ namespace Sharp.Xmpp.Extensions
         /// <param name="callId">Id of the call log</param>
         public void DeleteCallLog(String callId)
         {
+            AsyncHelper.RunSync(async () => await DeleteCallLogAsync(callId).ConfigureAwait(false));
+        }
+
+        public async Task<Boolean> DeleteCallLogAsync(String callId)
+        {
             var xml = Xml.Element("delete", "jabber:iq:telephony:call_log");
             xml.SetAttribute("call_id", callId);
 
             string jid = im.Jid.Node + "@" + im.Jid.Domain;
-            im.IqRequestAsync(IqType.Set, jid, jid, xml, null, (id, iq) =>
-            {
-            });
+            var result = await im.IqRequestAsync(IqType.Get, jid, jid, xml, null, 60000);
+            return result.Iq.Type != Core.IqType.Error;
         }
+
         /// <summary>
         /// Delete all calls log related to the specified contact
         /// </summary>
         /// <param name="contactJid">Jid of the contact</param>
-
         public void DeleteCallsLogForContact(String contactJid)
+        {
+            AsyncHelper.RunSync(async () => await DeleteCallsLogForContactAsync(contactJid).ConfigureAwait(false));
+        }
+
+        public async Task<Boolean> DeleteCallsLogForContactAsync(String contactJid)
         {
             var xml = Xml.Element("delete", "jabber:iq:telephony:call_log");
             xml.SetAttribute("peer", contactJid);
 
             string jid = im.Jid.Node + "@" + im.Jid.Domain;
-            im.IqRequestAsync(IqType.Set, jid, jid, xml, null, (id, iq) =>
-            {
-            });
+            var result = await im.IqRequestAsync(IqType.Get, jid, jid, xml, null, 60000);
+            return result.Iq.Type != Core.IqType.Error;
         }
 
         /// <summary>
@@ -298,12 +310,16 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         public void DeleteAllCallsLog()
         {
-            var xml = Xml.Element("delete", "jabber:iq:telephony:call_log");
+            AsyncHelper.RunSync(async () => await DeleteAllCallsLogAsync().ConfigureAwait(false));
+        }
 
+        public async Task<Boolean> DeleteAllCallsLogAsync()
+        {
+            var xml = Xml.Element("delete", "jabber:iq:telephony:call_log");
             string jid = im.Jid.Node + "@" + im.Jid.Domain;
-            im.IqRequestAsync(IqType.Set, jid, jid, xml, null, (id, iq) =>
-            {
-            });
+
+            var result = await im.IqRequestAsync(IqType.Get, jid, jid, xml, null, 60000);
+            return result.Iq.Type != Core.IqType.Error;
         }
 
         /// <summary>
@@ -311,6 +327,11 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         /// <param name="callId">Id of the call log</param>
         public void MarkCallLogAsRead(String callId)
+        {
+            AsyncHelper.RunSync(async () => await MarkCallLogAsReadAsync(callId).ConfigureAwait(false));
+        }
+
+        public async Task<Boolean> MarkCallLogAsReadAsync(String callId)
         {
             string jid = im.Jid.Node + "@" + im.Jid.Domain;
             Sharp.Xmpp.Im.Message message = new(jid);
@@ -321,7 +342,7 @@ namespace Sharp.Xmpp.Extensions
             read.SetAttribute("call_id", callId);
             e.AppendChild(read);
 
-            im.SendMessage(message);
+            return await im.SendMessageAsync(message);
         }
 
         /// <summary>

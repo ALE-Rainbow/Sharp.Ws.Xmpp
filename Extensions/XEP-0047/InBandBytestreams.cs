@@ -364,8 +364,9 @@ namespace Sharp.Xmpp.Extensions
             // Send the 'close' request.
             var close = Xml.Element("close", "http://jabber.org/protocol/ibb")
                 .Attr("sid", sessionId);
+
             // We don't care about the other site's response to this.
-            im.IqRequestAsync(IqType.Set, to, im.Jid, close);
+            im.IqRequestAsync(IqType.Set, to, im.Jid, close, null, null);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Sharp.Xmpp.Im;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Sharp.Xmpp.Extensions
 {
@@ -76,6 +77,11 @@ namespace Sharp.Xmpp.Extensions
         /// null.</exception>
         public void SetChatState(Jid jid, MessageType type, ChatState state)
         {
+            AsyncHelper.RunSync(async () => await SetChatStateAsync(jid, type, state).ConfigureAwait(false));
+        }
+
+        public async Task<Boolean> SetChatStateAsync(Jid jid, MessageType type, ChatState state)
+        {
             jid.ThrowIfNull("jid");
             Message m = new(jid)
             {
@@ -83,7 +89,7 @@ namespace Sharp.Xmpp.Extensions
             };
             m.Data.Child(Xml.Element(state.ToString().ToLowerInvariant(),
                 "http://jabber.org/protocol/chatstates"));
-            im.SendMessage(m);
+            return await im.SendMessageAsync(m);
         }
 
         /// <summary>
