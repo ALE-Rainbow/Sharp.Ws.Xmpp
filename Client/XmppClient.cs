@@ -2313,6 +2313,11 @@ namespace Sharp.Xmpp.Client
         /// Ask PBX agent Agent info (iq request)
         /// </summary>
         /// <param name="to">The JID to send the request</param>
+        public void AskPbxAgentInfo(String to)
+        {
+            AsyncHelper.RunSync(async () => await AskPbxAgentInfoAsync(to).ConfigureAwait(false));
+        }
+
         public async Task<Boolean> AskPbxAgentInfoAsync(String to)
         {
             AssertValid();
@@ -2324,6 +2329,11 @@ namespace Sharp.Xmpp.Client
         /// Ask then number of voice messages
         /// </summary>
         /// <param name="to">The JID to send the request</param>
+        public void AskVoiceMessagesNumber(String to)
+        {
+            AsyncHelper.RunSync(async () => await AskVoiceMessagesNumberAsync(to).ConfigureAwait(false));
+        }
+
         public async Task<Boolean> AskVoiceMessagesNumberAsync(String to)
         {
             AssertValid();
@@ -2336,6 +2346,11 @@ namespace Sharp.Xmpp.Client
         /// </summary>
         /// <param name="to">The JID to send the request</param>
         /// <param name="onSecondary">To we want info about the SECONDARY device or not</param>
+        public void AskPBXCallsInProgress(String to, Boolean onSecondary)
+        {
+            AsyncHelper.RunSync(async () => await AskPBXCallsInProgressAsync(to, onSecondary).ConfigureAwait(false));
+        }
+
         public async Task<Boolean> AskPBXCallsInProgressAsync(String to, Boolean onSecondary)
         {
             AssertValid();
