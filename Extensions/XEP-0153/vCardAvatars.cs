@@ -90,6 +90,10 @@ namespace Sharp.Xmpp.Extensions
 
             VCardInfoChanged type = (stanza.Data.GetElementsByTagName("avatar").Count > 0) ? VCardInfoChanged.Avatar : VCardInfoChanged.Data;
 
+            // If info as DATA has been changed from same resource, we don't raise event
+            if ( (type == VCardInfoChanged.Data) && (stanza.From.Resource == im.Jid.Resource))
+                return false;
+
             // Raise 'VCardChanged' event.
             VCardChanged.Raise(this, new VCardChangedEventArgs(stanza.From, type));
 
