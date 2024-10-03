@@ -2163,13 +2163,20 @@ namespace Sharp.Xmpp.Im
         private void ProcessStatusNotification(Presence presence)
         {
             bool apply = true; // Always true by default
-            bool offline = presence.Type == PresenceType.Unavailable;
-            XmlElement e = presence.Data["show"];
-            Availability availability = offline ? Availability.Offline :
-                Availability.Online;
+
+            Availability availability;
+
+            if(presence.Type == PresenceType.Unavailable)
+                availability = Availability.Unavailable;
+            else if (presence.Type == PresenceType.Available)
+                availability = Availability.Online;
+            else
+                availability = Availability.Offline;
+
             // If the optional 'show' element has been specified, parse the
             // availability status from it.
-            if (offline == false)
+            XmlElement e = presence.Data["show"];
+            //if (offline == false)
             {
                 if (e != null && !String.IsNullOrEmpty(e.InnerText))
                 {

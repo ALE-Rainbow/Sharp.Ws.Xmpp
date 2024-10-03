@@ -6,7 +6,12 @@
     public enum Availability
     {
         /// <summary>
-        /// The user or resource is offline and unavailable.
+        /// The user or resource is unavailable.
+        /// </summary>
+        Unavailable,
+
+        /// <summary>
+        /// The user or resource is offline.
         /// </summary>
         Offline,
 
