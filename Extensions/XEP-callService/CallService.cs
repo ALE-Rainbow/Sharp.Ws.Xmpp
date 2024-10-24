@@ -9,7 +9,7 @@ using System.Xml;
 namespace Sharp.Xmpp.Extensions
 {
     /// <summary>
-    /// Implements the 'CallService' extension used in Rainbow Hub
+    /// Implements the 'CallService' extension used in Rainbow Hybrid Telephony
     /// </summary>
     internal class CallService : XmppExtension, IInputFilter<Sharp.Xmpp.Im.Message>
     {

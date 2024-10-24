@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Sharp.Xmpp.Extensions;
+using Sharp.Xmpp.Extensions.XEP_hubTelephony;
 using Sharp.Xmpp.Im;
 using System;
 using System.Collections.Generic;
@@ -224,6 +225,11 @@ namespace Sharp.Xmpp.Client
         /// Provides the CallService extension
         /// </summary>
         private CallService callService;
+
+        /// <summary>
+        /// Provides the HubTelephony extension
+        /// </summary>
+        private HubTelephony hubTelephony;
 
         /// <summary>
         /// Provides the StreamManagement extension
@@ -1079,6 +1085,36 @@ namespace Sharp.Xmpp.Client
             }
         }
 
+
+        /// <summary>
+        /// The event that is raised when an hub routing has been created / updated / deleted
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyRoutingUpdated
+        {
+            add
+            {
+                hubTelephony.HubTelephonyRoutingUpdated += value;
+            }
+            remove
+            {
+                hubTelephony.HubTelephonyRoutingUpdated -= value;
+            }
+        }
+
+        /// <summary>
+        /// The event that is raised when an hub forward has been created / updated / deleted
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyForwardUpdated
+        {
+            add
+            {
+                hubTelephony.HubTelephonyForwardUpdated += value;
+            }
+            remove
+            {
+                hubTelephony.HubTelephonyForwardUpdated -= value;
+            }
+        }
 
         /// <summary>
         /// The event that is raised when an room has been created / updated / deleted
@@ -3264,6 +3300,7 @@ namespace Sharp.Xmpp.Client
             im.AddExtension(cap = new Cap(im, loggerPrefix));
             im.AddExtension(msgDeliveryReceipt = new MessageDeliveryReceipts(im, loggerPrefix));
             im.AddExtension(callService = new CallService(im, loggerPrefix));
+            im.AddExtension(hubTelephony = new HubTelephony(im, loggerPrefix));
 
             im.AddExtension(rainbowService = new RainbowService(im, loggerPrefix));
         }
