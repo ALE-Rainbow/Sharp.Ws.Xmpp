@@ -345,6 +345,7 @@ namespace Sharp.Xmpp.Core
 
             if (clientWebSocket.State != System.Net.WebSockets.WebSocketState.Open)
             {
+                log.LogWarning("[SendAsync] clientWebSocket.State: [{State}]", clientWebSocket.State);
                 ClientWebSocketClosed();
                 return false;
             }
