@@ -189,10 +189,14 @@ namespace Sharp.Xmpp.Core
                                     ms.Write(buffer.Array, buffer.Offset, result.Count);
                                 }
                                 else
+                                {
+                                    log.LogWarning("[ManageIncomingMessage] clientWebSocket is null");
                                     readingCorrectly = false;
+                                }
                             }
-                            catch
+                            catch (Exception exc)
                             {
+                                log.LogWarning("[ManageIncomingMessage] Exception when receiving msg: [{Exception}]", exc);
                                 readingCorrectly = false;
                             }
                         }
