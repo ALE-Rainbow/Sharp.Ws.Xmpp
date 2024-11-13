@@ -15,6 +15,7 @@ namespace Sharp.Xmpp.Extensions.XEP_hubTelephony
 
         public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyRoutingUpdated;
         public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyForwardUpdated;
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyEvent;
 
         /// <summary>
         /// An enumerable collection of XMPP namespaces the extension implements.
@@ -65,6 +66,12 @@ namespace Sharp.Xmpp.Extensions.XEP_hubTelephony
                 if (message.Data["telephony"]["forwardUpdated"] != null)
                 {
                     HubTelephonyForwardUpdated.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(message.Data["telephony"]["forwardUpdated"]));
+                    return true;
+                }
+
+                if (message.Data["telephony"]["event"] != null)
+                {
+                    HubTelephonyEvent.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(message.Data["telephony"]["event"]));
                     return true;
                 }
             }

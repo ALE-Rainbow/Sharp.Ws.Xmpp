@@ -1117,6 +1117,23 @@ namespace Sharp.Xmpp.Client
         }
 
         /// <summary>
+        /// The event that is raised when an hub telephony event is received
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyEvent
+        {
+            add
+            {
+                hubTelephony.HubTelephonyEvent += value;
+            }
+            remove
+            {
+                hubTelephony.HubTelephonyEvent -= value;
+            }
+        }
+
+        
+
+        /// <summary>
         /// The event that is raised when an room has been created / updated / deleted
         /// </summary>
         public event EventHandler<RoomManagementEventArgs> RoomManagement
