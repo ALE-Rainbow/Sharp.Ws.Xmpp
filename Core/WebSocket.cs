@@ -32,6 +32,8 @@ namespace Sharp.Xmpp.Core
         private readonly object writeLock = new();
         private readonly object closedLock = new();
 
+        private SemaphoreSlim semaphoreSendSlim = new SemaphoreSlim(1, 1);
+
         private readonly BlockingCollection<string> actionsToPerform;
         private readonly BlockingCollection<string> messagesReceived;
         private readonly BlockingCollection<Iq> iqMessagesReceived;
@@ -343,33 +345,54 @@ namespace Sharp.Xmpp.Core
             if (clientWebSocket == null)
                 return false;
 
+            // To ensure send message one by one
+            await semaphoreSendSlim.WaitAsync();
+
             if (clientWebSocket.State != System.Net.WebSockets.WebSocketState.Open)
             {
+                try
+                {
+                    if (semaphoreSendSlim.CurrentCount == 0)
+                        semaphoreSendSlim.Release();
+                }
+                catch { }
+
                 log.LogWarning("[SendAsync] clientWebSocket.State: [{State}]", clientWebSocket.State);
                 ClientWebSocketClosed();
                 return false;
             }
 
+            Boolean noError = false;
+            var sendBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(message));
+            try
+            {
+                await clientWebSocket.SendAsync(sendBuffer, WebSocketMessageType.Text, true, CancellationToken.None);
+                noError = true;
+            }
+            catch
+            {
+                log.LogDebug("[ManageOutgoingMessage]: Message not sent");
+                noError = false;
+            }
+
+            ILogger logger = null;
             // Log webRTC stuff
             if ((logWebRTC != null)
                 && (
                     message.Contains("<jingle")
                     || message.Contains("urn:xmpp:jingle"))
                     )
-                logWebRTC.LogDebug("[ManageOutgoingMessage]: {0}", message);
+                logger = logWebRTC;
             else
-                log.LogDebug("[ManageOutgoingMessage]: {0}", message);
+                logger = log;
 
-            var sendBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(message));
-            try
-            {
-                await clientWebSocket.SendAsync(sendBuffer, WebSocketMessageType.Text, true, CancellationToken.None);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            if (noError)
+                logger.LogDebug("[ManageOutgoingMessage]: {0}", message);
+            else
+                logger.LogWarning("[ManageOutgoingMessage] NOT SENT: {0}", message);
+
+            semaphoreSendSlim.Release();
+            return noError;
         }
 
         public void Send(string xml)
@@ -381,6 +404,13 @@ namespace Sharp.Xmpp.Core
         {
             lock (closedLock)
             {
+                try
+                {
+                    if(semaphoreSendSlim.CurrentCount == 0)
+                        semaphoreSendSlim.Release();
+                }
+                catch { }
+
                 if (webSocketOpened)
                 {
                     webSocketOpened = false;
