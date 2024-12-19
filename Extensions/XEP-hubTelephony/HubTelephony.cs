@@ -2,7 +2,6 @@
 using Sharp.Xmpp.Im;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Sharp.Xmpp.Extensions.XEP_hubTelephony
 {
@@ -10,12 +9,25 @@ namespace Sharp.Xmpp.Extensions.XEP_hubTelephony
     {
         private readonly ILogger log;
 
-        private static readonly String HUBTELEPHONY_NS = "urn:xmpp:pbxagent:telephony:1";
+
+        private static readonly String HUBTELEPHONY_NS = "urn:xmpp:pbxagent:telephony:1"; // cf. https://git.openrainbow.org/rainbow-backends/servers/core/components/rvcp-pcg/-/blob/master/xsd/telephony.xsd?ref_type=heads
+        private static readonly String HUBGROUP_NS = "urn:xmpp:pbxagent:group:1"; // cf. https://git.openrainbow.org/rainbow-backends/servers/core/components/rvcp-pcg/-/blob/master/xsd/group.xsd?ref_type=heads
+        private static readonly String HUBSUPERVISION_NS = "urn:xmpp:pbxagent:supervision:2"; // https://git.openrainbow.org/rainbow-backends/servers/core/components/rvcp-pcg/-/blob/master/xsd/supervision.xsd?ref_type=heads
+
         private static readonly String RVCP_NS = "urn:xmpp:rvcp:userConfiguration:1";
 
-        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyRoutingUpdated;
-        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyForwardUpdated;
-        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyEvent;
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyRoutingUpdated;// Use RVCP_NS
+
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyEvent;         // Use HUBTELEPHONY_NS
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyCallLog;       // Use HUBTELEPHONY_NS
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyMwi;           // Use HUBTELEPHONY_NS
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyGmwi;          // Use HUBTELEPHONY_NS
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyForwardUpdated;// Use HUBTELEPHONY_NS
+
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonySupervision;   // Use HUBSUPERVISION_NS
+
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyGroupRealTime; // Use HUBGROUP_NS
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyGroupCallLog;  // Use HUBGROUP_NS
 
         /// <summary>
         /// An enumerable collection of XMPP namespaces the extension implements.
@@ -26,7 +38,8 @@ namespace Sharp.Xmpp.Extensions.XEP_hubTelephony
         {
             get
             {
-                return new string[] { HUBTELEPHONY_NS };
+                return new string[] { HUBTELEPHONY_NS, HUBGROUP_NS, HUBSUPERVISION_NS,
+                                        RVCP_NS};
             }
         }
 
@@ -50,28 +63,78 @@ namespace Sharp.Xmpp.Extensions.XEP_hubTelephony
         /// on to the next handler.</returns>
         public bool Input(Sharp.Xmpp.Im.Message message)
         {
-            if ((message.Data["routing"] != null)
-                && (message.Data["routing"].NamespaceURI == RVCP_NS))
+            // No XSD for this one ...
+            var routingElement = message.Data["routing"];
+            if ((routingElement != null)
+                && (routingElement.NamespaceURI == RVCP_NS))
             {
-                if (message.Data["routing"]["routingUpdated"] != null)
+                if (routingElement["routingUpdated"] != null)
                 {
-                    HubTelephonyRoutingUpdated.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(message.Data["routing"]["routingUpdated"]));
+                    HubTelephonyRoutingUpdated.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(routingElement["routingUpdated"]));
                     return true;
                 }
             }
 
-            if ((message.Data["telephony"] != null)
-                && (message.Data["telephony"].NamespaceURI == HUBTELEPHONY_NS))
+            // Cf. https://git.openrainbow.org/rainbow-backends/servers/core/components/rvcp-pcg/-/blob/master/xsd/telephony.xsd?ref_type=heads
+            var telephonyElement = message.Data["telephony"];
+            if ((telephonyElement != null)
+                && (telephonyElement.NamespaceURI == HUBTELEPHONY_NS))
             {
-                if (message.Data["telephony"]["forwardUpdated"] != null)
+                
+                if (telephonyElement["event"] != null)
                 {
-                    HubTelephonyForwardUpdated.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(message.Data["telephony"]["forwardUpdated"]));
+                    HubTelephonyEvent.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(telephonyElement["event"]));
                     return true;
                 }
 
-                if (message.Data["telephony"]["event"] != null)
+                if (telephonyElement["callLog"] != null)
                 {
-                    HubTelephonyEvent.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(message.Data["telephony"]["event"]));
+                    HubTelephonyCallLog.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(telephonyElement["callLog"]));
+                    return true;
+                }
+
+                if (telephonyElement["mwi"] != null)
+                {
+                    HubTelephonyMwi.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(telephonyElement["mwi"]));
+                    return true;
+                }
+
+                if (telephonyElement["gmwi"] != null)
+                {
+                    HubTelephonyGmwi.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(telephonyElement["gmwi"]));
+                    return true;
+                }
+
+                if (telephonyElement["forwardUpdated"] != null)
+                {
+                    HubTelephonyForwardUpdated.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(telephonyElement["forwardUpdated"]));
+                    return true;
+                }
+            }
+
+            // Cf. https://git.openrainbow.org/rainbow-backends/servers/core/components/rvcp-pcg/-/blob/master/xsd/supervision.xsd?ref_type=heads
+            var supervisionElement = message.Data["supervision"];
+            if ((supervisionElement != null)
+                && (supervisionElement.NamespaceURI == HUBSUPERVISION_NS))
+            {
+                HubTelephonySupervision.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(supervisionElement));
+                return true;
+            }
+
+            // Cf. https://git.openrainbow.org/rainbow-backends/servers/core/components/rvcp-pcg/-/blob/master/xsd/group.xsd?ref_type=heads
+            var groupElement = message.Data["group"];
+            if ((groupElement != null)
+                && (groupElement.NamespaceURI == HUBGROUP_NS))
+            {
+                if (groupElement["realTime"] != null)
+                {
+                    HubTelephonyGroupRealTime.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(groupElement["realTime"]));
+                    return true;
+                }
+
+                if (groupElement["callLog"] != null)
+                {
+                    HubTelephonyGroupCallLog.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(groupElement["callLog"]));
                     return true;
                 }
             }

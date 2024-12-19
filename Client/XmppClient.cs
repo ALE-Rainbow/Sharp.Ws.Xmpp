@@ -1085,7 +1085,6 @@ namespace Sharp.Xmpp.Client
             }
         }
 
-
         /// <summary>
         /// The event that is raised when an hub routing has been created / updated / deleted
         /// </summary>
@@ -1098,6 +1097,66 @@ namespace Sharp.Xmpp.Client
             remove
             {
                 hubTelephony.HubTelephonyRoutingUpdated -= value;
+            }
+        }
+
+        /// <summary>
+        /// The event that is raised when an hub telephony event is received
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyEvent
+        {
+            add
+            {
+                hubTelephony.HubTelephonyEvent += value;
+            }
+            remove
+            {
+                hubTelephony.HubTelephonyEvent -= value;
+            }
+        }
+
+        /// <summary>
+        /// The event that is raised when an hub telephony calllog is received
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyCallLog
+        {
+            add
+            {
+                hubTelephony.HubTelephonyCallLog += value;
+            }
+            remove
+            {
+                hubTelephony.HubTelephonyCallLog -= value;
+            }
+        }
+
+        /// <summary>
+        /// The event that is raised when an hub telephony MWI is received
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyMwi
+        {
+            add
+            {
+                hubTelephony.HubTelephonyMwi += value;
+            }
+            remove
+            {
+                hubTelephony.HubTelephonyMwi -= value;
+            }
+        }
+
+        /// <summary>
+        /// The event that is raised when an hub telephony GMWI is received
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyGmwi
+        {
+            add
+            {
+                hubTelephony.HubTelephonyGmwi += value;
+            }
+            remove
+            {
+                hubTelephony.HubTelephonyGmwi -= value;
             }
         }
 
@@ -1117,21 +1176,49 @@ namespace Sharp.Xmpp.Client
         }
 
         /// <summary>
-        /// The event that is raised when an hub telephony event is received
+        /// The event that is raised when an hub supervision is received
         /// </summary>
-        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyEvent
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonySupervision
         {
             add
             {
-                hubTelephony.HubTelephonyEvent += value;
+                hubTelephony.HubTelephonySupervision += value;
             }
             remove
             {
-                hubTelephony.HubTelephonyEvent -= value;
+                hubTelephony.HubTelephonySupervision -= value;
             }
         }
 
-        
+        /// <summary>
+        /// The event that is raised when an hub group real time is received
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyGroupRealTime
+        {
+            add
+            {
+                hubTelephony.HubTelephonyGroupRealTime += value;
+            }
+            remove
+            {
+                hubTelephony.HubTelephonyGroupRealTime -= value;
+            }
+        }
+
+        /// <summary>
+        /// The event that is raised when an hub group call log is received
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyGroupCallLog
+        {
+            add
+            {
+                hubTelephony.HubTelephonyGroupCallLog += value;
+            }
+            remove
+            {
+                hubTelephony.HubTelephonyGroupCallLog -= value;
+            }
+        }
 
         /// <summary>
         /// The event that is raised when an room has been created / updated / deleted
