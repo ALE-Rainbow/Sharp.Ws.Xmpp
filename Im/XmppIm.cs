@@ -376,7 +376,7 @@ namespace Sharp.Xmpp.Im
         {
             get
             {
-                return core.Jid;
+                return core?.Jid;
             }
         }
 
@@ -2193,7 +2193,7 @@ namespace Sharp.Xmpp.Im
             // Parse optional 'status' element(s).
             string lang = presence.Data.GetAttribute("xml:lang");
             var dict = new Dictionary<string, string>();
-            if (String.IsNullOrEmpty(lang))
+            if (String.IsNullOrEmpty(lang) && (core is not null))
             {
                 if (String.IsNullOrEmpty(core.Language))
                     core.SetLanguage();
