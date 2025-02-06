@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Sharp.Xmpp.Extensions
 {
@@ -7,16 +8,16 @@ namespace Sharp.Xmpp.Extensions
         /// <summary>
         /// The file id 
         /// </summary>
-        public String FileId { get; private set; }
+        public List<String> FilesId { get; private set; }
 
         /// <summary>
         /// Action done on this file
         /// </summary>
         public String Action { get; private set; }
 
-        public FileManagementEventArgs(String fileId, String action)
+        public FileManagementEventArgs(List<String> filesId, String action)
         {
-            FileId = fileId;
+            FilesId = filesId;
             Action = action;
         }
     }

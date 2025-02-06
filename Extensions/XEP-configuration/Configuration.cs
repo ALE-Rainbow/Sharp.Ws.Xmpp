@@ -293,11 +293,17 @@ namespace Sharp.Xmpp.Extensions
                 else if (message.Data["file"] != null)
                 {
                     XmlElement e = message.Data["file"];
-
                     string action = e.GetAttribute("action");
-                    string fileId = e["fileid"]?.InnerText;
 
-                    FileManagement.Raise(this, new FileManagementEventArgs(fileId, action));
+                    // We can have several "fileid" nodes
+                    var nodes = e.GetElementsByTagName("fileid");
+                    if (nodes?.Count > 0)
+                    {
+                        List<String> filesId = new();
+                        foreach (XmlElement el in nodes)
+                            filesId.Add(el.InnerText);
+                        FileManagement.Raise(this, new FileManagementEventArgs(filesId, action));
+                    }
                 }
                 // Do we receive message about thumbnail
                 else if (message.Data["thumbnail"] != null)
