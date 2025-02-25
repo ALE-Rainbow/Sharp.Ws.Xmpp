@@ -3299,7 +3299,7 @@ namespace Sharp.Xmpp.Client
         public void Close(bool normalClosure = true)
         {
             if (disposed)
-                throw new ObjectDisposedException(GetType().FullName);
+                return;
 
             this.normalClosure = normalClosure;
             Dispose();
