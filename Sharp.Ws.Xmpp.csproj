@@ -5,7 +5,7 @@
 	<AssemblyName>Sharp.Ws.Xmpp</AssemblyName>
 	<RootNamespace>Sharp.Xmpp</RootNamespace>
 	<LangVersion>10</LangVersion>
-    <Version>2.6.27.3</Version>
+    <Version>2.6.27.4</Version>
     <Authors>Christophe Irles</Authors>
     <Company>ALE International</Company>
     <Product>Sharp.Ws.Xmpp</Product>
