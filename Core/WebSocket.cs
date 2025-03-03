@@ -218,18 +218,6 @@ namespace Sharp.Xmpp.Core
                             using (var reader = new StreamReader(ms, Encoding.UTF8))
                             {
                                 String message = reader.ReadToEnd();
-
-                                // Log webRTC stuff
-                                if ((logWebRTC != null)
-                                        && (
-                                            message.Contains("<jingle")
-                                            || message.Contains("urn:xmpp:jingle"))
-                                            )
-                                    logWebRTC.LogDebug("[ManageIncomingMessage]: {0}", message);
-                                else
-                                    log.LogDebug("[ManageIncomingMessage]: {0}", message);
-
-
                                 QueueMessageReceived(message);
                             }
                         }
@@ -330,9 +318,18 @@ namespace Sharp.Xmpp.Core
 
         public string DequeueMessageReceived()
         {
-            //log.LogDebug("Dequeue XML Message Received - START");
             string message = messagesReceived.Take();
-            //log.LogDebug("Dequeue XML Message Received - END");
+
+            // Log webRTC stuff
+            if ((logWebRTC != null)
+                    && (
+                        message.Contains("<jingle")
+                        || message.Contains("urn:xmpp:jingle"))
+                        )
+                logWebRTC.LogDebug("[ManageIncomingMessage]: {0}", message);
+            else
+                log.LogDebug("[ManageIncomingMessage]: {0}", message);
+
             return message;
         }
 #endregion
