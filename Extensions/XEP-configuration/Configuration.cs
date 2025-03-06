@@ -252,9 +252,10 @@ namespace Sharp.Xmpp.Extensions
                     string roomId = e.GetAttribute("roomid");
                     string roomJid = e.GetAttribute("roomjid");
 
-                    string userJid = e.GetAttribute("userjid"); // Not empty if user has been accepted / invited / unsubscribed / deleted
-                    string status = e.GetAttribute("status"); // Not empty if user has been accepted / invited / unsubscribed / deleted
-                    string privilege = e.GetAttribute("privilege"); // Not empty if user has changed it's role: user / moderator / guest
+                    string userJid = e.GetAttribute("userjid");     // Not empty if user has been accepted / invited / unsubscribed / deleted
+                    string vcard = e.GetAttribute("vcard");         // "updated": if last/first name of this userJid has been updated => Happnes for Guest only
+                    string status = e.GetAttribute("status");       // Not empty if user has been accepted / invited / unsubscribed / deleted
+                    string privilege = e.GetAttribute("privilege"); // Not empty if user has changed it's role: user / moderator
 
                     string topic = e.GetAttribute("topic"); // Not empty if room updated
                     string name = e.GetAttribute("name"); // Not empty if room updated
@@ -265,7 +266,7 @@ namespace Sharp.Xmpp.Extensions
                     if (e["avatar"] != null)
                         avatarAction = e["avatar"].GetAttribute("action");
 
-                    RoomManagement.Raise(this, new RoomManagementEventArgs(roomId, roomJid, userJid, status, privilege, name, topic, lastAvatarUpdateDate, avatarAction));
+                    RoomManagement.Raise(this, new RoomManagementEventArgs(roomId, roomJid, userJid, status, privilege, name, topic, lastAvatarUpdateDate, avatarAction, vcard));
                 }
                 // Do we receive message about visualvoicemail
                 //else if (message.Data["visualvoicemail"] != null)

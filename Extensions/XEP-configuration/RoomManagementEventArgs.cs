@@ -23,9 +23,18 @@ namespace Sharp.Xmpp.Extensions
         }
 
         /// <summary>
-        /// UserJid (if any) accepted / invited / unsubscribed / deleted
+        /// UserJid (if any)
         /// </summary>
         public String UserJid
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// VCard action: updated
+        /// </summary>
+        public String VCard
         {
             get;
             private set;
@@ -97,8 +106,9 @@ namespace Sharp.Xmpp.Extensions
         /// <param name="name">the room name</param>
         /// <param name="topic">the room topic</param>
         /// <param name="lastAvatarUpdateDate">the last avatar romm update date</param>
+        /// <param name="vcard">vcard action</param>
         /// <summary>
-        public RoomManagementEventArgs(String roomId, String roomJid, String userJid, String status, String privilege, String name, String topic, String lastAvatarUpdateDate, String avatarAction)
+        public RoomManagementEventArgs(String roomId, String roomJid, String userJid, String status, String privilege, String name, String topic, String lastAvatarUpdateDate, String avatarAction, String vcard)
         {
             RoomId = roomId;
             RoomJid = roomJid;
@@ -109,6 +119,7 @@ namespace Sharp.Xmpp.Extensions
             Topic = topic;
             LastAvatarUpdateDate = lastAvatarUpdateDate;
             AvatarAction = avatarAction;
+            VCard = vcard;
         }
     }
 }
