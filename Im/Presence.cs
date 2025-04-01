@@ -6,7 +6,7 @@ namespace Sharp.Xmpp.Im
     /// <summary>
     /// Represents a Presence XML stanza as defined in XMPP:IM.
     /// </summary>
-    internal class Presence : Core.Presence
+    public class Presence : Core.Presence
     {
 
         public DateTime Date

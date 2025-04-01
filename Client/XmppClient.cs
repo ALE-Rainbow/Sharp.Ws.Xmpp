@@ -3157,6 +3157,16 @@ namespace Sharp.Xmpp.Client
         }
 
         /// <summary>
+        /// To send presence
+        /// </summary>
+        /// <param name="presence">Presence to send</param>
+        /// <returns>True on success</returns>
+        public async Task<Boolean> SendPresenceAsync(Presence presence)
+        {
+            return await im.SendPresenceAsync(presence);
+        }
+
+        /// <summary>
         /// Sends a request to get X previous messages.
         /// </summary>
         /// <param name="option">How long to look back</param>

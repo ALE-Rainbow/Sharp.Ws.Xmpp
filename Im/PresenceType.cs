@@ -3,7 +3,7 @@
     /// <summary>
     /// Defines the possible types for Presence stanzas.
     /// </summary>
-    internal enum PresenceType
+    public enum PresenceType
     {
         /// <summary>
         /// Signals that the user is available for communication.
