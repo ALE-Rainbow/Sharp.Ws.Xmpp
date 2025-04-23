@@ -50,7 +50,7 @@ namespace Sharp.Xmpp.Extensions
         /// <summary>
         /// The event that is raised when the nomadic status has been updated
         /// </summary>
-        public event EventHandler<NomadicEventArgs> NomadicUpdated;
+        public event EventHandler<XmlElementEventArgs> NomadicUpdated;
 
         /// <summary>
         /// The event that is raised when the PBX Agent info is updated/received
@@ -95,12 +95,7 @@ namespace Sharp.Xmpp.Extensions
                 }
                 else if (message.Data["callservice"]["nomadicStatus"] != null)
                 {
-                    Boolean featureActivated = message.Data["callservice"]["nomadicStatus"].GetAttribute("featureActivated").ToLower() == "true";
-                    Boolean modeActivated = message.Data["callservice"]["nomadicStatus"].GetAttribute("modeActivated").ToLower() == "true";
-                    Boolean makeCallInitiatorIsMain = message.Data["callservice"]["nomadicStatus"].GetAttribute("makeCallInitiatorIsMain").ToLower() == "true";
-                    String destination = message.Data["callservice"]["nomadicStatus"].GetAttribute("destination");
-
-                    NomadicUpdated.Raise(this, new NomadicEventArgs(featureActivated, modeActivated, makeCallInitiatorIsMain, destination));
+                    NomadicUpdated.Raise(this, new XmlElementEventArgs(message.Data["callservice"]["nomadicStatus"]));
 
                     return true;
                 }

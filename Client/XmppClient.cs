@@ -998,7 +998,7 @@ namespace Sharp.Xmpp.Client
         /// <summary>
         /// The event raised when the nomadic status has been updated
         /// </summary>
-        public event EventHandler<NomadicEventArgs> NomadicUpdated
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> NomadicUpdated
         {
             add
             {
