@@ -46,7 +46,7 @@ namespace Sharp.Xmpp.Extensions
         /// <summary>
         /// The event that is raised when an conversation has been created / updated / deleted
         /// </summary>
-        public event EventHandler<ConversationManagementEventArgs> ConversationManagement;
+        public event EventHandler<XmlElementEventArgs> ConversationManagement;
 
         /// <summary>
         /// The event that is raised when an favorite has been created / updated / deleted
@@ -189,40 +189,7 @@ namespace Sharp.Xmpp.Extensions
                 // Do we receive message about conversation management
                 else if (message.Data["conversation"] != null)
                 {
-                    XmlElement e = message.Data["conversation"];
-
-                    string conversationID = e.GetAttribute("id");
-                    string action = e.GetAttribute("action"); // 'create', 'update', 'delete'
-                    Dictionary<string, string> data = new();
-
-                    if (e["type"] != null)
-                        data.Add("type", e["type"].InnerText);
-
-                    if (e["peerId"] != null)
-                        data.Add("peerId", e["peerId"].InnerText);
-
-                    if (e["peer"] != null)
-                        data.Add("jid_im", e["peer"].InnerText);
-
-                    if (e["mute"] != null)
-                        data.Add("mute", e["mute"].InnerText);
-
-                    if (e["lastMessageText"] != null)
-                        data.Add("lastMessageText", e["lastMessageText"].InnerText);
-
-                    if (e["lastMessageSender"] != null)
-                        data.Add("lastMessageSender", e["lastMessageSender"].InnerText);
-
-                    if (e["lastMessageDate"] != null)
-                        data.Add("lastMessageDate", e["lastMessageDate"].InnerText);
-
-                    if (e["unreceivedMessageNumber"] != null)
-                        data.Add("unreceivedMessageNumber", e["unreceivedMessageNumber"].InnerText);
-
-                    if (e["unreadMessageNumber"] != null)
-                        data.Add("unreadMessageNumber", e["unreadMessageNumber"].InnerText);
-
-                    ConversationManagement.Raise(this, new ConversationManagementEventArgs(conversationID, action, data));
+                    ConversationManagement.Raise(this, new XmlElementEventArgs(message.Data["conversation"]));
                 }
                 // Do we receive message about favorite management
                 else if (message.Data["favorite"] != null)

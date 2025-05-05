@@ -848,7 +848,7 @@ namespace Sharp.Xmpp.Client
         /// <summary>
         /// The event that is raised when an conversation has been created / updated / deleted
         /// </summary>
-        public event EventHandler<ConversationManagementEventArgs> ConversationManagement
+        public event EventHandler<XmlElementEventArgs> ConversationManagement
         {
             add
             {
