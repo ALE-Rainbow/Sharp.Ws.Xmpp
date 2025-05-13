@@ -1416,6 +1416,21 @@ namespace Sharp.Xmpp.Client
         }
 
         /// <summary>
+        /// The event raised when a RoomLobby message has been received
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> RoomLobby
+        {
+            add
+            {
+                configuration.RoomLobby += value;
+            }
+            remove
+            {
+                configuration.RoomLobby -= value;
+            }
+        }
+
+        /// <summary>
         /// The event raised when the synhcronisation status with a provider has changed
         /// </summary>
         public event EventHandler<Sharp.Xmpp.Extensions.SynchroProviderStatusEventArgs> SynchroProviderStatus
@@ -1445,10 +1460,6 @@ namespace Sharp.Xmpp.Client
             }
         }
 
-        
-
-
-
         /// <summary>
         /// The event raised when an AckMessage has been recevied
         /// </summary>
@@ -1464,7 +1475,6 @@ namespace Sharp.Xmpp.Client
             }
         }
 
-
         /// <summary>
         /// The event raised when an ApplicationMessage has been recevied
         /// </summary>
@@ -1479,7 +1489,6 @@ namespace Sharp.Xmpp.Client
                 rainbowMessage.ApplicationMessage -= value;
             }
         }
-
 
         /// <summary>
         /// The event that is raised when the current user password has been updated
