@@ -95,6 +95,15 @@ namespace Sharp.Xmpp.Extensions
             private set;
         }
 
+        /// <summary>
+        /// possible values: lock / unlock
+        /// </summary>
+        public String AutoRegister
+        {
+            get;
+            private set;
+        }
+
 
         /// <summary>
         /// Initializes a new instance of the RoomManagementEventArgs class.
@@ -108,7 +117,7 @@ namespace Sharp.Xmpp.Extensions
         /// <param name="lastAvatarUpdateDate">the last avatar romm update date</param>
         /// <param name="vcard">vcard action</param>
         /// <summary>
-        public RoomManagementEventArgs(String roomId, String roomJid, String userJid, String status, String privilege, String name, String topic, String lastAvatarUpdateDate, String avatarAction, String vcard)
+        public RoomManagementEventArgs(String roomId, String roomJid, String userJid, String status, String privilege, String name, String topic, String lastAvatarUpdateDate, String avatarAction, String vcard, String autoRegister)
         {
             RoomId = roomId;
             RoomJid = roomJid;
@@ -120,6 +129,7 @@ namespace Sharp.Xmpp.Extensions
             LastAvatarUpdateDate = lastAvatarUpdateDate;
             AvatarAction = avatarAction;
             VCard = vcard;
+            AutoRegister = autoRegister;
         }
     }
 }

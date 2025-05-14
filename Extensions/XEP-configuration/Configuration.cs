@@ -238,7 +238,9 @@ namespace Sharp.Xmpp.Extensions
                     if (e["avatar"] != null)
                         avatarAction = e["avatar"].GetAttribute("action");
 
-                    RoomManagement.Raise(this, new RoomManagementEventArgs(roomId, roomJid, userJid, status, privilege, name, topic, lastAvatarUpdateDate, avatarAction, vcard));
+                    string autoRegister = e.GetAttribute("autoRegister");
+
+                    RoomManagement.Raise(this, new RoomManagementEventArgs(roomId, roomJid, userJid, status, privilege, name, topic, lastAvatarUpdateDate, avatarAction, vcard, autoRegister));
                 }
                 // Do we receive message about visualvoicemail
                 //else if (message.Data["visualvoicemail"] != null)
