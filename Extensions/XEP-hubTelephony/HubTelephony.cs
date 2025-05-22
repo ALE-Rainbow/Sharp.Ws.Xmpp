@@ -2,6 +2,7 @@
 using Sharp.Xmpp.Im;
 using System;
 using System.Collections.Generic;
+using System.Xml;
 
 namespace Sharp.Xmpp.Extensions.XEP_hubTelephony
 {
@@ -80,7 +81,7 @@ namespace Sharp.Xmpp.Extensions.XEP_hubTelephony
             if ((telephonyElement != null)
                 && (telephonyElement.NamespaceURI == HUBTELEPHONY_NS))
             {
-                
+
                 if (telephonyElement["event"] != null)
                 {
                     HubTelephonyEvent.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(telephonyElement["event"]));
@@ -113,12 +114,31 @@ namespace Sharp.Xmpp.Extensions.XEP_hubTelephony
             }
 
             // Cf. https://git.openrainbow.org/rainbow-backends/servers/core/components/rvcp-pcg/-/blob/master/xsd/supervision.xsd?ref_type=heads
-            var supervisionElement = message.Data["supervision"];
-            if ((supervisionElement != null)
-                && (supervisionElement.NamespaceURI == HUBSUPERVISION_NS))
+            XmlElement supervisionElement;
+            String from;
+            if (message.Data["forwarded"] != null)
             {
-                HubTelephonySupervision.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(supervisionElement));
-                return true;
+                supervisionElement = message.Data["forwarded"]["supervision"];
+                from = message.Data["forwarded"]["delay"]?.GetAttribute("from");
+            }
+            else
+            {
+                supervisionElement = message.Data["supervision"];
+                from = message.Data.GetAttribute("from");
+            }
+
+            if ((supervisionElement != null)
+                    && (supervisionElement.NamespaceURI == HUBSUPERVISION_NS))
+            {
+                var delay = message.Data["forwarded"]["delay"];
+                if (delay != null)
+                {
+                    // set "from" attribute
+                    supervisionElement.SetAttribute("from", from);
+
+                    HubTelephonySupervision.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(supervisionElement));
+                    return true;
+                }
             }
 
             // Cf. https://git.openrainbow.org/rainbow-backends/servers/core/components/rvcp-pcg/-/blob/master/xsd/group.xsd?ref_type=heads
