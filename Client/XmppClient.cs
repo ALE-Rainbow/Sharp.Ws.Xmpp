@@ -938,7 +938,7 @@ namespace Sharp.Xmpp.Client
         /// <summary>
         /// The event that is raised when a call log item has been added
         /// </summary>
-        public event EventHandler<CallLogItemEventArgs> CallLogItemAdded
+        public event EventHandler<XmlElementEventArgs> CallLogItemAdded
         {
             add
             {
@@ -953,7 +953,7 @@ namespace Sharp.Xmpp.Client
         /// <summary>
         /// The event that is raised when a call log item has been retrieved
         /// </summary>
-        public event EventHandler<CallLogItemEventArgs> CallLogItemRetrieved
+        public event EventHandler<XmlElementEventArgs> CallLogItemRetrieved
         {
             add
             {
