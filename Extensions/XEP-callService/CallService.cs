@@ -218,8 +218,8 @@ namespace Sharp.Xmpp.Extensions
                         String xmppagent = (iq.Data["pbxagentstatus"]["xmppagent"] != null) ? iq.Data["pbxagentstatus"]["xmppagent"].InnerText : "";
                         String version = (iq.Data["pbxagentstatus"]["version"] != null) ? iq.Data["pbxagentstatus"]["version"].InnerText : "";
                         String features = (iq.Data["pbxagentstatus"]["features"] != null) ? iq.Data["pbxagentstatus"]["features"].InnerText : "";
-
-                        PbxAgentInfoUpdated.Raise(this, new PbxAgentInfoEventArgs(phoneapi, xmppagent, version, features));
+                        String type = (iq.Data["pbxagentstatus"]["type"] != null) ? iq.Data["pbxagentstatus"]["type"].InnerText : "";
+                        PbxAgentInfoUpdated.Raise(this, new PbxAgentInfoEventArgs(phoneapi, xmppagent, version, features, type));
                     }
                 }
                 catch (Exception)

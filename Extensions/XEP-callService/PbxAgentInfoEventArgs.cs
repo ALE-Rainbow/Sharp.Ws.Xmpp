@@ -43,13 +43,23 @@ namespace Sharp.Xmpp.Extensions
             private set;
         }
 
+        /// <summary>
+        /// Type
+        /// </summary>
+        public String Type
+        {
+            get;
+            private set;
+        }
 
-        public PbxAgentInfoEventArgs(String phoneApiStatus, String xmppAgentStatus, String version, String features)
+
+        public PbxAgentInfoEventArgs(String phoneApiStatus, String xmppAgentStatus, String version, String features, string type)
         {
             PhoneApiStatus = phoneApiStatus;
             XmppAgentStatus = xmppAgentStatus;
             Version = version;
             Features = features;
+            Type = type;
         }
 
     }
