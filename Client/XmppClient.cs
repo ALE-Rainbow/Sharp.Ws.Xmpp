@@ -1448,6 +1448,21 @@ namespace Sharp.Xmpp.Client
         }
 
         /// <summary>
+        /// The event raised when a Logs message has been received
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> Logs
+        {
+            add
+            {
+                configuration.Logs += value;
+            }
+            remove
+            {
+                configuration.Logs -= value;
+            }
+        }
+
+        /// <summary>
         /// The event raised when the synhcronisation status with a provider has changed
         /// </summary>
         public event EventHandler<Sharp.Xmpp.Extensions.SynchroProviderStatusEventArgs> SynchroProviderStatus

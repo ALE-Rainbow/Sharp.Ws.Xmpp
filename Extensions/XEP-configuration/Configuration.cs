@@ -119,6 +119,11 @@ namespace Sharp.Xmpp.Extensions
         public event EventHandler<XmlElementEventArgs> RoomLobby;
 
         /// <summary>
+        /// The event raised when a Logs message has been received
+        /// </summary>
+        public event EventHandler<XmlElementEventArgs> Logs;
+
+        /// <summary>
         /// The event raised when the synhcronisation status with a provider has changed
         /// </summary>
         public event EventHandler<SynchroProviderStatusEventArgs> SynchroProviderStatus;
@@ -365,6 +370,11 @@ namespace Sharp.Xmpp.Extensions
                 {
                     XmlElement e = message.Data["roomlobby"];
                     RoomLobby.Raise(this, new XmlElementEventArgs(e));
+                }
+                else if (message.Data["logs"] != null)
+                {
+                    XmlElement e = message.Data["logs"];
+                    Logs.Raise(this, new XmlElementEventArgs(e));
                 }
                 else
                     log.LogInformation("[Input] Message not managed");
