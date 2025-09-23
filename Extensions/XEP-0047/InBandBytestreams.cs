@@ -366,7 +366,7 @@ namespace Sharp.Xmpp.Extensions
                 .Attr("sid", sessionId);
 
             // We don't care about the other site's response to this.
-            im.IqRequestAsync(IqType.Set, to, im.Jid, close, null, null);
+            im.IqRequestAsync(IqType.Set, to, im.Jid, null, null, close);
         }
     }
 }

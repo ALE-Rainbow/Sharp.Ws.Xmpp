@@ -197,6 +197,11 @@ namespace Sharp.Xmpp.Client
         private Sharp.Xmpp.Extensions.Rainbow rainbow;
 
         /// <summary>
+        /// Provides the RPC extension
+        /// </summary>
+        private Sharp.Xmpp.Extensions.RPC rpc;
+
+        /// <summary>
         /// Provides the RainbowMessage extension
         /// </summary>
         private Sharp.Xmpp.Extensions.RainbowMessage rainbowMessage;
@@ -1508,6 +1513,22 @@ namespace Sharp.Xmpp.Client
         }
 
         /// <summary>
+        /// The event raised when an RPCMessage has been recevied
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> RPCMessage
+        {
+            add
+            {
+                rpc.RPCMessage += value;
+            }
+            remove
+            {
+                rpc.RPCMessage -= value;
+            }
+        }
+
+
+        /// <summary>
         /// The event raised when an ApplicationMessage has been recevied
         /// </summary>
         public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> ApplicationMessage
@@ -1958,13 +1979,13 @@ namespace Sharp.Xmpp.Client
             XmlElement data = null, String language = null,
             Action<string, Core.Iq> callback = null)
         {
-            im.IqRequestAsync(type, to, from, data, language, callback);
+            im.IqRequestAsync(type, to, from, language, callback, data);
         }
 
-        public async Task<(string Id, Core.Iq Iq)> IqRequestAsync(Core.IqType type, Jid to = null, Jid from = null,
-            XmlElement data = null, String language = null, int msDelay = 60000)
+        public async Task<(string Id, Core.Iq Iq)> IqRequestAsync(Core.IqType type, Jid to = null, Jid from = null
+            , String language = null, int msDelay = 60000, params XmlElement[] data)
         {
-            return await im.IqRequestAsync(type, to, from, data, language, msDelay);
+            return await im.IqRequestAsync(type, to, from, language, msDelay, data);
         }
 
         /// <summary>
@@ -1992,10 +2013,10 @@ namespace Sharp.Xmpp.Client
             im.IqResponse(type, id, to, from, data, language);
         }
 
-        public async Task<Boolean> IqResponseAsync(Core.IqType type, string id, Jid to = null, Jid from = null,
-            XmlElement data = null, String language = null)
+        public async Task<Boolean> IqResponseAsync(Core.IqType type, string id, Jid to = null, Jid from = null
+            , String language = null, params XmlElement[] data)
         {
-            return await im.IqResponseAsync(type, id, to, from, data, language);
+            return await im.IqResponseAsync(type, id, to, from, language, data);
         }
 
         public void DeleteCallLog(String callId)
@@ -3458,6 +3479,8 @@ namespace Sharp.Xmpp.Client
             im.AddExtension(hubTelephony = new HubTelephony(im, loggerPrefix));
 
             im.AddExtension(rainbowService = new RainbowService(im, loggerPrefix));
+
+            im.AddExtension(rpc = new RPC(im, loggerPrefix));
         }
     }
 }

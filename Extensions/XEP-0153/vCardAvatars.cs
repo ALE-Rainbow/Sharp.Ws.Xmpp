@@ -124,14 +124,15 @@ namespace Sharp.Xmpp.Extensions
                 base64Data = Convert.ToBase64String(data);
             }
             var xml = Xml.Element("vCard", "vcard-temp").Child(Xml.Element("Photo").Child(Xml.Element("Type").Text(mimeType)).Child(Xml.Element("BINVAL").Text(base64Data)));
-            im.IqRequestAsync(IqType.Set, null, im.Jid, xml, null, (id, iq) =>
+            im.IqRequestAsync(IqType.Set, null, im.Jid, null, (id, iq) =>
             {
                 if (iq.Type == IqType.Result)
                 {
                     // Result must contain a 'feature' element.
                     im.SendPresence(new Sharp.Xmpp.Im.Presence(null, null, PresenceType.Available, null, null, Xml.Element("x", "vcard-temp:x:update").Child(Xml.Element("photo").Text(hash))));
                 }
-            });
+            }
+            , xml);
         }
 
         /// <summary>
@@ -172,7 +173,7 @@ namespace Sharp.Xmpp.Extensions
             var xml = Xml.Element("vCard", "vcard-temp");
 
             //The Request is Async
-            im.IqRequestAsync(IqType.Get, jid, im.Jid, xml, null, (id, iq) =>
+            im.IqRequestAsync(IqType.Get, jid, im.Jid, null, (id, iq) =>
             {
                 XmlElement query = iq.Data["vCard"];
                 if (iq.Data["vCard"].NamespaceURI == "vcard-temp")
@@ -214,7 +215,8 @@ namespace Sharp.Xmpp.Extensions
                         }
                     }
                 }
-            });
+            }
+            , xml);
         }
 
         /// <summary>

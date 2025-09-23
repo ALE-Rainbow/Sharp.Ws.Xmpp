@@ -218,7 +218,12 @@
         /// <summary>
         /// An extension to manage rainbow services
         /// </summary>
-        RainbowService
+        RainbowService,
+
+        /// <summary>
+        /// An extension to manage RPC
+        /// </summary>
+        RPC
 
     }
 }

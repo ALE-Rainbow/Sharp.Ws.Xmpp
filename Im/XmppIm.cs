@@ -1691,7 +1691,6 @@ namespace Sharp.Xmpp.Im
             return await core.SendAsync(element, isStanza);
         }
 
-
         /// <summary>
         /// Performs an IQ set/get request and blocks until the response IQ comes in.
         /// </summary>
@@ -1722,7 +1721,7 @@ namespace Sharp.Xmpp.Im
             XmlElement data = null, String language = null,
             int millisecondsTimeout = -1)
         {
-            Iq iq = new(type, XmppCore.GetId(), to, from, data, language);
+            Iq iq = new(type, XmppCore.GetId(), to, from, language, data);
             // Invoke IOutput<Iq> Plugins.
             foreach (var ext in extensions.Values)
             {
@@ -1754,11 +1753,12 @@ namespace Sharp.Xmpp.Im
         /// connected to a remote host.</exception>
         /// <exception cref="IOException">There was a failure while writing to the
         /// network.</exception>
-        internal string IqRequestAsync(IqType type, Jid to = null, Jid from = null,
-            XmlElement data = null, String language = null,
-            Action<string, Iq> callback = null)
+        internal string IqRequestAsync(IqType type, Jid to = null, Jid from = null
+                , String language = null
+                , Action<string, Iq> callback = null
+                , params XmlElement[] data)
         {
-            Iq iq = new(type, XmppCore.GetId(), to, from, data, language);
+            Iq iq = new(type, XmppCore.GetId(), to, from, language, data);
             // Invoke IOutput<Iq> Plugins.
             foreach (var ext in extensions.Values)
             {
@@ -1768,8 +1768,8 @@ namespace Sharp.Xmpp.Im
             return core.IqRequestAsync(iq, callback);
         }
 
-        public async Task<(string Id, Iq Iq)> IqRequestAsync(IqType type, Jid to = null, Jid from = null,
-            XmlElement data = null, String language = null, int msDelay = 60000)
+        internal async Task<(string Id, Iq Iq)> IqRequestAsync(IqType type, Jid to = null, Jid from = null
+            , String language = null, int msDelay = 60000, params XmlElement[] data )
         {
             var tcs = new TaskCompletionSource<(string id, Iq iq)>(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -1780,7 +1780,7 @@ namespace Sharp.Xmpp.Im
             }
             , useSynchronizationContext: false);
 
-            IqRequestAsync(type, to, from, data, language, (id, iq) =>
+            IqRequestAsync(type, to, from, language, (id, iq) =>
             {
                 // We no more need the token registration
                 tokenRegistration.Dispose();
@@ -1789,11 +1789,11 @@ namespace Sharp.Xmpp.Im
                     tcs.TrySetResult((id, iq));
                 else
                     tcs.TrySetResult(("", new Iq(IqType.Error, "")));
-            });
+            }
+            , data);
 
             return await tcs.Task;
         }
-
 
         /// <summary>
         /// Sends an IQ response for the IQ request with the specified id.
@@ -1818,7 +1818,7 @@ namespace Sharp.Xmpp.Im
             XmlElement data = null, String language = null)
         {
             AssertValid(false);
-            Iq iq = new(type, id, to, from, data, language);
+            Iq iq = new(type, id, to, from, language, data);
             // Invoke IOutput<Iq> Plugins.
             foreach (var ext in extensions.Values)
             {
@@ -1828,11 +1828,11 @@ namespace Sharp.Xmpp.Im
             core.IqResponse(iq);
         }
 
-        internal async Task<Boolean> IqResponseAsync(IqType type, string id, Jid to = null, Jid from = null,
-            XmlElement data = null, String language = null)
+        internal async Task<Boolean> IqResponseAsync(IqType type, string id, Jid to = null, Jid from = null
+            , String language = null, params XmlElement[] data)
         {
             AssertValid(false);
-            Iq iq = new(type, id, to, from, data, language);
+            Iq iq = new(type, id, to, from, language, data);
             // Invoke IOutput<Iq> Plugins.
             foreach (var ext in extensions.Values)
             {
@@ -1867,7 +1867,7 @@ namespace Sharp.Xmpp.Im
         {
             AssertValid(false);
             iq.ThrowIfNull("iq");
-            Iq response = new(IqType.Error, iq.Id, iq.From, Jid,
+            Iq response = new(IqType.Error, iq.Id, iq.From, Jid, language: null,
                 new XmppError(type, condition, text, data).Data);
             core.IqResponse(response);
         }
@@ -1891,7 +1891,7 @@ namespace Sharp.Xmpp.Im
         {
             AssertValid(false);
             iq.ThrowIfNull("iq");
-            Iq response = new(IqType.Result, iq.Id, iq.From, Jid, data);
+            Iq response = new(IqType.Result, iq.Id, iq.From, Jid, language:null, data);
             core.IqResponse(response);
         }
 

@@ -193,7 +193,7 @@ namespace Sharp.Xmpp.Extensions
             rootElement.Child(subElement);
 
             //The Request is Async
-            im.IqRequestAsync(IqType.Set, toJid, fromJid, rootElement, null, (id, iq) =>
+            im.IqRequestAsync(IqType.Set, toJid, fromJid, null, (id, iq) =>
             {
                 MamResult complete = MamResult.Error;
                 int count = 0;
@@ -227,7 +227,8 @@ namespace Sharp.Xmpp.Extensions
                 }
 
                 MessageArchiveManagementResult.Raise(this, new MessageArchiveManagementResultEventArgs(localQueryId, complete, count, first, last, false));
-            });
+            }
+            , rootElement);
         }
 
         /// <summary>
@@ -308,7 +309,7 @@ namespace Sharp.Xmpp.Extensions
             if (isRoom)
                 to = jid;
 
-            (string id, Iq iq) = await im.IqRequestAsync(IqType.Set, to, null, rootElement, null, 60000);
+            (string id, Iq iq) = await im.IqRequestAsync(IqType.Set, to, null, null, 60000, rootElement);
 
             string queryid = "";
             MamResult complete = MamResult.Error;
@@ -408,7 +409,7 @@ namespace Sharp.Xmpp.Extensions
                 jidTo = new Jid(toJidString);
 
             //The Request is Async
-            im.IqRequestAsync(IqType.Set, jidTo, null, rootElement, null, callback);
+            im.IqRequestAsync(IqType.Set, jidTo, null, null, callback, rootElement);
         }
 
         /// <summary>

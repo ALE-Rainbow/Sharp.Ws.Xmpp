@@ -210,7 +210,7 @@ namespace Sharp.Xmpp.Extensions
             string sid = GenerateSessionId();
             var si = CreateSiElement(sid, mimeType, profile, streamOptions, data);
             // Perform the actual request.
-            im.IqRequestAsync(IqType.Set, to, im.Jid, si, null, (id, iq) =>
+            im.IqRequestAsync(IqType.Set, to, im.Jid, null, (id, iq) =>
             {
                 if (cb == null)
                     return;
@@ -224,7 +224,7 @@ namespace Sharp.Xmpp.Extensions
                     result = new InitiationResult(sid, selected, iq.Data["si"]);
                 }
                 cb(result, iq);
-            });
+            }, si);
             return sid;
         }
 

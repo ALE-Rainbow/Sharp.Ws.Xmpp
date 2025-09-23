@@ -152,7 +152,7 @@ namespace Sharp.Xmpp.Extensions
                 connections.SetAttribute("deviceType", "SECONDARY");
             xml.Child(connections);
 
-            (String id, Iq iq) = await im.IqRequestAsync(IqType.Get, to, im.Jid, xml, null, 60000);
+            (String id, Iq iq) = await im.IqRequestAsync(IqType.Get, to, im.Jid, null, 60000, xml);
 
             if (iq.Type == IqType.Result)
             {
@@ -188,7 +188,7 @@ namespace Sharp.Xmpp.Extensions
             var xml = Xml.Element("callservice", CALLSERVICE_NS);
             xml.Child(Xml.Element("messaging"));
 
-            return await im.IqRequestAsync(IqType.Get, to, im.Jid, xml, null, 60000);
+            return await im.IqRequestAsync(IqType.Get, to, im.Jid, null, 60000, xml);
         }
 
         /// <summary>
@@ -204,7 +204,7 @@ namespace Sharp.Xmpp.Extensions
         {
             var xml = Xml.Element("pbxagentstatus", "urn:xmpp:pbxagent:monitoring:1");
 
-            (String id, Iq iq) = await im.IqRequestAsync(IqType.Get, to, im.Jid, xml, null, 60000);
+            (String id, Iq iq) = await im.IqRequestAsync(IqType.Get, to, im.Jid, null, 60000, xml);
 
             if (iq.Type == IqType.Result)
             {

@@ -145,7 +145,7 @@ namespace Sharp.Xmpp.Extensions
             var xml = Xml.Element("customiq", "urn:sharp.xmpp:customiq").Text(request);
 
             //The Request is Async
-            im.IqRequestAsync(IqType.Get, jid, im.Jid, xml, null, (id, iq) =>
+            im.IqRequestAsync(IqType.Get, jid, im.Jid, null, (id, iq) =>
             {
                 //For any reply we execute the callback
                 if (iq.Type == IqType.Error)
@@ -163,7 +163,8 @@ namespace Sharp.Xmpp.Extensions
                         throw Util.ExceptionFromError(iq, "Not correctly formated response to RequestCustomIqAsync, " + e.Message);
                     }
                 }
-            });
+            }
+            , xml);
         }
 
         /// <summary>

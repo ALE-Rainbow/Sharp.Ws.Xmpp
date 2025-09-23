@@ -934,7 +934,7 @@ namespace Sharp.Xmpp.Core
             int millisecondsTimeout = -1)
         {
             AssertValid();
-            return IqRequest(new Iq(type, null, to, from, data, language), millisecondsTimeout);
+            return IqRequest(new Iq(type, null, to, from, language, data), millisecondsTimeout);
         }
 
         /// <summary>
@@ -1051,7 +1051,7 @@ namespace Sharp.Xmpp.Core
             Action<string, Iq> callback = null)
         {
             AssertValid();
-            return IqRequestAsync(new Iq(type, null, to, from, data, language), callback);
+            return IqRequestAsync(new Iq(type, null, to, from, language, data), callback);
         }
 
         /// <summary>
@@ -1108,7 +1108,7 @@ namespace Sharp.Xmpp.Core
             XmlElement data = null, String language = null)
         {
             AssertValid();
-            IqResponse(new Iq(type, id, to, from, data, language));
+            IqResponse(new Iq(type, id, to, from, language, data));
         }
 
         /// <summary>

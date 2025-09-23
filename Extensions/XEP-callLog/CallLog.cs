@@ -176,7 +176,7 @@ namespace Sharp.Xmpp.Extensions
                 xmlParam.Child(Xml.Element("after").Text(after));
             xml.Child(xmlParam);
 
-            var result = await im.IqRequestAsync(IqType.Set, null, im.Jid, xml, null, 60000);
+            var result = await im.IqRequestAsync(IqType.Set, null, im.Jid, null, 60000, xml);
 
             var iq = result.Iq;
             //For any reply we execute the callback
@@ -242,7 +242,7 @@ namespace Sharp.Xmpp.Extensions
             xml.SetAttribute("call_id", callId);
 
             string jid = im.Jid.Node + "@" + im.Jid.Domain;
-            var result = await im.IqRequestAsync(IqType.Get, jid, jid, xml, null, 60000);
+            var result = await im.IqRequestAsync(IqType.Get, jid, jid, null, 60000, xml);
             return result.Iq.Type != Core.IqType.Error;
         }
 
@@ -261,7 +261,7 @@ namespace Sharp.Xmpp.Extensions
             xml.SetAttribute("peer", contactJid);
 
             string jid = im.Jid.Node + "@" + im.Jid.Domain;
-            var result = await im.IqRequestAsync(IqType.Get, jid, jid, xml, null, 60000);
+            var result = await im.IqRequestAsync(IqType.Get, jid, jid, null, 60000, xml);
             return result.Iq.Type != Core.IqType.Error;
         }
 
@@ -278,7 +278,7 @@ namespace Sharp.Xmpp.Extensions
             var xml = Xml.Element("delete", "jabber:iq:telephony:call_log");
             string jid = im.Jid.Node + "@" + im.Jid.Domain;
 
-            var result = await im.IqRequestAsync(IqType.Get, jid, jid, xml, null, 60000);
+            var result = await im.IqRequestAsync(IqType.Get, jid, jid, null, 60000, xml);
             return result.Iq.Type != Core.IqType.Error;
         }
 

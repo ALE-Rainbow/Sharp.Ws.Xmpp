@@ -60,7 +60,7 @@ namespace Sharp.Xmpp.Core
         /// <param name="language">The language of the XML character data of
         /// the stanza.</param>
         public Iq(IqType type, string id, Jid to = null, Jid from = null,
-            XmlElement data = null, String language = null)
+            String language = null, params XmlElement[] data)
             : base(null, to, from, id, language, data)
         {
             Type = type;
