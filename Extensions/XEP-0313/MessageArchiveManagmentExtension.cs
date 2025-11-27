@@ -103,6 +103,19 @@ namespace Sharp.Xmpp.Extensions
                 }
             }
 
+            // Check if we received a message related to "clear_done"
+            XmlElement clear_done = message.Data["clear_done", "jabber:iq:notification"];
+            if (clear_done != null)
+            {
+                String jid = clear_done.GetAttribute("with");
+                if (!String.IsNullOrEmpty(jid))
+                {
+                    MessagesAllDeleted.Raise(this, new JidEventArgs(jid));
+                    return true;
+                }
+            }
+
+
             return false;
         }
 
