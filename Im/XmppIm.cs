@@ -2099,7 +2099,7 @@ namespace Sharp.Xmpp.Im
                     // Swallow message?
                     if (filter.Input(message))
                     {
-                        log.LogDebug("[OnMessage] filter used by extension [{0}]", ext.Xep.ToString());
+                        log.LogDebug("[OnMessage] used by extension [{0}] - MsgId:[{1}] - ", ext.Xep.ToString(), message.Id);
                         return;
                     }
                 }
@@ -2150,7 +2150,7 @@ namespace Sharp.Xmpp.Im
             }
 
             if(!used)
-                log.LogDebug("[OnMessage] Message not managed");
+                log.LogDebug("[OnMessage] not managed - MsgId:[{0}] ", message.Id);
         }
 
         /// <summary>
