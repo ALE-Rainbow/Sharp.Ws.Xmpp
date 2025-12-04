@@ -27,7 +27,7 @@ namespace Sharp.Xmpp.Core.Sasl
 
         private int Step = 0;
 
-        private SASLMechanism client;
+        private ISASLMechanism client;
         private IEncodingInfo encoding;
         private ResizableArray<Byte> writeArray;
         private SASLCredentialsSCRAMForClient credentials;

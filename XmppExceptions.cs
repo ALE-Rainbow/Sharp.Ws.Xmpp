@@ -31,16 +31,5 @@ namespace Sharp.Xmpp
         /// to be understood by humans.</param>
         /// <param name="inner">The exception that is the cause of the current exception.</param>
         public XmppException(string message, Exception inner) : base(message, inner) { }
-
-        /// <summary>
-        /// Initializes a new instance of the XmppException class with the specified
-        /// serialization and context information.
-        /// </summary>
-        /// <param name="info">An object that holds the serialized object data about the exception
-        /// being thrown. </param>
-        /// <param name="context">An object that contains contextual information about the source
-        /// or destination. </param>
-        protected XmppException(SerializationInfo info, StreamingContext context)
-            : base(info, context) { }
     }
 }
