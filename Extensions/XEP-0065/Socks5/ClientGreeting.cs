@@ -19,7 +19,7 @@ namespace Sharp.Xmpp.Extensions.Socks5
         /// <summary>
         /// A set of authentication methods advertised to the server.
         /// </summary>
-        private readonly HashSet<AuthMethod> methods = new();
+        private readonly HashSet<AuthMethod> methods = [];
 
         /// <summary>
         /// An enumerable collection of authentication methods.

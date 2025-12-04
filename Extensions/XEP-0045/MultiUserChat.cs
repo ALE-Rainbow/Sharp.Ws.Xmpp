@@ -163,7 +163,7 @@ namespace Sharp.Xmpp.Extensions
 				}
 
 
-				IList<MucStatusType> statusCodeList = new List<MucStatusType> ();
+				IList<MucStatusType> statusCodeList = [];
 				foreach (XmlElement item in xElement.GetElementsByTagName ("status")) {
 					string codeAttribute = item.GetAttribute ("code");
 					if (!string.IsNullOrWhiteSpace (codeAttribute)) {
@@ -309,10 +309,10 @@ namespace Sharp.Xmpp.Extensions
                 .Child(requestedRoleValue);
 
             DataField[] fields = 
-            {
+            [
                 new DataField(formType),
                 new DataField(requestedRole)
-            };
+            ];
 
             SubmitForm form = new(fields);
             var message = new Core.Message(room, im.Jid, form.ToXmlElement());

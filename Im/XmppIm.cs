@@ -663,7 +663,7 @@ namespace Sharp.Xmpp.Im
                 case XmppCore.ACTION_SERVICE_DISCOVERY:
                     core.SetLanguage();
                     ServiceDiscovery serviceDiscovery = GetExtension(typeof(ServiceDiscovery)) as ServiceDiscovery;
-                    serviceDiscovery.Supports(core.Jid.Domain, new Extension[] { });
+                    serviceDiscovery.Supports(core.Jid.Domain, []);
                     
                     core.QueueActionToPerform(XmppCore.ACTION_ENABLE_STREAM_MANAGEMENT);
                     break;
@@ -985,7 +985,7 @@ namespace Sharp.Xmpp.Im
             AssertValid();
             if (availability == Availability.Offline)
                 throw new ArgumentException("Invalid availability state.");
-            List<XmlElement> elems = new();
+            List<XmlElement> elems = [];
 
             if (elementToAdd != null)
                 elems.Add(elementToAdd);
@@ -1035,7 +1035,7 @@ namespace Sharp.Xmpp.Im
             AssertValid();
             if (availability == Availability.Offline)
                 throw new InvalidOperationException("Invalid availability state.");
-            List<XmlElement> elems = new();
+            List<XmlElement> elems = [];
             if (availability != Availability.Online)
             {
                 var states = new Dictionary<Availability, string>() {
@@ -2282,7 +2282,7 @@ namespace Sharp.Xmpp.Im
         /// the parsed roster items.</returns>
         private Roster ParseRoster(XmlElement query)
         {
-            Roster roster = new();
+            Roster roster = [];
             var states = new Dictionary<string, SubscriptionState>() {
                 { "none", SubscriptionState.None },
                 { "to", SubscriptionState.To },
@@ -2298,7 +2298,7 @@ namespace Sharp.Xmpp.Im
                 string name = item.GetAttribute("name");
                 if (name == String.Empty)
                     name = null;
-                List<string> groups = new();
+                List<string> groups = [];
                 foreach (XmlElement group in item.GetElementsByTagName("group"))
                     groups.Add(group.InnerText);
                 string s = item.GetAttribute("subscription");
@@ -2338,7 +2338,7 @@ namespace Sharp.Xmpp.Im
                     string name = item.GetAttribute("name");
                     if (name == String.Empty)
                         name = null;
-                    List<string> groups = new();
+                    List<string> groups = [];
                     foreach (XmlElement group in item.GetElementsByTagName("group"))
                         groups.Add(group.InnerText);
                     string s = item.GetAttribute("subscription");

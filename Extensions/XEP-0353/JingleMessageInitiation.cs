@@ -110,7 +110,7 @@ namespace Sharp.Xmpp.Extensions
                     XmlNodeList nodeList = element.GetElementsByTagName("description");
                     if(nodeList != null)
                     {
-                        jingleMessageEventArgs.JingleMessage.Media = new List<string>();
+                        jingleMessageEventArgs.JingleMessage.Media = [];
 
                         XmlElement description;
                         foreach (XmlNode node in nodeList)

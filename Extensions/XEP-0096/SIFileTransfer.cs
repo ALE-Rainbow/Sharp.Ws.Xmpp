@@ -42,10 +42,10 @@ namespace Sharp.Xmpp.Extensions
         /// An array of data-stream methods that we support. As per specification,
         /// we must support SOCKS5 and In-Band Bytestreams.
         /// </summary>
-        private static readonly Type[] supportedMethods = new Type[] {
+        private static readonly Type[] supportedMethods = [
 			typeof(Socks5Bytestreams),
 			typeof(InBandBytestreams)
-		};
+		];
 
         /// <summary>
         /// An enumerable collection of XMPP namespaces the extension implements.
@@ -397,10 +397,10 @@ namespace Sharp.Xmpp.Extensions
             DataForm form = FeatureNegotiation.Parse(feature);
             ListField field = form.Fields["stream-method"] as ListField;
             // Order of preference: Socks5, Ibb.
-            string[] methods = new string[] {
+            string[] methods = [
 				"http://jabber.org/protocol/bytestreams",
 				"http://jabber.org/protocol/ibb"
-			};
+			];
             for (int i = 0; i < methods.Length; i++)
             {
                 if (ForceInBandBytestreams &&

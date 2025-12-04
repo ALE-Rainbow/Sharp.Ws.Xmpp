@@ -49,7 +49,7 @@ namespace Sharp.Xmpp.Extensions
             MaxHistoryFetch = 0;
             NumberOfOccupants = 0;
             CreationDate = DateTime.UtcNow;
-            contactAddresses = new List<Jid>();
+            contactAddresses = [];
             occupants = new HashSet<Jid>();
         }
 
@@ -71,7 +71,7 @@ namespace Sharp.Xmpp.Extensions
             MaxHistoryFetch = 0;
             NumberOfOccupants = 0;
             CreationDate = null;
-            contactAddresses = new List<Jid>();
+            contactAddresses = [];
             occupants = new HashSet<Jid>();
 
             IntialiseRoomFeatures(features);

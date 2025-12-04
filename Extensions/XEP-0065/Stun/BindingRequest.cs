@@ -18,7 +18,7 @@ namespace Sharp.Xmpp.Extensions.Stun
         /// <summary>
         /// The 'Magic Cookie' value as defined in RFC 5389.
         /// </summary>
-        private readonly byte[] magicCookie = new byte[] { 0x21, 0x12, 0xA4, 0x42 };
+        private readonly byte[] magicCookie = [0x21, 0x12, 0xA4, 0x42];
 
         /// <summary>
         /// The crypto provider for generating random transaction ids.

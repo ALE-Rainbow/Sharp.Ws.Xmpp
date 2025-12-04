@@ -85,8 +85,8 @@ namespace Sharp.Xmpp.Extensions.Socks5
         {
             if ((position + 4) >= buffer.Length)
                 Resize();
-            int[] o = bigEndian ? new int[4] { 3, 2, 1, 0 } :
-                new int[4] { 0, 1, 2, 3 };
+            int[] o = bigEndian ? [3, 2, 1, 0] :
+                [0, 1, 2, 3];
             for (int i = 0; i < 4; i++)
                 buffer[position++] = (byte)((value >> (o[i] * 8)) & 0xFF);
             return this;
@@ -103,8 +103,8 @@ namespace Sharp.Xmpp.Extensions.Socks5
         {
             if ((position + 2) >= buffer.Length)
                 Resize();
-            int[] o = bigEndian ? new int[2] { 1, 0 } :
-                new int[2] { 0, 1 };
+            int[] o = bigEndian ? [1, 0] :
+                [0, 1];
             for (int i = 0; i < 2; i++)
                 buffer[position++] = (byte)((value >> (o[i] * 8)) & 0xFF);
             return this;
@@ -121,8 +121,8 @@ namespace Sharp.Xmpp.Extensions.Socks5
         {
             if ((position + 2) >= buffer.Length)
                 Resize();
-            int[] o = bigEndian ? new int[2] { 1, 0 } :
-                new int[2] { 0, 1 };
+            int[] o = bigEndian ? [1, 0] :
+                [0, 1];
             for (int i = 0; i < 2; i++)
                 buffer[position++] = (byte)((value >> (o[i] * 8)) & 0xFF);
             return this;
@@ -139,8 +139,8 @@ namespace Sharp.Xmpp.Extensions.Socks5
         {
             if ((position + 4) >= buffer.Length)
                 Resize();
-            int[] o = bigEndian ? new int[4] { 3, 2, 1, 0 } :
-                new int[4] { 0, 1, 2, 3 };
+            int[] o = bigEndian ? [3, 2, 1, 0] :
+                [0, 1, 2, 3];
             for (int i = 0; i < 4; i++)
                 buffer[position++] = (byte)((value >> (o[i] * 8)) & 0xFF);
             return this;
@@ -157,8 +157,8 @@ namespace Sharp.Xmpp.Extensions.Socks5
         {
             if ((position + 8) >= buffer.Length)
                 Resize();
-            int[] o = bigEndian ? new int[8] { 7, 6, 5, 4, 3, 2, 1, 0 } :
-                new int[8] { 0, 1, 2, 3, 4, 5, 6, 7 };
+            int[] o = bigEndian ? [7, 6, 5, 4, 3, 2, 1, 0] :
+                [0, 1, 2, 3, 4, 5, 6, 7];
             for (int i = 0; i < 8; i++)
                 buffer[position++] = (byte)((value >> (o[i] * 8)) & 0xFF);
             return this;

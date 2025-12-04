@@ -279,7 +279,7 @@ namespace Sharp.Xmpp.Extensions
                     var nodes = e.GetElementsByTagName("fileid");
                     if (nodes?.Count > 0)
                     {
-                        List<String> filesId = new();
+                        List<String> filesId = [];
                         foreach (XmlElement el in nodes)
                             filesId.Add(el.InnerText);
                         FileManagement.Raise(this, new FileManagementEventArgs(filesId, action));

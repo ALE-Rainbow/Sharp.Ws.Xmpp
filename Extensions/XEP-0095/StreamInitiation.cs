@@ -269,7 +269,7 @@ namespace Sharp.Xmpp.Extensions
             streamOptions.ThrowIfNull("streamOptions");
             // Create the data-form for stream-method selection.
             DataForm form = new RequestForm();
-            HashSet<Option> options = new();
+            HashSet<Option> options = [];
             foreach (string opt in streamOptions)
                 options.Add(new Option(opt));
             form.Fields.Add(new ListField("stream-method", true, null, null,

@@ -7,7 +7,7 @@ namespace Sharp.Xmpp.Extensions
 {
     internal class MessageCarbons : XmppExtension
     {
-        private static readonly string[] _namespaces = { "urn:xmpp:carbons:2" };
+        private static readonly string[] _namespaces = ["urn:xmpp:carbons:2"];
         private EntityCapabilities ecapa;
 
         public override IEnumerable<string> Namespaces

@@ -100,7 +100,7 @@ namespace Sharp.Xmpp.Im
         {
             Availability = availability;
             Priority = priority;
-            Messages = new Dictionary<string, string>();
+            Messages = [];
             Until = DateTime.MinValue;
             if (String.IsNullOrEmpty(language))
                 language = Util.GetCultureName();
@@ -123,7 +123,7 @@ namespace Sharp.Xmpp.Im
             Apply = apply;
             Availability = availability;
             Priority = priority;
-            Messages = new Dictionary<string, string>();
+            Messages = [];
             Until = until;
             Date = date;
             if (messages != null)

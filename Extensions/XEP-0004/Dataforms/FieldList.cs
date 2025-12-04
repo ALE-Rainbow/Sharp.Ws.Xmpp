@@ -226,7 +226,7 @@ namespace Sharp.Xmpp.Extensions.Dataforms
         /// <returns>A list of XML data-field elements.</returns>
         private IList<XmlElement> GetFieldElements()
         {
-            IList<XmlElement> elems = new List<XmlElement>();
+            IList<XmlElement> elems = [];
             foreach (XmlElement e in element.GetElementsByTagName("field"))
             {
                 if (e.ParentNode == element)
@@ -244,7 +244,7 @@ namespace Sharp.Xmpp.Extensions.Dataforms
         /// data-form is invalid.</exception>
         private IList<DataField> GetFields()
         {
-            IList<DataField> fields = new List<DataField>();
+            IList<DataField> fields = [];
             foreach (XmlElement e in GetFieldElements())
                 fields.Add(FieldFromXml(e));
             return fields;

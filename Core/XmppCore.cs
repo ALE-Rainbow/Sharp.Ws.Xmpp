@@ -45,9 +45,9 @@ namespace Sharp.Xmpp.Core
         // if FATAL or FATAL_SPECIFIC, Need to close web socket, AutoReconnection service must be Stopped/Cancelled, Add log entry
         // else if WARN, Need to close web socket, AutoReconnection service continues its job (i.e. try to reconnect), Add log entry
         // else just Add log entry
-        private static readonly List<String> STREAM_ERROR_FATAL = new() { "see-other-host", "conflict", "unsupported-version" };
-        private static readonly List<(String, String)> STREAM_ERROR_FATAL_SPECIFIC = new() { ("policy-violation", "has been kicked"), ("resource-constraint", "max sessions reached") };
-        private static readonly List<String> STREAM_ERROR_WARN = new() { "remote-connection-failed", "reset", "connection-timeout", "system-shutdown" };
+        private static readonly List<String> STREAM_ERROR_FATAL = ["see-other-host", "conflict", "unsupported-version"];
+        private static readonly List<(String, String)> STREAM_ERROR_FATAL_SPECIFIC = [("policy-violation", "has been kicked"), ("resource-constraint", "max sessions reached")];
+        private static readonly List<String> STREAM_ERROR_WARN = ["remote-connection-failed", "reset", "connection-timeout", "system-shutdown"];
         //private static List<String> STREAM_ERROR_INFO = new List<string>() { "bad-format", "bad-namespace-prefix", "host-gone", "host-unknown", "improper-addressing", "internal-server-error", "invalid-from", "invalid-namespace", "invalid-xml", "not-authorized", "not-well-formed", "restricted-xml", "undefined-condition", "unsupported-encoding", "unsupported-feature", "unsupported-stanza-type" };
 
         /// <summary>
@@ -163,9 +163,9 @@ namespace Sharp.Xmpp.Core
         /// <summary>
         /// A FIFO of stanzas waiting to be processed.
         /// </summary>
-        private readonly BlockingCollection<Stanza> stanzaQueue = new();
+        private readonly BlockingCollection<Stanza> stanzaQueue = [];
 
-        private readonly BlockingCollection<Stanza> streamManagementStanzaQueue = new();
+        private readonly BlockingCollection<Stanza> streamManagementStanzaQueue = [];
 
         private readonly BlockingCollection<Stanza>[] fullStanzaQueue;
          
@@ -542,7 +542,7 @@ namespace Sharp.Xmpp.Core
             Tls = tls;
             Validate = validate;
 
-            fullStanzaQueue = new BlockingCollection<Stanza>[] { streamManagementStanzaQueue, stanzaQueue };
+            fullStanzaQueue = [streamManagementStanzaQueue, stanzaQueue];
 
         }
 
@@ -611,8 +611,15 @@ namespace Sharp.Xmpp.Core
         /// authentication.</remarks>
         public void Connect(string resource)
         {
+#if NETSTANDARD2_0 || NETSTANDARD2_1
             if (disposed)
                 throw new ObjectDisposedException(GetType().FullName);
+#else
+            ObjectDisposedException.ThrowIf(disposed, GetType().FullName);
+#endif
+
+            //if (disposed)
+            //    throw new ObjectDisposedException(GetType().FullName);
             this.resource = resource;
             try
             {
@@ -622,11 +629,8 @@ namespace Sharp.Xmpp.Core
                         throw new XmppException("URI not provided for WebSocket connection");
 
                     // Destroy previous object (if any)
-                    if(webSocketClient != null)
-                    {
-                        webSocketClient.Close();
-                        webSocketClient = null;
-                    }
+                    webSocketClient?.Close();
+                    webSocketClient = null;
 
                     webSocketClient = new WebSocket(WebSocketUri, WebProxy, loggerPrefix);
                     webSocketClient.WebSocketOpened += new EventHandler(WebSocketClient_WebSocketOpened);
@@ -671,7 +675,7 @@ namespace Sharp.Xmpp.Core
 
         private void WebSocketClient_WebSocketError(object sender, ExceptionEventArgs e)
         {
-            log.LogDebug("[WebSocketClient_WebSocketError] Exception:[{0}]", e.Exception.ToString());
+            log.LogDebug("[WebSocketClient_WebSocketError] Exception:[{Exception}]", e.Exception);
             RaiseConnectionStatus(false);
         }
 
@@ -681,21 +685,22 @@ namespace Sharp.Xmpp.Core
             RaiseConnectionStatus(false);
         }
 
-        private Boolean IsFatalStreamError(String reason, String details)
+        private static Boolean IsFatalStreamError(String reason, String details)
         {
             if (STREAM_ERROR_FATAL.Contains(reason))
                 return true;
 
-            foreach((String r, String d) in STREAM_ERROR_FATAL_SPECIFIC)
+            details = details?.ToLower();
+            foreach ((String r, String d) in STREAM_ERROR_FATAL_SPECIFIC)
             {
                 if (r.Equals(reason, StringComparison.InvariantCultureIgnoreCase)
-                    && (details?.ToLower().Contains(d) == true))
+                    && (details.Contains(d) == true))
                     return true;
             }
             return false;
         }
 
-        private Boolean IsWarningStreamError(String reason)
+        private static Boolean IsWarningStreamError(String reason)
         {
             if (STREAM_ERROR_WARN.Contains(reason))
                 return true;
@@ -989,7 +994,7 @@ namespace Sharp.Xmpp.Core
                 // Wait for event to be signaled by task that processes the incoming
                 // XML stream.
                 waitHandles[request.Id] = ev;
-                int index = WaitHandle.WaitAny(new WaitHandle[] { ev, cancelIq.Token.WaitHandle },
+                int index = WaitHandle.WaitAny([ev, cancelIq.Token.WaitHandle],
                     timeOut);
                 if (index == WaitHandle.WaitTimeout)
                 {
@@ -1181,17 +1186,11 @@ namespace Sharp.Xmpp.Core
                 // Get rid of managed resources.
                 if (disposing)
                 {
-                    if (parser != null)
-                    {
-                        parser.Close();
-                        parser = null;
-                    }
+                    parser?.Close();
+                    parser = null;
 
-                    if (tcpClient != null)
-                    {
-                        tcpClient.Close();
-                        tcpClient = null;
-                    }
+                    tcpClient?.Close();
+                    tcpClient = null;
 
                     if (webSocketClient != null)
                     {
@@ -1212,13 +1211,18 @@ namespace Sharp.Xmpp.Core
         /// </summary>
         private void AssertValid()
         {
+#if NETSTANDARD2_0 || NETSTANDARD2_1
             if (disposed)
                 throw new ObjectDisposedException(GetType().FullName);
+#else
+            ObjectDisposedException.ThrowIf(disposed, GetType().FullName);
+#endif
+
             //FIXME-FIXED: if it is not connected it will be found out by a lower
             //level exception. Dont throw an exception about connection
             if (!Connected)
             {
-                System.Diagnostics.Debug.WriteLine("Assert Valid: Client is disconnected, however no exception is thrown");
+                log.LogDebug("[AssertValid] Client is disconnected, however no exception is thrown");
                 //throw new InvalidOperationException("Not connected to XMPP server.");
             }
             //FIXME
@@ -1409,7 +1413,7 @@ namespace Sharp.Xmpp.Core
         /// <returns>The IANA name of the selcted SASL mechanism.</returns>
         /// <exception cref="SaslException">No supported mechanism could be found in
         /// the list of mechanisms advertised by the server.</exception>
-        private string SelectMechanism(IEnumerable<string> mechanisms)
+        private static string SelectMechanism(IEnumerable<string> mechanisms)
         {
             var m = Mechanisms.ListByPriority; 
 
@@ -1507,11 +1511,15 @@ namespace Sharp.Xmpp.Core
 
             try
             {
+#if NETSTANDARD2_0 || NETSTANDARD2_1
                 await stream.WriteAsync(buf, 0, buf.Length);
+#else
+                await stream.WriteAsync(buf.AsMemory(0, buf.Length));
+#endif
                 if (debugStanzas) System.Diagnostics.Debug.WriteLine(xml);
                 return true;
             }
-            catch (IOException e)
+            catch
             {
                 RaiseConnectionStatus(false);
                 return false;
@@ -1558,10 +1566,10 @@ namespace Sharp.Xmpp.Core
             {
                 return parser.NextElement(expected);
             }
-            catch (XmppDisconnectionException e)
+            catch
             {
                 RaiseConnectionStatus(false);
-                throw e;
+                throw;
             }
         }
 
@@ -1784,7 +1792,7 @@ namespace Sharp.Xmpp.Core
                                 return;
 
                             default:
-                                log.LogError("ReadXmlWebSocketMessage - not managed:[{0}]", elem.Name);
+                                log.LogError("ReadXmlWebSocketMessage - not managed:[{Name}]", elem.Name);
 
                                 break;
                         }
@@ -1792,7 +1800,7 @@ namespace Sharp.Xmpp.Core
                     }
                     catch (Exception exc)
                     {
-                        log.LogError($"ReadXmlWebSocketMessage - Exception:[{exc}");
+                        log.LogError("ReadXmlWebSocketMessage - Exception:[{Exception}", exc);
                     }
                 }
             }
@@ -1800,9 +1808,9 @@ namespace Sharp.Xmpp.Core
             {
                 log.LogInformation($"ReadXmlWebSocketMessage - ThreadAbortException");
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                log.LogError($"ReadXmlWebSocketMessage - SUB_ERROR - Exception:[{e}");
+                log.LogError("ReadXmlWebSocketMessage - SUB_ERROR - Exception:[{Exception}", ex);
 
                 // Shut down the dispatcher task.
                 cancelDispatch.Cancel();
@@ -1816,16 +1824,22 @@ namespace Sharp.Xmpp.Core
                 cancelIq = null;
                 cancelIq = new CancellationTokenSource();
 
-                //Add the failed connection
-                if ((e is IOException) || (e is XmppDisconnectionException))
-                {
+                if ((ex is IOException) || (ex is XmppDisconnectionException))
                     RaiseConnectionStatus(false);
-                    var ex = new XmppDisconnectionException(e.ToString());
-                    e = ex;
-                }
-                // Raise the error event.
+
                 if (!disposed)
+                {
+                    //Add the failed connection
+                    XmppDisconnectionException e;
+
+                    if (ex is XmppDisconnectionException)
+                        e = ex as XmppDisconnectionException;
+                    else
+                        e = new XmppDisconnectionException(ex.ToString(), ex);
+                    // Raise the error event.
+
                     Error.Raise(this, new ErrorEventArgs(e));
+                }
             }
         }
 
@@ -1841,7 +1855,7 @@ namespace Sharp.Xmpp.Core
                 while (true)
                 {
                     XmlElement elem = parser.NextElement("iq", "message", "presence");
-                    log.LogDebug("[ReadXmlStream] elem:[{0}]", elem.ToXmlString());
+                    log.LogDebug("[ReadXmlStream] elem:[{Xml}]", elem.ToXmlString());
                     // Parse element and dispatch.
                     switch (elem.Name)
                     {
@@ -1863,7 +1877,7 @@ namespace Sharp.Xmpp.Core
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
                 log.LogError("ReadXmlStream - SUB_ERROR");
 
@@ -1878,16 +1892,23 @@ namespace Sharp.Xmpp.Core
                 cancelIq.Dispose();
                 cancelIq = null;
                 cancelIq = new CancellationTokenSource();
-                //Add the failed connection
-                if ((e is IOException) || (e is XmppDisconnectionException))
-                {
+
+                if ((ex is IOException) || (ex is XmppDisconnectionException))
                     RaiseConnectionStatus(false);
-                    var ex = new XmppDisconnectionException(e.ToString());
-                    e = ex;
-                }
+
                 // Raise the error event.
                 if (!disposed)
+                {
+                    //Add the failed connection
+                    XmppDisconnectionException e;
+
+                    if (ex is XmppDisconnectionException)
+                        e = ex as XmppDisconnectionException;
+                    else
+                        e = new XmppDisconnectionException(ex.ToString(), ex);
+
                     Error.Raise(this, new ErrorEventArgs(e));
+                }
             }
         }
 
@@ -1950,9 +1971,7 @@ namespace Sharp.Xmpp.Core
                 {
                     // FIXME: What should we do if an exception is thrown in one of the
                     // event handlers?
-                    log.LogError($"DispatchEvents - global exception - Exception:[{e}]");
-                    //System.Diagnostics.Debug.WriteLine("Error in XMPP Core: " + e.StackTrace + e.ToString());
-                    //throw e;
+                    log.LogError("DispatchEvents - global exception - Exception:[{Exception}]", e);
                 }
             }
         }

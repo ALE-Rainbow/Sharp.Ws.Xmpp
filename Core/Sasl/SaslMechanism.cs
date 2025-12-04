@@ -133,7 +133,7 @@ namespace Sharp.Xmpp.Core.Sasl
         {
             try
             {
-                byte[] data = String.IsNullOrEmpty(challenge) ? new byte[0] :
+                byte[] data = String.IsNullOrEmpty(challenge) ? [] :
                     Convert.FromBase64String(challenge);
                 byte[] response = ComputeResponse(data);
                 return Convert.ToBase64String(response);
@@ -178,7 +178,7 @@ namespace Sharp.Xmpp.Core.Sasl
             {
 
             }
-            return new byte[0];
+            return [];
 
 
 
@@ -222,7 +222,7 @@ namespace Sharp.Xmpp.Core.Sasl
             {
 
             }
-            return new byte[0];
+            return [];
 
             //NameValueCollection nv = ParseServerFirstMessage(challenge);
             //// Extract the server data needed to calculate the client proof.
@@ -272,7 +272,7 @@ namespace Sharp.Xmpp.Core.Sasl
             (var bytesWritten, var challengeResult) = task.Result;
 
             if (challengeResult == SASLChallengeResult.Completed)
-                return new byte[0];
+                return [];
 
             throw new Exception("Server signature has not been verified with success");
 

@@ -63,7 +63,7 @@ namespace Sharp.Xmpp.Core
             actionsToPerform = new BlockingCollection<string>(new ConcurrentQueue<string>());
             messagesReceived = new BlockingCollection<string>(new ConcurrentQueue<string>());
             iqMessagesReceived = new BlockingCollection<Iq>(new ConcurrentQueue<Iq>());
-            iqIdList = new HashSet<string>();
+            iqIdList = [];
         }
 
         public void Open()

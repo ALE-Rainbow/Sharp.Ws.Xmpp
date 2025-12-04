@@ -372,7 +372,7 @@ namespace Sharp.Xmpp.Extensions
         private IEnumerable<Streamhost> ParseStreamhosts(XmlElement query)
         {
             // List preserves the order of the elements as is recommended in XEP-0065.
-            IList<Streamhost> list = new List<Streamhost>();
+            IList<Streamhost> list = [];
             foreach (XmlElement e in query.GetElementsByTagName("streamhost"))
             {
                 try
