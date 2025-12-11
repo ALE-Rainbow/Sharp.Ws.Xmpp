@@ -5,6 +5,8 @@
     /// </summary>
     public enum MucStatusType : int
     {
+        // cf. https://xmpp.org/extensions/xep-0045.html#registrar-statuscodes-init
+
         /// <summary> Real Jid Public </summary>
         RealJidPublic = 100,
 
@@ -60,6 +62,18 @@
         RemovedMembership = 322,
 
         /// <summary> Removed Shutdown </summary>
-        RemovedShutdown = 332
+        RemovedShutdown = 332,
+
+        /// <summary> Removed Shutdown/Error</summary>
+        RemovedError = 333,
+
+        /// <summary> Room is deactivated </summary>
+        RoomDeactivated = 338, // Specific to Rainbow Server
+
+        /// <summary> Room is resumed (after being deactivated) </summary>
+        RoomResumed = 339, // Specific to Rainbow Server
+
+        /// <summary> Bulk join affiliated room </summary>
+        RoomByBulkJoined = 340 // Specific to Rainbow Server
     }
 }

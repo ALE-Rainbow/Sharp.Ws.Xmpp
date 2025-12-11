@@ -147,21 +147,27 @@ namespace Sharp.Xmpp.Extensions
 				foreach (XmlElement item in xElement.GetElementsByTagName ("item")) {
 					// There is only ever one item in a message here but, 
 					// I don't have a better way of getting the first element as an element, not a node.
-					var itemJid = item.GetAttribute ("jid");
-					var itemAffiliation = item.GetAttribute ("affiliation");
-					var itemRole = item.GetAttribute ("role");
-					if (!String.IsNullOrWhiteSpace (itemJid) && !String.IsNullOrWhiteSpace (itemAffiliation) &&
-							!String.IsNullOrWhiteSpace (itemRole)) {
-                        person = new Occupant(
-                           stanza.From,
-                           item.GetAttribute("affiliation"),
-                           item.GetAttribute("role"))
-                        {
-                            RealJid = item.GetAttribute("jid")
-                        };
-                    }
-				}
 
+					var itemJid = item.GetAttribute ("jid");
+                    if(String.IsNullOrWhiteSpace(itemJid))
+                        itemJid = stanza.To.ToString();
+
+                    var itemAffiliation = item.GetAttribute ("affiliation");
+                    if (String.IsNullOrWhiteSpace(itemAffiliation))
+                        itemAffiliation = "none";
+
+                    var itemRole = item.GetAttribute ("role");
+                    if (String.IsNullOrWhiteSpace(itemRole))
+                        itemRole = "none";
+
+                    person = new Occupant(
+                        stanza.From,
+                        itemAffiliation,
+                        itemRole)
+                    {
+                        RealJid = itemJid
+                    };
+				}
 
 				IList<MucStatusType> statusCodeList = [];
 				foreach (XmlElement item in xElement.GetElementsByTagName ("status")) {
