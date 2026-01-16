@@ -32,7 +32,7 @@ namespace Sharp.Xmpp.Core
         private readonly object writeLock = new();
         private readonly object closedLock = new();
 
-        private SemaphoreSlim semaphoreSendSlim = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim semaphoreSendSlim = new (1, 1);
 
         private readonly BlockingCollection<string> actionsToPerform;
         private readonly BlockingCollection<string> messagesReceived;
@@ -68,7 +68,17 @@ namespace Sharp.Xmpp.Core
 
         public void Open()
         {
-            Task.Factory.StartNew(CreateAndManageWebSocket, TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach);
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await CreateAndManageWebSocketAsync();
+                }
+                catch (Exception ex)
+                {
+                    log.LogError("[Open] Fatal error during background connection: {Exception}", ex);
+                }
+            });
         }
 
         public async void Close(bool normalClosure = true)
@@ -91,7 +101,7 @@ namespace Sharp.Xmpp.Core
                         // Nothing to do more
                     }
                 }
-           
+
                 try
                 {
                     clientWebSocket.Dispose();
@@ -104,146 +114,98 @@ namespace Sharp.Xmpp.Core
             }
         }
 
-        private void CreateAndManageWebSocket()
+        private async Task CreateAndManageWebSocketAsync()
         {
             // First CLose / Dispose previous object
             Close();
 
             // Create Client
             clientWebSocket = new ClientWebSocket();
-
             clientWebSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(20);
-
-#if NETCOREAPP
-            clientWebSocket.Options.RemoteCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) => {
-                return true; // If the server certificate is valid.
-            };
-#endif
-
-            // Manage proxy configuration
             clientWebSocket.Options.Proxy = webProxy;
 
+#if NETCOREAPP
+            clientWebSocket.Options.RemoteCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) => true;
+#endif
+
+            using var timeoutCts = new CancellationTokenSource(TIMEOUT_WS_DEFAULT_VALUE);
             try
             {
-                // Create the token source.
-                CancellationTokenSource cts = new();
-                Task result = clientWebSocket.ConnectAsync(new Uri(uri), cts.Token);
-                if(!result.Wait(TIMEOUT_WS_DEFAULT_VALUE))
-                {
-                    try
-                    {
-                        log.LogDebug($"[CreateAndManageWebSocket] after ConnectAsync - NOT opened before timeout");
-                        RaiseWebSocketClosed();
-                        cts.Cancel();
-                        Thread.Sleep(500);
-                        cts.Dispose();
-                    }
-                    catch
-                    {
-
-                    }
-                    return;
-                }
-
-                cts.Dispose();
-
-                // Need to raise WebSocketOpened or WebSocketClosed
+                log.LogDebug("[CreateAndManageWebSocket] Attempting to connect to {Uri}...", uri);
+                await clientWebSocket.ConnectAsync(new Uri(uri), timeoutCts.Token);
                 if (clientWebSocket.State == System.Net.WebSockets.WebSocketState.Open)
                 {
                     webSocketOpened = true;
                     RaiseWebSocketOpened();
+
+                    _ = ManageIncomingMessageAsync();
                 }
                 else
                 {
+                    log.LogWarning("[CreateAndManageWebSocket] Socket not opened. State: {State}", clientWebSocket.State);
                     RaiseWebSocketClosed();
-                    return;
                 }
-
-                // Manage next incoming message
-                ManageIncomingMessage();
-
+            }
+            catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested)
+            {
+                log.LogWarning("[CreateAndManageWebSocket] Connection failed due to timeout ({Timeout}ms)", TIMEOUT_WS_DEFAULT_VALUE);
+                RaiseWebSocketClosed();
             }
             catch (Exception exc)
             {
-                log.LogWarning($"[CreateAndManageWebSocket] Exception:[{Util.SerializeException(exc)}]");
+                log.LogError("[CreateAndManageWebSocket] Exception during connection: {Message}", exc.Message);
+                RaiseWebSocketClosed();
+            }
+        }
+        
+        private async Task ManageIncomingMessageAsync()
+        {
+            var buffer = new byte[8192];
+            var segment = new ArraySegment<byte>(buffer);
+
+            try
+            {
+                // Loop until the web socket is no more opened
+                while (clientWebSocket != null && clientWebSocket.State == WebSocketState.Open)
+                {
+                    using var ms = new MemoryStream();
+                    WebSocketReceiveResult result;
+                    do
+                    {
+                        result = await clientWebSocket.ReceiveAsync(segment, CancellationToken.None);
+
+                        if (result.MessageType == WebSocketMessageType.Close)
+                        {
+                            log.LogDebug("[ManageIncomingMessage] Close received");
+                            RaiseWebSocketClosed();
+                            return;
+                        }
+
+                        ms.Write(buffer, 0, result.Count);
+                    }
+                    while (!result.EndOfMessage);
+
+                    // Read message - only Text format is managed
+                    if (result.MessageType == WebSocketMessageType.Text)
+                    {
+                        ms.Seek(0, SeekOrigin.Begin);
+                        using var reader = new StreamReader(ms, Encoding.UTF8);
+                        string message = reader.ReadToEnd();
+                        QueueMessageReceived(message);
+                    }
+                }
+            }
+            catch (Exception exc)
+            {
+                log.LogWarning("[ManageIncomingMessage] Exception: {Exception}", exc);
                 RaiseWebSocketClosed();
             }
         }
 
-        private void ManageIncomingMessage()
-        {
-            Task.Factory.StartNew( async() =>
-                {
-                    ArraySegment<Byte> buffer = new(new Byte[8192]);
-
-                    WebSocketReceiveResult result = null;
-                    Boolean readingCorrectly = true;
-
-                    using (var ms = new MemoryStream())
-                    {
-                        do
-                        {
-                            try
-                            {
-                                if (clientWebSocket != null)
-                                {
-                                    result = await clientWebSocket.ReceiveAsync(buffer, CancellationToken.None);
-                                    ms.Write(buffer.Array, buffer.Offset, result.Count);
-                                }
-                                else
-                                {
-                                    log.LogWarning("[ManageIncomingMessage] clientWebSocket is null");
-                                    readingCorrectly = false;
-                                }
-                            }
-                            catch (Exception exc)
-                            {
-                                log.LogWarning("[ManageIncomingMessage] Exception when receiving msg: [{Exception}]", exc);
-                                readingCorrectly = false;
-                            }
-                        }
-                        while (readingCorrectly && (!result.EndOfMessage));
-
-                        // Do we read on the web socket correctly ?
-                        if (!readingCorrectly)
-                        {
-                            ClientWebSocketClosed();
-                            return;
-                        }
-
-                        // Queue the message but only if we received text
-                        if (result.MessageType == WebSocketMessageType.Text)
-                        {
-                            ms.Seek(0, SeekOrigin.Begin);
-                            using (var reader = new StreamReader(ms, Encoding.UTF8))
-                            {
-                                String message = reader.ReadToEnd();
-                                QueueMessageReceived(message);
-                            }
-                        }
-                        else if (result.MessageType == WebSocketMessageType.Binary)
-                        {
-                            log.LogWarning("[ManageIncomingMessage] We have received data using unmanaged type - MessageType:[{0}]", result.MessageType.ToString());
-                        }
-                        //else
-                        //{
-                        //    // Nothing special to do here
-                        //}
-
-                    }
-
-                    // Manage next incoming message
-                    ManageIncomingMessage();
-                }
-            );
-        }
-
-#region Iq stuff
+    #region Iq stuff
         public void AddExpectedIqId(string id)
         {
-            //log.LogDebug("AddExpectedIqId:{0}", id);
-            if (!iqIdList.Contains(id))
-                iqIdList.Add(id);
+            iqIdList.Add(id); // Hashset avoids duplicates
         }
 
         public bool IsExpectedIqId(string id)
@@ -260,16 +222,15 @@ namespace Sharp.Xmpp.Core
 
         public Iq DequeueExpectedIqMessage()
         {
-            Iq iq = null;
             //log.LogDebug("DequeueExpectedIqMessage - START");
-            iq = iqMessagesReceived.Take();
+            var iq = iqMessagesReceived.Take();
             //log.LogDebug("DequeueExpectedIqMessage - END");
             return iq;
 
         }
-#endregion
+    #endregion
 
-#region Action to perform
+    #region Action to perform
         public void QueueActionToPerform(String action)
         {
             actionsToPerform.Add(action);
@@ -285,10 +246,10 @@ namespace Sharp.Xmpp.Core
             catch { }
             return null;
         }
-#endregion
+    #endregion
 
 
-#region Messages received
+    #region Messages received
         public void QueueMessageReceived(String message)
         {
             lock (writeLock)
@@ -326,13 +287,13 @@ namespace Sharp.Xmpp.Core
                         message.Contains("<jingle")
                         || message.Contains("urn:xmpp:jingle"))
                         )
-                logWebRTC.LogDebug("[ManageIncomingMessage]: {0}", message);
+                logWebRTC.LogDebug("[ManageIncomingMessage]: {Message}", message);
             else
-                log.LogDebug("[ManageIncomingMessage]: {0}", message);
+                log.LogDebug("[ManageIncomingMessage]: {Message}", message);
 
             return message;
         }
-#endregion
+        #endregion
 
         public async Task<Boolean> SendAsync(string message)
         {
@@ -359,7 +320,7 @@ namespace Sharp.Xmpp.Core
                 return false;
             }
 
-            Boolean noError = false;
+            Boolean noError;
             var sendBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(message));
             try
             {
@@ -372,7 +333,7 @@ namespace Sharp.Xmpp.Core
                 noError = false;
             }
 
-            ILogger logger = null;
+            ILogger logger;
             // Log webRTC stuff
             if ((logWebRTC != null)
                 && (
@@ -384,9 +345,9 @@ namespace Sharp.Xmpp.Core
                 logger = log;
 
             if (noError)
-                logger.LogDebug("[ManageOutgoingMessage]: {0}", message);
+                logger.LogDebug("[ManageOutgoingMessage]: {Message}", message);
             else
-                logger.LogWarning("[ManageOutgoingMessage] NOT SENT: {0}", message);
+                logger.LogWarning("[ManageOutgoingMessage] NOT SENT: {Message}", message);
 
             semaphoreSendSlim.Release();
             return noError;
@@ -403,7 +364,7 @@ namespace Sharp.Xmpp.Core
             {
                 try
                 {
-                    if(semaphoreSendSlim.CurrentCount == 0)
+                    if (semaphoreSendSlim.CurrentCount == 0)
                         semaphoreSendSlim.Release();
                 }
                 catch { }
@@ -412,7 +373,7 @@ namespace Sharp.Xmpp.Core
                 {
                     webSocketOpened = false;
                     if (clientWebSocket != null)
-                        log.LogDebug($"[ClientWebSocketClosed] CloseStatus:[{clientWebSocket.CloseStatus}] -  CloseStatusDescription:[{clientWebSocket.CloseStatusDescription}]");
+                        log.LogDebug("[ClientWebSocketClosed] CloseStatus:[{CloseStatus}] -  CloseStatusDescription:[{CloseStatusDescription}]", clientWebSocket.CloseStatus, clientWebSocket.CloseStatusDescription);
                     else
                         log.LogDebug("[ClientWebSocketClosed]");
 
@@ -430,7 +391,7 @@ namespace Sharp.Xmpp.Core
             }
             catch (Exception ex)
             {
-                log.LogError($"[RaiseWebSocketOpened]  - Exception raising WebSocketOpened:[{ex}]");
+                log.LogError("[RaiseWebSocketOpened]  - Exception raising WebSocketOpened:[{Exception}]", ex);
             }
         }
 
@@ -438,12 +399,12 @@ namespace Sharp.Xmpp.Core
         {
             log.LogDebug("Web socket closed");
             try
-            { 
+            {
                 WebSocketClosed?.Invoke(this, null);
             }
             catch (Exception ex)
             {
-                log.LogError($"[RaiseWebSocketClosed]  - Exception raising WebSocketClosed:[{ex}]");
+                log.LogError("[RaiseWebSocketClosed]  - Exception raising WebSocketClosed:[{Exception}]", ex);
             }
         }
 
