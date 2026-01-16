@@ -9,7 +9,7 @@ namespace Sharp.Xmpp.Extensions
     /// <summary>
     /// Implements the 'Configuration' extension used in Rainbow Hub
     /// </summary>
-    internal class Configuration : XmppExtension, IInputFilter<Message>
+    internal class Configuration : XmppExtension, IInputFilter<Message>, IInputFilter<Presence>
     {
         private readonly ILogger log;
 
@@ -124,6 +124,11 @@ namespace Sharp.Xmpp.Extensions
         public event EventHandler<XmlElementEventArgs> Logs;
 
         /// <summary>
+        /// The event raised when a CustomStatus message has been received
+        /// </summary>
+        public event EventHandler<XmlElementEventArgs> CustomStatus;
+
+        /// <summary>
         /// The event raised when the synhcronisation status with a provider has changed
         /// </summary>
         public event EventHandler<SynchroProviderStatusEventArgs> SynchroProviderStatus;
@@ -176,6 +181,12 @@ namespace Sharp.Xmpp.Extensions
                             UserSetting.Raise(this, new UserSettingEventArgs(name, value));
                         }
                     }
+                }
+                // Do we receive message about customstatus ?
+                else if (message.Data["customStatus", "jabber:iq:notification"] != null)
+                {
+                    CustomStatus.Raise(this, new XmlElementEventArgs(message.Data));
+                    return true;
                 }
                 // Do we receive message about calendar synchronization ?
                 else if (message.Data["calendar"] != null)
@@ -439,6 +450,18 @@ namespace Sharp.Xmpp.Extensions
                         return true;
                     }
                 }
+            }
+
+            // Pass the message on to the next handler.
+            return false;
+        }
+
+        public bool Input(Presence stanza)
+        {
+            if (stanza.Data["customStatus", "jabber:iq:notification"] != null)
+            {
+                CustomStatus.Raise(this, new XmlElementEventArgs(stanza.Data));
+                return true;
             }
 
             // Pass the message on to the next handler.

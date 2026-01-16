@@ -1468,6 +1468,22 @@ namespace Sharp.Xmpp.Client
         }
 
         /// <summary>
+        /// The event raised when a CustomStatus message has been received
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> CustomStatus
+        {
+            add
+            {
+                configuration.CustomStatus += value;
+            }
+            remove
+            {
+                configuration.CustomStatus -= value;
+            }
+        }
+
+
+        /// <summary>
         /// The event raised when the synhcronisation status with a provider has changed
         /// </summary>
         public event EventHandler<Sharp.Xmpp.Extensions.SynchroProviderStatusEventArgs> SynchroProviderStatus
