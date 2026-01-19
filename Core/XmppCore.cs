@@ -1575,7 +1575,8 @@ namespace Sharp.Xmpp.Core
 
         private void ReadAction()
         {
-            while (true)
+            Boolean canContinue = true;
+            while (canContinue)
             {
                 if (webSocketClient == null)
                     break;
@@ -1587,6 +1588,8 @@ namespace Sharp.Xmpp.Core
                     {
                         ActionToPerform(this, new TextEventArgs(action));
                     }
+
+                    canContinue = (action != ACTION_FULLY_CONNECTED);
                 }
                 catch (Exception exc)
                 {
