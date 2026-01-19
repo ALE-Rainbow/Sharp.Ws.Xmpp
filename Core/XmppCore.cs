@@ -160,21 +160,7 @@ namespace Sharp.Xmpp.Core
         /// </summary>
         private CancellationTokenSource cancelIq = new();
 
-        /// <summary>
-        /// A FIFO of stanzas waiting to be processed.
-        /// </summary>
-        private readonly BlockingCollection<Stanza> stanzaQueue = [];
-
-        private readonly BlockingCollection<Stanza> streamManagementStanzaQueue = [];
-
-        private readonly BlockingCollection<Stanza>[] fullStanzaQueue;
-         
-
-        /// <summary>
-        /// A cancellation token source for cancelling the dispatcher, if neccessary.
-        /// </summary>
-        private CancellationTokenSource cancelDispatch = new();
-
+        
         /// <summary>
         /// Is web socket used - false by default
         /// </summary>
@@ -541,9 +527,6 @@ namespace Sharp.Xmpp.Core
             Password = password;
             Tls = tls;
             Validate = validate;
-
-            fullStanzaQueue = [streamManagementStanzaQueue, stanzaQueue];
-
         }
 
         /// <summary>
@@ -664,19 +647,13 @@ namespace Sharp.Xmpp.Core
 
                     // Set up the listener and dispatcher tasks.
                     Task.Factory.StartNew(ReadXmlStream, TaskCreationOptions.LongRunning);
-                    Task.Factory.StartNew(DispatchEvents, TaskCreationOptions.LongRunning);
+                    //Task.Factory.StartNew(DispatchEvents, TaskCreationOptions.LongRunning);
                 }
             }
             catch (XmlException e)
             {
                 throw new XmppException("The XML stream could not be negotiated.", e);
             }
-        }
-
-        private void WebSocketClient_WebSocketError(object sender, ExceptionEventArgs e)
-        {
-            log.LogDebug("[WebSocketClient_WebSocketError] Exception:[{Exception}]", e.Exception);
-            RaiseConnectionStatus(false);
         }
 
         private void WebSocketClient_WebSocketClosed(object sender, EventArgs e)
@@ -765,7 +742,7 @@ namespace Sharp.Xmpp.Core
             // Set up the listener and dispatcher tasks.
             Task.Factory.StartNew(ReadAction, TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach);
             Task.Factory.StartNew(ReadXmlWebSocketMessage, TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach);
-            Task.Factory.StartNew(DispatchEvents, TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach);
+            //Task.Factory.StartNew(DispatchEvents, TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach);
 
             var xml = Xml.Element("open", "urn:ietf:params:xml:ns:xmpp-framing")
                 .Attr("to", hostname)
@@ -1282,7 +1259,6 @@ namespace Sharp.Xmpp.Core
             }
         }
 
-
         /// <summary>
         /// Initiates an XML stream with the specified entity.
         /// </summary>
@@ -1733,16 +1709,10 @@ namespace Sharp.Xmpp.Core
                                     webSocketClient.QueueExpectedIqMessage(iq);
                                     break;
                                 }
-                                //else
-                                //{
-                                //    log.LogDebug("Not an expected Iq Message:{0}", iq.Id);
-                                //}
-
-
                                 if (iq.IsRequest)
                                 {
-                                    //log.LogDebug("Iq is request:{0}", iq.Id);
-                                    stanzaQueue.Add(iq);
+                                    Iq.Raise(this, new IqEventArgs(iq));
+                                    IncreaseStanzaReceivedAndHandled();
                                 }
                                 else
                                 {
@@ -1752,13 +1722,13 @@ namespace Sharp.Xmpp.Core
                                 break;
 
                             case "message":
-                                //log.LogDebug("message received");
-                                stanzaQueue.Add(new Message(elem));
+                                Message.Raise(this, new MessageEventArgs(new Message(elem)));
+                                IncreaseStanzaReceivedAndHandled();
                                 break;
 
                             case "presence":
-                                //log.LogDebug("presence received");
-                                stanzaQueue.Add(new Presence(elem));
+                                Presence.Raise(this, new PresenceEventArgs(new Presence(elem)));
+                                IncreaseStanzaReceivedAndHandled();
                                 break;
 
                             case "enabled": // in response to "enable"
@@ -1766,7 +1736,7 @@ namespace Sharp.Xmpp.Core
                             case "r": // request
                             case "resumed": // in response to "resume"
                             case "failed": // In case of pb
-                                streamManagementStanzaQueue.Add(new StreamManagementStanza(elem));
+                                StreamManagementStanza.Raise(this, new StreamManagementStanzaEventArgs(new StreamManagementStanza(elem)));
                                 break;
 
                             case "open":
@@ -1815,12 +1785,6 @@ namespace Sharp.Xmpp.Core
             {
                 log.LogError("ReadXmlWebSocketMessage - SUB_ERROR - Exception:[{Exception}", ex);
 
-                // Shut down the dispatcher task.
-                cancelDispatch.Cancel();
-                cancelDispatch.Dispose();
-                cancelDispatch = null;
-                cancelDispatch = new CancellationTokenSource();
-
                 // Unblock any threads blocking on pending IQ requests.
                 cancelIq.Cancel();
                 cancelIq.Dispose();
@@ -1857,7 +1821,7 @@ namespace Sharp.Xmpp.Core
             {
                 while (true)
                 {
-                    XmlElement elem = parser.NextElement("iq", "message", "presence");
+                    XmlElement elem = parser.NextElement("iq", "message", "presence", "enabled", "a", "r", "resumed", "failed");
                     log.LogDebug("[ReadXmlStream] elem:[{Xml}]", elem.ToXmlString());
                     // Parse element and dispatch.
                     switch (elem.Name)
@@ -1865,17 +1829,30 @@ namespace Sharp.Xmpp.Core
                         case "iq":
                             Iq iq = new(elem);
                             if (iq.IsRequest)
-                                stanzaQueue.Add(iq);
+                            {
+                                Iq.Raise(this, new IqEventArgs(iq));
+                                IncreaseStanzaReceivedAndHandled();
+                            }
                             else
                                 HandleIqResponse(iq);
                             break;
 
                         case "message":
-                            stanzaQueue.Add(new Message(elem));
+                            Message.Raise(this, new MessageEventArgs(new Message(elem)));
+                            IncreaseStanzaReceivedAndHandled();
                             break;
 
                         case "presence":
-                            stanzaQueue.Add(new Presence(elem));
+                            Presence.Raise(this, new PresenceEventArgs(new Presence(elem)));
+                            IncreaseStanzaReceivedAndHandled();
+                            break;
+
+                        case "enabled": // in response to "enable"
+                        case "a": // answer to a request
+                        case "r": // request
+                        case "resumed": // in response to "resume"
+                        case "failed": // In case of pb
+                            StreamManagementStanza.Raise(this, new StreamManagementStanzaEventArgs(new StreamManagementStanza(elem)));
                             break;
                     }
                 }
@@ -1883,12 +1860,6 @@ namespace Sharp.Xmpp.Core
             catch (Exception ex)
             {
                 log.LogError("ReadXmlStream - SUB_ERROR");
-
-                // Shut down the dispatcher task.
-                cancelDispatch.Cancel();
-                cancelDispatch.Dispose();
-                cancelDispatch = null;
-                cancelDispatch = new CancellationTokenSource();
 
                 // Unblock any threads blocking on pending IQ requests.
                 cancelIq.Cancel();
@@ -1921,62 +1892,6 @@ namespace Sharp.Xmpp.Core
                 StreamManagementLastStanzaReceivedByClient++;
             else
                 StreamManagementLastStanzaReceivedByClient = 0;
-        }
-
-        /// <summary>
-        /// Continously removes stanzas from the FIFO of incoming stanzas and raises
-        /// the respective events.
-        /// </summary>
-        /// <remarks>This runs in the context of a separate thread. All stanza events
-        /// are streamlined and execute in the context of this thread.</remarks>
-        private void DispatchEvents()
-        {
-            while (true)
-            {
-                try
-                {
-                    BlockingCollection<Stanza>.TakeFromAny(fullStanzaQueue, out Stanza stanza, cancelDispatch.Token);
-
-                    //log.LogDebug("DispatchEvents - message:[{0}]", stanza.ToString());
-                    if (stanza is Iq)
-                    {
-                        Iq.Raise(this, new IqEventArgs(stanza as Iq));
-                        IncreaseStanzaReceivedAndHandled();
-                    }
-                    else if (stanza is Message message)
-                    {
-                        Message.Raise(this, new MessageEventArgs(message));
-                        IncreaseStanzaReceivedAndHandled();
-                    }
-                    else if (stanza is Presence presence)
-                    {
-                        Presence.Raise(this, new PresenceEventArgs(presence));
-                        IncreaseStanzaReceivedAndHandled();
-                    }
-                    else if (stanza is StreamManagementStanza sms)
-                        StreamManagementStanza.Raise(this, new StreamManagementStanzaEventArgs(sms));
-                    else
-                        log.LogError("DispatchEvents - not a valid stanza ....");
-                }
-                catch (OperationCanceledException)
-                {
-                    // Quit the task if it's been cancelled.
-                    log.LogInformation("DispatchEvents - OperationCanceledException - ERROR");
-                    return;
-                }
-                catch (ThreadAbortException)
-                {
-                    // Quit the task if it's been cancelled.
-                    log.LogInformation("DispatchEvents - ThreadAbortException");
-                    return;
-                }
-                catch (Exception e)
-                {
-                    // FIXME: What should we do if an exception is thrown in one of the
-                    // event handlers?
-                    log.LogError("DispatchEvents - global exception - Exception:[{Exception}]", e);
-                }
-            }
         }
 
         /// <summary>
