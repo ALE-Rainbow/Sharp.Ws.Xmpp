@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -8,8 +10,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-
-using Microsoft.Extensions.Logging;
 
 
 namespace Sharp.Xmpp.Core
@@ -160,15 +160,15 @@ namespace Sharp.Xmpp.Core
         
         private async Task ManageIncomingMessageAsync()
         {
-            var buffer = new byte[8192];
+            int SIZE = 8192;
+            var buffer = ArrayPool<byte>.Shared.Rent(SIZE);
             var segment = new ArraySegment<byte>(buffer);
-
+            using var ms = new MemoryStream(SIZE);
             try
             {
                 // Loop until the web socket is no more opened
                 while (clientWebSocket != null && clientWebSocket.State == WebSocketState.Open)
                 {
-                    using var ms = new MemoryStream();
                     WebSocketReceiveResult result;
                     do
                     {
@@ -180,25 +180,29 @@ namespace Sharp.Xmpp.Core
                             RaiseWebSocketClosed();
                             return;
                         }
-
-                        ms.Write(buffer, 0, result.Count);
+                        else if (result.MessageType == WebSocketMessageType.Text)
+                            ms.Write(buffer, 0, result.Count);
                     }
                     while (!result.EndOfMessage);
 
                     // Read message - only Text format is managed
                     if (result.MessageType == WebSocketMessageType.Text)
                     {
-                        ms.Seek(0, SeekOrigin.Begin);
-                        using var reader = new StreamReader(ms, Encoding.UTF8);
-                        string message = reader.ReadToEnd();
+                        string message = Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
                         QueueMessageReceived(message);
                     }
+                    ms.SetLength(0);
                 }
             }
             catch (Exception exc)
             {
                 log.LogWarning("[ManageIncomingMessage] Exception: {Exception}", exc);
                 RaiseWebSocketClosed();
+            }
+            finally
+            {
+                // /!\ Need to return buffer to the shared pool
+                ArrayPool<byte>.Shared.Return(buffer);
             }
         }
 
@@ -293,7 +297,7 @@ namespace Sharp.Xmpp.Core
 
             return message;
         }
-        #endregion
+    #endregion
 
         public async Task<Boolean> SendAsync(string message)
         {
