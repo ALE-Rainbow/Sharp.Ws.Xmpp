@@ -35,6 +35,10 @@ namespace Sharp.Xmpp.Core
         // public const String ACTION_SET_DEFAULT_STATUS = "SET_DEFAULT_STATUS"; // No more used -> Must be done by application itself
         public const String ACTION_FULLY_CONNECTED = "FULLY_CONNECTED";
 
+        private readonly BlockingCollection<string> actionsToPerform;
+        private readonly BlockingCollection<Iq> iqMessagesReceived;
+        private readonly HashSet<String> iqIdList;
+
         public event EventHandler<TextEventArgs> ActionToPerform;
         public event EventHandler<EventArgs> StreamManagementRequestAcknowledgement;
         public event EventHandler<ConnectionStatusEventArgs> ConnectionStatus;
@@ -527,6 +531,10 @@ namespace Sharp.Xmpp.Core
             Password = password;
             Tls = tls;
             Validate = validate;
+
+            actionsToPerform = new (new ConcurrentQueue<string>());
+            iqMessagesReceived = new BlockingCollection<Iq>(new ConcurrentQueue<Iq>());
+            iqIdList = [];
         }
 
         /// <summary>
@@ -958,9 +966,9 @@ namespace Sharp.Xmpp.Core
             if (useWebSocket)
             {
                 //log.LogDebug("before to send IqRequest:", request.Id);
-                webSocketClient.AddExpectedIqId(request.Id);
+                AddExpectedIqId(request.Id);
                 Send(request);
-                Iq response = webSocketClient.DequeueExpectedIqMessage();
+                Iq response = DequeueExpectedIqMessage();
                 return response;
             }
             else
@@ -1559,7 +1567,7 @@ namespace Sharp.Xmpp.Core
 
                 try
                 {
-                    string action = webSocketClient.DequeueActionToPerform();
+                    string action = DequeueActionToPerform();
                     if ( (ActionToPerform != null) && (action != null) )
                     {
                         ActionToPerform(this, new TextEventArgs(action));
@@ -1574,10 +1582,52 @@ namespace Sharp.Xmpp.Core
             }
         }
 
-        public void QueueActionToPerform(string action)
+    #region Iq stuff
+        public void AddExpectedIqId(string id)
         {
-            webSocketClient?.QueueActionToPerform(action);
+            iqIdList.Add(id); // Hashset avoids duplicates
         }
+
+        public bool IsExpectedIqId(string id)
+        {
+            //log.LogDebug("IsExpectedIqId:{0}", id);
+            return iqIdList.Contains(id);
+        }
+
+        public void QueueExpectedIqMessage(Iq iq)
+        {
+            //log.LogDebug("QueueExpectedIqMessage :{0}", iq.ToString());
+            iqMessagesReceived.Add(iq);
+        }
+
+        public Iq DequeueExpectedIqMessage()
+        {
+            //log.LogDebug("DequeueExpectedIqMessage - START");
+            var iq = iqMessagesReceived.Take();
+            //log.LogDebug("DequeueExpectedIqMessage - END");
+            return iq;
+
+        }
+    #endregion Iq stuff
+
+
+    #region Action to perform
+        public void QueueActionToPerform(String action)
+        {
+            actionsToPerform.Add(action);
+        }
+
+        public string DequeueActionToPerform()
+        {
+            try
+            {
+                string action = actionsToPerform.Take();
+                return action;
+            }
+            catch { }
+            return null;
+        }
+    #endregion Action to perform
 
         /// <summary>
         /// Listens for incoming XML stanzas and raises the appropriate events.
@@ -1698,15 +1748,15 @@ namespace Sharp.Xmpp.Core
                                 if (attribute == BIND_ID)
                                 {
                                     Jid = new Jid(elem["bind"]["jid"].InnerText);
-                                    webSocketClient.QueueActionToPerform(ACTION_CREATE_SESSION);
+                                    QueueActionToPerform(ACTION_CREATE_SESSION);
                                     break;
                                 }
 
                                 Iq iq = new(elem);
                                 //log.LogDebug("iq.Id: " + iq.Id);
-                                if (webSocketClient.IsExpectedIqId(iq.Id))
+                                if (IsExpectedIqId(iq.Id))
                                 {
-                                    webSocketClient.QueueExpectedIqMessage(iq);
+                                    QueueExpectedIqMessage(iq);
                                     break;
                                 }
                                 if (iq.IsRequest)

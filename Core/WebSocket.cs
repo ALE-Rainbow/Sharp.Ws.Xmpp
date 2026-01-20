@@ -34,10 +34,7 @@ namespace Sharp.Xmpp.Core
 
         private readonly SemaphoreSlim semaphoreSendSlim = new (1, 1);
 
-        private readonly BlockingCollection<string> actionsToPerform;
         private readonly BlockingCollection<string> messagesReceived;
-        private readonly BlockingCollection<Iq> iqMessagesReceived;
-        private readonly HashSet<String> iqIdList;
 
         private readonly WebProxy webProxy = null;
 
@@ -60,10 +57,7 @@ namespace Sharp.Xmpp.Core
 
             this.webProxy = webProxy;
 
-            actionsToPerform = new BlockingCollection<string>(new ConcurrentQueue<string>());
             messagesReceived = new BlockingCollection<string>(new ConcurrentQueue<string>());
-            iqMessagesReceived = new BlockingCollection<Iq>(new ConcurrentQueue<Iq>());
-            iqIdList = [];
         }
 
         public void Open()
@@ -205,53 +199,6 @@ namespace Sharp.Xmpp.Core
                 ArrayPool<byte>.Shared.Return(buffer);
             }
         }
-
-    #region Iq stuff
-        public void AddExpectedIqId(string id)
-        {
-            iqIdList.Add(id); // Hashset avoids duplicates
-        }
-
-        public bool IsExpectedIqId(string id)
-        {
-            //log.LogDebug("IsExpectedIqId:{0}", id);
-            return iqIdList.Contains(id);
-        }
-
-        public void QueueExpectedIqMessage(Iq iq)
-        {
-            //log.LogDebug("QueueExpectedIqMessage :{0}", iq.ToString());
-            iqMessagesReceived.Add(iq);
-        }
-
-        public Iq DequeueExpectedIqMessage()
-        {
-            //log.LogDebug("DequeueExpectedIqMessage - START");
-            var iq = iqMessagesReceived.Take();
-            //log.LogDebug("DequeueExpectedIqMessage - END");
-            return iq;
-
-        }
-    #endregion
-
-    #region Action to perform
-        public void QueueActionToPerform(String action)
-        {
-            actionsToPerform.Add(action);
-        }
-
-        public string DequeueActionToPerform()
-        {
-            try
-            {
-                string action = actionsToPerform.Take();
-                return action;
-            }
-            catch { }
-            return null;
-        }
-    #endregion
-
 
     #region Messages received
         public void QueueMessageReceived(String message)
