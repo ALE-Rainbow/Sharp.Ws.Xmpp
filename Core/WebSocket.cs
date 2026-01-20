@@ -26,10 +26,8 @@ namespace Sharp.Xmpp.Core
 
         private bool webSocketOpened = false;
 
-        private bool rootElement;
         private readonly string uri;
 
-        private readonly object writeLock = new();
         private readonly object closedLock = new();
 
         private readonly SemaphoreSlim semaphoreSendSlim = new (1, 1);
@@ -203,29 +201,7 @@ namespace Sharp.Xmpp.Core
     #region Messages received
         public void QueueMessageReceived(String message)
         {
-            lock (writeLock)
-            {
-                XmlDocument xmlDocument = new();
-                try
-                {
-                    // Check if we have a valid XML message - if not an exception is raised
-                    xmlDocument.LoadXml(message);
-
-                    if (rootElement)
-                    {
-                        // Add message in the queue
-                        messagesReceived.Add(message);
-                    }
-                    else
-                    {
-                        ReadRootElement(xmlDocument);
-                    }
-                }
-                catch (Exception exc)
-                {
-                    log.LogError("[QueueMessageReceived] - Exception:[{exception}]", exc);
-                }
-            }
+            messagesReceived.Add(message);
         }
 
         public string DequeueMessageReceived()
@@ -304,11 +280,6 @@ namespace Sharp.Xmpp.Core
             return noError;
         }
 
-        public void Send(string xml)
-        {
-            AsyncHelper.RunSync(async () => await SendAsync(xml).ConfigureAwait(false));
-        }
-
         private void ClientWebSocketClosed()
         {
             lock (closedLock)
@@ -356,29 +327,6 @@ namespace Sharp.Xmpp.Core
             catch (Exception ex)
             {
                 log.LogError("[RaiseWebSocketClosed]  - Exception raising WebSocketClosed:[{Exception}]", ex);
-            }
-        }
-
-        private void ReadRootElement(XmlDocument xmlDocument)
-        {
-            XmlElement Open;
-            Open = xmlDocument.DocumentElement;
-
-            if (Open == null)
-            {
-                log.LogError("ReadRootElement - Unexpected XML message received");
-            }
-
-            if (Open.Name == "open")
-            {
-                rootElement = true;
-                string lang = Open.GetAttribute("xml:lang");
-                if (!String.IsNullOrEmpty(lang))
-                    Language = lang;
-            }
-            else
-            {
-                log.LogError("ReadRootElement - ERROR");
             }
         }
     }

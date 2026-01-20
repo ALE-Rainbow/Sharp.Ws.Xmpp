@@ -661,7 +661,6 @@ namespace Sharp.Xmpp.Im
                     break;
 
                 case XmppCore.ACTION_SERVICE_DISCOVERY:
-                    core.SetLanguage();
                     ServiceDiscovery serviceDiscovery = GetExtension(typeof(ServiceDiscovery)) as ServiceDiscovery;
                     serviceDiscovery.Supports(core.Jid.Domain, []);
                     
@@ -2194,11 +2193,8 @@ namespace Sharp.Xmpp.Im
             string lang = presence.Data.GetAttribute("xml:lang");
             var dict = new Dictionary<string, string>();
             if (String.IsNullOrEmpty(lang) && (core is not null))
-            {
-                if (String.IsNullOrEmpty(core.Language))
-                    core.SetLanguage();
                 lang = core.Language;
-            }
+
             foreach (XmlNode node in presence.Data.GetElementsByTagName("status"))
             {
                 if (node is not XmlElement element)

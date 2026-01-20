@@ -1790,7 +1790,9 @@ namespace Sharp.Xmpp.Core
                                 break;
 
                             case "open":
-                                // Nothing special to do
+                                string lang = elem.GetAttribute("xml:lang");
+                                if (!String.IsNullOrEmpty(lang))
+                                    Language = lang;
                                 break;
 
                             case "close":
