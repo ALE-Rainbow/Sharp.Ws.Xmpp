@@ -38,12 +38,6 @@ namespace Sharp.Xmpp.Core
 
         private ClientWebSocket clientWebSocket = null;
 
-        public String Language
-        {
-            get;
-            private set;
-        }
-
         public WebSocket(String uri, WebProxy webProxy, string loggerPrefix = null)
         {
             log = LogFactory.CreateLogger<WebSocket>(loggerPrefix);
@@ -172,6 +166,8 @@ namespace Sharp.Xmpp.Core
                             RaiseWebSocketClosed();
                             return;
                         }
+
+                        // Fill memory stream only for Text messages
                         else if (result.MessageType == WebSocketMessageType.Text)
                             ms.Write(buffer, 0, result.Count);
                     }
@@ -183,6 +179,8 @@ namespace Sharp.Xmpp.Core
                         string message = Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
                         QueueMessageReceived(message);
                     }
+
+                    // Reset memory stream for next message
                     ms.SetLength(0);
                 }
             }

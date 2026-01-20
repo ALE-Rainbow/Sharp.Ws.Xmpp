@@ -485,14 +485,6 @@ namespace Sharp.Xmpp.Core
         /// </summary>
         public event EventHandler<StreamManagementStanzaEventArgs> StreamManagementStanza;
 
-        public void SetLanguage()
-        {
-            if(String.IsNullOrEmpty(Language))
-                Language = webSocketClient.Language;
-            if (String.IsNullOrEmpty(Language))
-                Language = Util.GetCultureName();
-        }
-
         /// <summary>
         /// Initializes a new instance of the XmppCore class.
         /// </summary>
