@@ -23,6 +23,7 @@ namespace Sharp.Xmpp.Core
     public class XmppCore : IDisposable
     {
         private readonly ILogger log;
+        private readonly ILogger logWebRTC;
         private readonly String loggerPrefix;
 
         private const String BIND_ID = "bind-0";
@@ -59,7 +60,7 @@ namespace Sharp.Xmpp.Core
         /// </summary>
         private TcpClient tcpClient;
 
-        private WebSocket webSocketClient;
+        private String webSocketClientManagedId = null;
 
         /// <summary>
         /// The (network) stream used for sending and receiving XML data.
@@ -510,6 +511,7 @@ namespace Sharp.Xmpp.Core
         {
             this.loggerPrefix = loggerPrefix;
             log = LogFactory.CreateLogger<XmppCore>(loggerPrefix);
+            logWebRTC = LogFactory.CreateWebRTCLogger(loggerPrefix);
 
             if (address == string.Empty)
                 Address = hostname;
@@ -601,8 +603,6 @@ namespace Sharp.Xmpp.Core
             ObjectDisposedException.ThrowIf(disposed, GetType().FullName);
 #endif
 
-            //if (disposed)
-            //    throw new ObjectDisposedException(GetType().FullName);
             this.resource = resource;
             try
             {
@@ -611,15 +611,14 @@ namespace Sharp.Xmpp.Core
                     if(String.IsNullOrEmpty(WebSocketUri))
                         throw new XmppException("URI not provided for WebSocket connection");
 
-                    // Destroy previous object (if any)
-                    webSocketClient?.Close();
-                    webSocketClient = null;
+                    webSocketClientManagedId = Guid.NewGuid().ToString();
+                    var webSocketClientManager = WebSocketClientManager.Instance;
+                    webSocketClientManager.OnClientConnected += WebSocketClientManager_OnClientConnected;
+                    webSocketClientManager.OnClientDisconnected += WebSocketClientManager_OnClientDisconnected;
+                    webSocketClientManager.OnClientError += WebSocketClientManager_OnClientError;
+                    webSocketClientManager.OnMessageReceived += WebSocketClientManager_OnMessageReceived;
 
-                    webSocketClient = new WebSocket(WebSocketUri, WebProxy, loggerPrefix);
-                    webSocketClient.WebSocketOpened += new EventHandler(WebSocketClient_WebSocketOpened);
-                    webSocketClient.WebSocketClosed += new EventHandler(WebSocketClient_WebSocketClosed);
-
-                    webSocketClient.Open();
+                    AsyncHelper.RunSync(async() => await webSocketClientManager.ConnectAsync(webSocketClientManagedId, WebSocketUri, WebProxy));
                 }
                 else
                 {
@@ -647,19 +646,62 @@ namespace Sharp.Xmpp.Core
 
                     // Set up the listener and dispatcher tasks.
                     Task.Factory.StartNew(ReadXmlStream, TaskCreationOptions.LongRunning);
-                    //Task.Factory.StartNew(DispatchEvents, TaskCreationOptions.LongRunning);
                 }
             }
             catch (XmlException e)
             {
-                throw new XmppException("The XML stream could not be negotiated.", e);
+                RaiseConnectionStatus(false);
             }
         }
 
-        private void WebSocketClient_WebSocketClosed(object sender, EventArgs e)
+        private void WebSocketClientManager_OnMessageReceived(string clientId, string message)
         {
-            log.LogDebug("[WebSocketClient_WebSocketClosed]");
+            if (clientId != webSocketClientManagedId)
+                return;
+            ManageMessageReceived(message);
+        }
+
+        private void WebSocketClientManager_OnClientError(string clientId, Exception exception)
+        {
+            if (clientId != webSocketClientManagedId)
+                return;
+        }
+
+        private void WebSocketClientManager_OnClientDisconnected(string clientId, string reason, Exception exception)
+        {
+            if(clientId != webSocketClientManagedId)
+                return;
+
+            // Remove previous event handlers
+            var webSocketClientManager = WebSocketClientManager.Instance;
+            webSocketClientManager.OnClientConnected += WebSocketClientManager_OnClientConnected;
+            webSocketClientManager.OnClientDisconnected += WebSocketClientManager_OnClientDisconnected;
+            webSocketClientManager.OnClientError += WebSocketClientManager_OnClientError;
+            webSocketClientManager.OnMessageReceived += WebSocketClientManager_OnMessageReceived;
+
             RaiseConnectionStatus(false);
+        }
+
+        private void WebSocketClientManager_OnClientConnected(string clientId)
+        {
+            if (clientId != webSocketClientManagedId)
+                return;
+
+            log.LogDebug("[WebSocketClientManager_OnClientConnected]");
+
+            // We are connected.
+            Connected = true;
+
+            // Set up the listener and dispatcher tasks.
+            Task.Factory.StartNew(ReadAction, TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach);
+
+            var xml = Xml.Element("open", "urn:ietf:params:xml:ns:xmpp-framing")
+                .Attr("to", hostname)
+                .Attr("version", "1.0")
+                .Attr("xmlns:stream", "http://etherx.jabber.org/streams")
+                .Attr("xml:lang", Util.GetCultureName());
+            Send(xml.ToXmlString(xmlDeclaration: true, leaveOpen: false), false);
+
         }
 
         private static Boolean IsFatalStreamError(String reason, String details)
@@ -712,44 +754,13 @@ namespace Sharp.Xmpp.Core
             Connected = status.Connected;
             if (!Connected)
             {
-                if (webSocketClient != null)
+                if (webSocketClientManagedId is not null)
                 {
-                    try
-                    {
-                        webSocketClient.WebSocketClosed -= WebSocketClient_WebSocketClosed;
-                        webSocketClient.WebSocketOpened -= WebSocketClient_WebSocketOpened;
-
-                        webSocketClient.Close();
-                        webSocketClient = null;
-
-                    } catch
-                    {
-                        // Nothing to do more
-                    }
+                    AsyncHelper.RunSync(async () => await WebSocketClientManager.Instance.DisconnectAsync(webSocketClientManagedId).ConfigureAwait(false));
+                    webSocketClientManagedId = null;
                 }
             }
-
             ConnectionStatus.Raise(this, status);
-        }
-
-        private void WebSocketClient_WebSocketOpened(object sender, EventArgs e)
-        {
-            log.LogDebug("[WebSocketClient_WebSocketOpened]");
-
-            // We are connected.
-            Connected = true;
-
-            // Set up the listener and dispatcher tasks.
-            Task.Factory.StartNew(ReadAction, TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach);
-            Task.Factory.StartNew(ReadXmlWebSocketMessage, TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach);
-            //Task.Factory.StartNew(DispatchEvents, TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach);
-
-            var xml = Xml.Element("open", "urn:ietf:params:xml:ns:xmpp-framing")
-                .Attr("to", hostname)
-                .Attr("version", "1.0")
-                .Attr("xmlns:stream", "http://etherx.jabber.org/streams")
-                .Attr("xml:lang", Util.GetCultureName());
-            Send(xml.ToXmlString(xmlDeclaration: true, leaveOpen: false), false);
         }
 
         /// <summary>
@@ -1160,6 +1171,7 @@ namespace Sharp.Xmpp.Core
             {
                 // Indicate that the instance has been disposed.
                 disposed = true;
+
                 // Get rid of managed resources.
                 if (disposing)
                 {
@@ -1169,16 +1181,15 @@ namespace Sharp.Xmpp.Core
                     tcpClient?.Close();
                     tcpClient = null;
 
-                    if (webSocketClient != null)
+                    if(webSocketClientManagedId is not null)
                     {
-                        webSocketClient.WebSocketClosed -= WebSocketClient_WebSocketClosed;
-                        webSocketClient.WebSocketOpened -= WebSocketClient_WebSocketOpened;
-
-                        webSocketClient.Close(normalClosure);
-                        webSocketClient = null;
+                        AsyncHelper.RunSync(async () => await WebSocketClientManager.Instance.DisconnectAsync(webSocketClientManagedId).ConfigureAwait(false));
+                        webSocketClientManagedId = null;
                     }
                 }
+
                 // Get rid of unmanaged resources.
+                // ...
             }
         }
 
@@ -1462,16 +1473,36 @@ namespace Sharp.Xmpp.Core
             AsyncHelper.RunSync(async () => await SendAsync(xml, isStanza).ConfigureAwait(false));
         }
 
-        private async Task<Boolean> SendAsync(string xml, Boolean isStanza)
+        private void LogMessage (Boolean sent, String message)
         {
-            xml.ThrowIfNull("xml");
+            ILogger logger;
+            // Log webRTC stuff
+            if ((logWebRTC != null)
+                && (
+                    message.Contains("<jingle")
+                    || message.Contains("urn:xmpp:jingle"))
+                    )
+                logger = logWebRTC;
+            else
+                logger = log;
+
+            var header = sent ? "[ManageIncomingMessage]" : "[ManageOutgoingMessage]";
+            logger.LogDebug("{Header}: {Message}", header, message);
+        }
+
+        private async Task<Boolean> SendAsync(string xmlAsString, Boolean isStanza)
+        {
+            xmlAsString.ThrowIfNull(nameof(xmlAsString));
 
             Boolean result = false;
             if (useWebSocket)
             {
                 try
                 {
-                    result = await webSocketClient.SendAsync(xml);
+                    result = await WebSocketClientManager.Instance.SendAsync(webSocketClientManagedId, xmlAsString);
+                    if (result)
+                        LogMessage(true, xmlAsString);
+
                     if (isStanza && StreamManagementEnabled)
                         StreamManagementRequestAcknowledgement.Raise(this, null);
                 }
@@ -1483,7 +1514,7 @@ namespace Sharp.Xmpp.Core
             }
 
             // XMPP is guaranteed to be UTF-8.
-            byte[] buf = Encoding.UTF8.GetBytes(xml);
+            byte[] buf = Encoding.UTF8.GetBytes(xmlAsString);
 
             try
             {
@@ -1492,7 +1523,7 @@ namespace Sharp.Xmpp.Core
 #else
                 await stream.WriteAsync(buf.AsMemory(0, buf.Length));
 #endif
-                if (debugStanzas) System.Diagnostics.Debug.WriteLine(xml);
+                if (debugStanzas) System.Diagnostics.Debug.WriteLine(xmlAsString);
                 return true;
             }
             catch
@@ -1552,11 +1583,8 @@ namespace Sharp.Xmpp.Core
         private void ReadAction()
         {
             Boolean canContinue = true;
-            while (canContinue)
+            while (canContinue && Connected)
             {
-                if (webSocketClient == null)
-                    break;
-
                 try
                 {
                     string action = DequeueActionToPerform();
@@ -1621,236 +1649,192 @@ namespace Sharp.Xmpp.Core
         }
     #endregion Action to perform
 
-        /// <summary>
-        /// Listens for incoming XML stanzas and raises the appropriate events.
-        /// </summary>
-        /// <remarks>This runs in the context of a separate thread. In case of an
-        /// exception, the Error event is raised and the thread is shutdown.</remarks>
-        private void ReadXmlWebSocketMessage()
+        private void ManageMessageReceived(string message)
         {
             try
             {
-                while (true)
+                LogMessage(false, message);
+
+                XmlDocument xmlDocument;
+                XmlElement elem, subElem;
+                XmlElement xmlResponse;
+
+                string response;
+                string attribute;
+
+                xmlDocument = new XmlDocument();
+                xmlDocument.LoadXml(message);
+
+                elem = xmlDocument.DocumentElement;
+
+                switch (elem.Name)
                 {
-                    if (webSocketClient == null)
-                        return;
+                    case "challenge":
+                        //log.LogDebug("challenge received");
+                        response = saslMechanism.GetResponse(elem.InnerText);
+                        xmlResponse = Xml.Element("response",
+                            "urn:ietf:params:xml:ns:xmpp-sasl").Text(response);
+                        Send(xmlResponse, false);
+                        break;
 
-                    string message = webSocketClient.DequeueMessageReceived();
-                    try
-                    {
-                        XmlDocument xmlDocument;
-                        XmlElement elem, subElem;
-                        XmlElement xmlResponse;
-
-                        string response;
-                        string attribute;
-
-                        xmlDocument = new XmlDocument();
-                        xmlDocument.LoadXml(message);
-
-                        elem = xmlDocument.DocumentElement;
-
-                        switch (elem.Name)
+                    case "success":
+                        //log.LogDebug("success received");
+                        if (saslMechanism.IsCompleted ||
+                                (saslMechanism.GetResponse(elem.InnerText) == String.Empty))
                         {
-                            case "challenge":
-                                //log.LogDebug("challenge received");
-                                response = saslMechanism.GetResponse(elem.InnerText);
-                                xmlResponse = Xml.Element("response",
-                                    "urn:ietf:params:xml:ns:xmpp-sasl").Text(response);
+                            Authenticated = true;
+
+                            elem = Xml.Element("open", "urn:ietf:params:xml:ns:xmpp-framing")
+                                    .Attr("to", hostname)
+                                    .Attr("version", "1.0")
+                                    .Attr("xmlns:stream", "http://etherx.jabber.org/streams")
+                                    .Attr("xml:lang", Util.GetCultureName());
+                            Send(elem.ToXmlString(xmlDeclaration: true, leaveOpen: false), false);
+                        }
+                        break;
+
+                    case "failure":
+                        log.LogWarning("Failure received");
+                        if (elem.NamespaceURI == "urn:ietf:params:xml:ns:xmpp-sasl")
+                        {
+                            var status = new ConnectionStatusEventArgs(false, "fatal", "Invalid username or password");
+                            RaiseConnectionStatus(status);
+                        }
+                        break;
+
+                    case "stream:features":
+                        //log.LogDebug("stream:features received");
+
+                        subElem = (XmlElement)elem.FirstChild;
+                        if (subElem.Name == "mechanisms")
+                        {
+                            var mech = subElem.FirstChild;
+                            var list = new HashSet<string>();
+                            while (mech != null)
+                            {
+                                list.Add(mech.InnerText);
+                                mech = mech.NextSibling;
+                            }
+                            string name = SelectMechanism(list);
+                            saslMechanism = SaslFactory.Create(name, Username, Password);
+                            xmlResponse = Xml.Element("auth", "urn:ietf:params:xml:ns:xmpp-sasl")
+                                .Attr("mechanism", name)
+                                .Text(saslMechanism.HasInitial ? saslMechanism.GetResponse(String.Empty) : String.Empty);
+                            Send(xmlResponse, false);
+                        }
+                        else if (subElem.Name == "bind")
+                        {
+                            // Check if StreamManagement is Supported
+                            var smElement = elem["sm", "urn:xmpp:sm:3"];
+                            StreamManagementAvailable = (smElement != null);
+
+                            // /!\ Need to RESUME session here (if needed) and AVOID to do a binding in this case
+                            if (StreamManagementAvailable && StreamManagementResume)
+                            {
+                                xmlResponse = Xml.Element("resume", "urn:xmpp:sm:3");
+                                xmlResponse.SetAttribute("h", StreamManagementLastStanzaReceivedAndHandledByClient.ToString());
+                                xmlResponse.SetAttribute("previd", StreamManagementResumeId);
                                 Send(xmlResponse, false);
-                                break;
+                            }
+                            else
+                            {
+                                xmlResponse = Xml.Element("iq")
+                                    .Attr("type", "set")
+                                    .Attr("id", BIND_ID);
+                                var bind = Xml.Element("bind", "urn:ietf:params:xml:ns:xmpp-bind");
+                                if (resource != null)
+                                    bind.Child(Xml.Element("resource").Text(resource));
+                                xmlResponse.Child(bind);
+                                Send(xmlResponse, true);
+                            }
+                        }
+                        break;
 
-                            case "success":
-                                //log.LogDebug("success received");
-                                if (saslMechanism.IsCompleted ||
-                                        (saslMechanism.GetResponse(elem.InnerText) == String.Empty))
-                                {
-                                    Authenticated = true;
+                    case "iq":
+                        //log.LogDebug("iq received");
 
-                                    elem = Xml.Element("open", "urn:ietf:params:xml:ns:xmpp-framing")
-                                            .Attr("to", hostname)
-                                            .Attr("version", "1.0")
-                                            .Attr("xmlns:stream", "http://etherx.jabber.org/streams")
-                                            .Attr("xml:lang", Util.GetCultureName());
-                                    Send(elem.ToXmlString(xmlDeclaration: true, leaveOpen: false), false);
-                                }
-                                break;
-
-                            case "failure":
-                                log.LogWarning("Failure received");
-                                if (elem.NamespaceURI == "urn:ietf:params:xml:ns:xmpp-sasl")
-                                {
-                                    var status = new ConnectionStatusEventArgs(false, "fatal", "Invalid username or password");
-                                    RaiseConnectionStatus(status);
-                                }
-                                break;
-
-                            case "stream:features":
-                                //log.LogDebug("stream:features received");
-
-                                subElem = (XmlElement)elem.FirstChild;
-                                if (subElem.Name == "mechanisms")
-                                {
-                                    var mech = subElem.FirstChild;
-                                    var list = new HashSet<string>();
-                                    while (mech != null)
-                                    {
-                                        list.Add(mech.InnerText);
-                                        mech = mech.NextSibling;
-                                    }
-                                    string name = SelectMechanism(list);
-                                    saslMechanism = SaslFactory.Create(name, Username, Password);
-                                    xmlResponse = Xml.Element("auth", "urn:ietf:params:xml:ns:xmpp-sasl")
-                                        .Attr("mechanism", name)
-                                        .Text(saslMechanism.HasInitial ? saslMechanism.GetResponse(String.Empty) : String.Empty);
-                                    Send(xmlResponse, false);
-                                }
-                                else if (subElem.Name == "bind")
-                                {
-                                    // Check if StreamManagement is Supported
-                                    var smElement = elem["sm", "urn:xmpp:sm:3"];
-                                    StreamManagementAvailable = (smElement != null);
-
-                                    // /!\ Need to RESUME session here (if needed) and AVOID to do a binding in this case
-                                    if (StreamManagementAvailable && StreamManagementResume)
-                                    {
-                                        xmlResponse = Xml.Element("resume", "urn:xmpp:sm:3");
-                                        xmlResponse.SetAttribute("h", StreamManagementLastStanzaReceivedAndHandledByClient.ToString());
-                                        xmlResponse.SetAttribute("previd", StreamManagementResumeId);
-                                        Send(xmlResponse, false);
-                                    }
-                                    else
-                                    {
-                                        xmlResponse = Xml.Element("iq")
-                                            .Attr("type", "set")
-                                            .Attr("id", BIND_ID);
-                                        var bind = Xml.Element("bind", "urn:ietf:params:xml:ns:xmpp-bind");
-                                        if (resource != null)
-                                            bind.Child(Xml.Element("resource").Text(resource));
-                                        xmlResponse.Child(bind);
-                                        Send(xmlResponse, true);
-                                    }
-                                }
-                                break;
-
-                            case "iq":
-                                //log.LogDebug("iq received");
-
-                                attribute = elem.GetAttribute("id");
-                                if (attribute == BIND_ID)
-                                {
-                                    Jid = new Jid(elem["bind"]["jid"].InnerText);
-                                    QueueActionToPerform(ACTION_CREATE_SESSION);
-                                    break;
-                                }
-
-                                Iq iq = new(elem);
-                                //log.LogDebug("iq.Id: " + iq.Id);
-                                if (IsExpectedIqId(iq.Id))
-                                {
-                                    QueueExpectedIqMessage(iq);
-                                    break;
-                                }
-                                if (iq.IsRequest)
-                                {
-                                    Iq.Raise(this, new IqEventArgs(iq));
-                                    IncreaseStanzaReceivedAndHandled();
-                                }
-                                else
-                                {
-                                    //log.LogDebug("Handle Id response:{0}", iq.Id);
-                                    HandleIqResponse(iq);
-                                }
-                                break;
-
-                            case "message":
-                                Message.Raise(this, new MessageEventArgs(new Message(elem)));
-                                IncreaseStanzaReceivedAndHandled();
-                                break;
-
-                            case "presence":
-                                Presence.Raise(this, new PresenceEventArgs(new Presence(elem)));
-                                IncreaseStanzaReceivedAndHandled();
-                                break;
-
-                            case "enabled": // in response to "enable"
-                            case "a": // answer to a request
-                            case "r": // request
-                            case "resumed": // in response to "resume"
-                            case "failed": // In case of pb
-                                StreamManagementStanza.Raise(this, new StreamManagementStanzaEventArgs(new StreamManagementStanza(elem)));
-                                break;
-
-                            case "open":
-                                string lang = elem.GetAttribute("xml:lang");
-                                if (!String.IsNullOrEmpty(lang))
-                                    Language = lang;
-                                break;
-
-                            case "close":
-                                // Server has closed the session
-                                // We need to answer to it
-                                // And We need to cancel any resume info
-                                Send("<close xmlns='urn:ietf:params:xml:ns:xmpp-framing'/>", false);
-                                StreamManagementResumeId = "";
-                                break;
-
-                            case "stream:error":
-                                String reason = null;
-                                String details = null;
-                                if (elem.FirstChild != null)
-                                {
-                                    reason = elem.FirstChild.Name.ToLower();
-                                    if (elem.FirstChild.NextSibling?.Name == "text")
-                                        details = elem.FirstChild.NextSibling.InnerText;
-                                }
-
-                                CheckStreamError(reason, details);
-                                return;
-
-                            default:
-                                log.LogError("ReadXmlWebSocketMessage - not managed:[{Name}]", elem.Name);
-
-                                break;
+                        attribute = elem.GetAttribute("id");
+                        if (attribute == BIND_ID)
+                        {
+                            Jid = new Jid(elem["bind"]["jid"].InnerText);
+                            QueueActionToPerform(ACTION_CREATE_SESSION);
+                            break;
                         }
 
-                    }
-                    catch (Exception exc)
-                    {
-                        log.LogError("ReadXmlWebSocketMessage - Exception:[{Exception}", exc);
-                    }
+                        Iq iq = new(elem);
+                        //log.LogDebug("iq.Id: " + iq.Id);
+                        if (IsExpectedIqId(iq.Id))
+                        {
+                            QueueExpectedIqMessage(iq);
+                            break;
+                        }
+                        if (iq.IsRequest)
+                        {
+                            Iq.Raise(this, new IqEventArgs(iq));
+                            IncreaseStanzaReceivedAndHandled();
+                        }
+                        else
+                        {
+                            //log.LogDebug("Handle Id response:{0}", iq.Id);
+                            HandleIqResponse(iq);
+                        }
+                        break;
+
+                    case "message":
+                        Message.Raise(this, new MessageEventArgs(new Message(elem)));
+                        IncreaseStanzaReceivedAndHandled();
+                        break;
+
+                    case "presence":
+                        Presence.Raise(this, new PresenceEventArgs(new Presence(elem)));
+                        IncreaseStanzaReceivedAndHandled();
+                        break;
+
+                    case "enabled": // in response to "enable"
+                    case "a": // answer to a request
+                    case "r": // request
+                    case "resumed": // in response to "resume"
+                    case "failed": // In case of pb
+                        StreamManagementStanza.Raise(this, new StreamManagementStanzaEventArgs(new StreamManagementStanza(elem)));
+                        break;
+
+                    case "open":
+                        string lang = elem.GetAttribute("xml:lang");
+                        if (!String.IsNullOrEmpty(lang))
+                            Language = lang;
+                        break;
+
+                    case "close":
+                        // Server has closed the session
+                        // We need to answer to it
+                        // And We need to cancel any resume info
+                        Send("<close xmlns='urn:ietf:params:xml:ns:xmpp-framing'/>", false);
+                        StreamManagementResumeId = "";
+                        break;
+
+                    case "stream:error":
+                        String reason = null;
+                        String details = null;
+                        if (elem.FirstChild != null)
+                        {
+                            reason = elem.FirstChild.Name.ToLower();
+                            if (elem.FirstChild.NextSibling?.Name == "text")
+                                details = elem.FirstChild.NextSibling.InnerText;
+                        }
+
+                        CheckStreamError(reason, details);
+                        return;
+
+                    default:
+                        log.LogError("ReadXmlWebSocketMessage - not managed:[{Name}]", elem.Name);
+
+                        break;
                 }
+
             }
-            catch (ThreadAbortException)
+            catch (Exception exc)
             {
-                log.LogInformation($"ReadXmlWebSocketMessage - ThreadAbortException");
-            }
-            catch (Exception ex)
-            {
-                log.LogError("ReadXmlWebSocketMessage - SUB_ERROR - Exception:[{Exception}", ex);
-
-                // Unblock any threads blocking on pending IQ requests.
-                cancelIq.Cancel();
-                cancelIq.Dispose();
-                cancelIq = null;
-                cancelIq = new CancellationTokenSource();
-
-                if ((ex is IOException) || (ex is XmppDisconnectionException))
-                    RaiseConnectionStatus(false);
-
-                if (!disposed)
-                {
-                    //Add the failed connection
-                    XmppDisconnectionException e;
-
-                    if (ex is XmppDisconnectionException)
-                        e = ex as XmppDisconnectionException;
-                    else
-                        e = new XmppDisconnectionException(ex.ToString(), ex);
-                    // Raise the error event.
-
-                    Error.Raise(this, new ErrorEventArgs(e));
-                }
+                log.LogError("ReadXmlWebSocketMessage - Exception:[{Exception}", exc);
             }
         }
 
@@ -1978,14 +1962,6 @@ namespace Sharp.Xmpp.Core
             // Close the XML stream.
             if (normalClosure)
                 Send("<close xmlns='urn:ietf:params:xml:ns:xmpp-framing'/>", false);
-
-            //if (useWebSocket)
-            //{
-            //    if (webSocketClient != null)
-            //    {
-            //        webSocketClient.Close(normalClosure);
-            //    }
-            //}
             
             Connected = false;
             Authenticated = false;

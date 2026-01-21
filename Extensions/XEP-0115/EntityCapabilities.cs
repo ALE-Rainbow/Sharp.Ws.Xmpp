@@ -1,5 +1,6 @@
 ﻿using Sharp.Xmpp.Im;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -20,7 +21,7 @@ namespace Sharp.Xmpp.Extensions
         /// <summary>
         /// A dictionary for caching the 'ver' hash of each JID.
         /// </summary>
-        private readonly IDictionary<Jid, string> hashes = new Dictionary<Jid, string>();
+        private readonly ConcurrentDictionary<Jid, string> hashes = new ();
 
         /// <summary>
         /// A dictionary of cached features.
@@ -124,9 +125,8 @@ namespace Sharp.Xmpp.Extensions
         public IEnumerable<Extension> GetExtensions(Jid jid)
         {
             jid.ThrowIfNull("jid");
-            if (hashes.ContainsKey(jid))
+            if (hashes.TryGetValue(jid, out String hash))
             {
-                string hash = hashes[jid];
                 // If the feature set has already been cached, return it; Otherwise
                 // request the feature set and subsequently cache it.
                 // FIXME: Calculate hash of feature set and ensure it equals stored hash.
