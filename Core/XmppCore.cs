@@ -1486,7 +1486,7 @@ namespace Sharp.Xmpp.Core
             else
                 logger = log;
 
-            var header = sent ? "[ManageIncomingMessage]" : "[ManageOutgoingMessage]";
+            var header = sent ? "[ManageOutgoingMessage]" : "[ManageIncomingMessage]";
             logger.LogDebug("{Header}: {Message}", header, message);
         }
 
