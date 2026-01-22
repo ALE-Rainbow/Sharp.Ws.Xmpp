@@ -164,7 +164,7 @@ namespace Sharp.Xmpp.Core
             //string clientId = Guid.NewGuid().ToString();
             var client = new WebSocketClientManaged(clientId, serverUrl);
 
-            if (_clients.TryAdd(clientId, client))
+            if ((clientId is not null) && _clients.TryAdd(clientId, client))
             {
                 try
                 {
@@ -258,6 +258,8 @@ namespace Sharp.Xmpp.Core
         {
             try
             {
+                if(clientId is null) return false;
+
                 if (!_clients.TryGetValue(clientId, out var client))
                     return false;
 
@@ -308,6 +310,7 @@ namespace Sharp.Xmpp.Core
             {
                 try
                 {
+                    if(clientId is null) continue;
                     if (_clients.TryGetValue(clientId, out var client) &&
                         client.WebSocket.State == WebSocketState.Open)
                     {
@@ -324,28 +327,33 @@ namespace Sharp.Xmpp.Core
         /// </summary>
         public async Task DisconnectAsync(string clientId, string reason = "Client disconnect")
         {
-            if (_clients.TryRemove(clientId, out var client))
+            if (clientId is null) return;
+            try
             {
-                try
+                if (_clients.TryRemove(clientId, out var client))
                 {
-                    if (client.WebSocket.State == WebSocketState.Open)
+                    try
                     {
-                        await client.WebSocket.CloseAsync(
-                            WebSocketCloseStatus.NormalClosure,
-                            reason,
-                            CancellationToken.None);
+                        if (client.WebSocket.State == WebSocketState.Open)
+                        {
+                            await client.WebSocket.CloseAsync(
+                                WebSocketCloseStatus.NormalClosure,
+                                reason,
+                                CancellationToken.None);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // Ignore errors during disconnect
+                    }
+                    finally
+                    {
+                        client.WebSocket.Dispose();
+                        ThreadPool.QueueUserWorkItem(_ => OnClientDisconnected?.Invoke(clientId, reason, null));
                     }
                 }
-                catch (Exception)
-                {
-                    // Ignore errors during disconnect
-                }
-                finally
-                {
-                    client.WebSocket.Dispose();
-                    ThreadPool.QueueUserWorkItem(_ => OnClientDisconnected?.Invoke(clientId, reason, null));
-                }
             }
+            catch { }
         }
 
         /// <summary>

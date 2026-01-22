@@ -756,7 +756,11 @@ namespace Sharp.Xmpp.Core
             {
                 if (webSocketClientManagedId is not null)
                 {
-                    AsyncHelper.RunSync(async () => await WebSocketClientManager.Instance.DisconnectAsync(webSocketClientManagedId).ConfigureAwait(false));
+                    AsyncHelper.RunSync(async () =>
+                    {
+                        if (webSocketClientManagedId is not null) // Check again since a deconnection could have been done in the meantime
+                            await WebSocketClientManager.Instance.DisconnectAsync(webSocketClientManagedId).ConfigureAwait(false);
+                    });
                     webSocketClientManagedId = null;
                 }
             }
