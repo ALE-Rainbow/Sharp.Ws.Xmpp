@@ -5,6 +5,7 @@ using Sharp.Xmpp.Im;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Security;
 using System.Threading.Tasks;
@@ -1747,13 +1748,13 @@ namespace Sharp.Xmpp.Client
         /// <remarks>Use this constructor if you wish to connect to an XMPP server using
         /// an existing set of user credentials.</remarks>
         public XmppClient(string address, string hostname, string username, string password,
-            int port = 5222, bool tls = true, RemoteCertificateValidationCallback validate = null, string loggerPrefix = null)
+            int port = 5222, bool tls = true, RemoteCertificateValidationCallback validate = null, string loggerPrefix = null, List<String> extensions = null)
         {
             this.loggerPrefix = loggerPrefix;
             log = LogFactory.CreateLogger<XmppClient>(loggerPrefix);
             im = new XmppIm(address, hostname, username, password, port, tls, validate, loggerPrefix);
             // Initialize the various extension modules.
-            LoadExtensions();
+            LoadExtensions(extensions);
         }
 
         /// <summary>
@@ -1778,12 +1779,12 @@ namespace Sharp.Xmpp.Client
         /// <remarks>Use this constructor if you wish to connect to an XMPP server using
         /// an existing set of user credentials.</remarks>
         public XmppClient(string hostname, string username, string password,
-            int port = 5222, bool tls = true, RemoteCertificateValidationCallback validate = null, string loggerPrefix = null)
+            int port = 5222, bool tls = true, RemoteCertificateValidationCallback validate = null, string loggerPrefix = null, List<String> extensions = null)
         {
             log = LogFactory.CreateLogger<XmppClient>(loggerPrefix);
             im = new XmppIm(hostname, username, password, port, tls, validate, loggerPrefix);
             // Initialize the various extension modules.
-            LoadExtensions();
+            LoadExtensions(extensions);
         }
 
         /// <summary>
@@ -1805,11 +1806,12 @@ namespace Sharp.Xmpp.Client
         /// <remarks>Use this constructor if you wish to register an XMPP account using
         /// the in-band account registration process supported by some servers.</remarks>
         public XmppClient(string hostname, int port = 5222, bool tls = true,
-            RemoteCertificateValidationCallback validate = null, string loggerPrefix = null)
+            RemoteCertificateValidationCallback validate = null, string loggerPrefix = null, List<String> extensions = null)
         {
             log = LogFactory.CreateLogger<XmppClient>(loggerPrefix);
             im = new XmppIm(hostname, port, tls, validate, loggerPrefix);
-            LoadExtensions();
+            // Initialize the various extension modules.
+            LoadExtensions(extensions);
         }
 
         /// <summary>
@@ -3442,61 +3444,100 @@ namespace Sharp.Xmpp.Client
                 throw new InvalidOperationException("Not authenticated with XMPP server.");
         }
 
+        private Boolean ExtensionsUsed(List<String> extensions, String extensionName)
+        {
+            if (extensions is null) return true;
+            return !String.IsNullOrEmpty(extensions.FirstOrDefault(e => e.Equals(extensionName, StringComparison.InvariantCultureIgnoreCase)));
+        }
+
         /// <summary>
         /// Initializes the various XMPP extension modules.
         /// </summary>
-        private void LoadExtensions()
+        private void LoadExtensions(List<String> extensions = null)
         {
-            // First create all extensions (after load them)
+            // Extensions mandatory
             im.AddExtension(version = new SoftwareVersion(im, loggerPrefix));
             im.AddExtension(sdisco = new ServiceDiscovery(im, loggerPrefix));
             im.AddExtension(ecapa = new EntityCapabilities(im, loggerPrefix));
-
-            im.AddExtension(streamManagement = new StreamManagement(im, loggerPrefix));
             im.AddExtension(ping = new Ping(im, loggerPrefix));
 
-            im.AddExtension(attention = new Attention(im, loggerPrefix));
-            im.AddExtension(time = new EntityTime(im, loggerPrefix));
-            im.AddExtension(block = new BlockingCommand(im, loggerPrefix));
-            im.AddExtension(pep = new Pep(im, loggerPrefix));
-            im.AddExtension(userTune = new UserTune(im, loggerPrefix));
+            // Not Used in Rainbow context
+            if (ExtensionsUsed(extensions, "Attention"))
+                im.AddExtension(attention = new Attention(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "EntityTime"))
+                im.AddExtension(time = new EntityTime(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "BlockingCommand"))
+                im.AddExtension(block = new BlockingCommand(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "Pep"))
+                im.AddExtension(pep = new Pep(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "UserTune"))
+                im.AddExtension(userTune = new UserTune(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "UserMood"))
+                im.AddExtension(userMood = new UserMood(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "DataForms"))
+                im.AddExtension(dataForms = new DataForms(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "FeatureNegotiation"))
+                im.AddExtension(featureNegotiation = new FeatureNegotiation(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "StreamInitiation"))
+                im.AddExtension(streamInitiation = new StreamInitiation(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "UserActivity"))
+                im.AddExtension(userActivity = new UserActivity(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "Socks5Bytestreams"))
+                im.AddExtension(socks5Bytestreams = new Socks5Bytestreams(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "InBandBytestreams"))
+                im.AddExtension(inBandBytestreams = new InBandBytestreams(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "SIFileTransfer"))
+                im.AddExtension(siFileTransfer = new SIFileTransfer(im, loggerPrefix));
+            if(socks5Bytestreams is not null && siFileTransfer is not null)
+                FileTransferSettings = new FileTransferSettings(socks5Bytestreams, siFileTransfer);
+            if (ExtensionsUsed(extensions, "ServerIpCheck"))
+                im.AddExtension(serverIpCheck = new ServerIpCheck(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "InBandRegistration"))
+                im.AddExtension(inBandRegistration = new InBandRegistration(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "BitsOfBinary"))
+                im.AddExtension(bitsOfBinary = new BitsOfBinary(im, loggerPrefix));
 
-            im.AddExtension(userMood = new UserMood(im, loggerPrefix));
-            im.AddExtension(dataForms = new DataForms(im, loggerPrefix));
-            im.AddExtension(featureNegotiation = new FeatureNegotiation(im, loggerPrefix));
-            im.AddExtension(streamInitiation = new StreamInitiation(im, loggerPrefix));
-            im.AddExtension(userActivity = new UserActivity(im, loggerPrefix));
+            // Today not used in Rainbow context
+            if (ExtensionsUsed(extensions, "RainbowService"))
+                im.AddExtension(rainbowService = new RainbowService(im, loggerPrefix));
 
-            im.AddExtension(socks5Bytestreams = new Socks5Bytestreams(im, loggerPrefix));
-            im.AddExtension(inBandBytestreams = new InBandBytestreams(im, loggerPrefix));
-            im.AddExtension(siFileTransfer = new SIFileTransfer(im, loggerPrefix));
-            FileTransferSettings = new FileTransferSettings(socks5Bytestreams, siFileTransfer);
-
-            im.AddExtension(serverIpCheck = new ServerIpCheck(im, loggerPrefix));
-            im.AddExtension(messageCarbons = new MessageCarbons(im, loggerPrefix));
-            im.AddExtension(inBandRegistration = new InBandRegistration(im, loggerPrefix));
-            im.AddExtension(chatStateNotifications = new ChatStateNotifications(im, loggerPrefix));
-            im.AddExtension(bitsOfBinary = new BitsOfBinary(im, loggerPrefix));
-            im.AddExtension(vcardAvatars = new VCardAvatars(im, loggerPrefix));
-            im.AddExtension(cusiqextension = new CustomIqExtension(im, loggerPrefix));
-            im.AddExtension(groupChat = new MultiUserChat(im, loggerPrefix));
-            im.AddExtension(mam = new MessageArchiveManagment(im, loggerPrefix));
-
-            im.AddExtension(jingleMessageInitiation = new JingleMessageInitiation(im, loggerPrefix));
-            im.AddExtension(configuration = new Configuration(im, loggerPrefix));
-            im.AddExtension(rainbow = new Sharp.Xmpp.Extensions.Rainbow(im, loggerPrefix));
-            im.AddExtension(rainbowMessage = new Sharp.Xmpp.Extensions.RainbowMessage(im, loggerPrefix));
-            im.AddExtension(conference = new Conference(im, loggerPrefix));
-            im.AddExtension(adHocCommand = new AdHocCommand(im, loggerPrefix));
-            im.AddExtension(callLog = new CallLog(im, loggerPrefix));
-            im.AddExtension(cap = new Cap(im, loggerPrefix));
-            im.AddExtension(msgDeliveryReceipt = new MessageDeliveryReceipts(im, loggerPrefix));
-            im.AddExtension(callService = new CallService(im, loggerPrefix));
-            im.AddExtension(hubTelephony = new HubTelephony(im, loggerPrefix));
-
-            im.AddExtension(rainbowService = new RainbowService(im, loggerPrefix));
-
-            im.AddExtension(rpc = new RPC(im, loggerPrefix));
+            // Used potentially in Rainbow context
+            if (ExtensionsUsed(extensions, "StreamManagement"))
+                im.AddExtension(streamManagement = new StreamManagement(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "MessageCarbons"))
+                im.AddExtension(messageCarbons = new MessageCarbons(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "ChatStateNotifications"))
+                im.AddExtension(chatStateNotifications = new ChatStateNotifications(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "VCardAvatars"))
+                im.AddExtension(vcardAvatars = new VCardAvatars(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "MultiUserChat"))
+                im.AddExtension(groupChat = new MultiUserChat(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "MessageArchiveManagment"))
+                im.AddExtension(mam = new MessageArchiveManagment(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "JingleMessageInitiation"))
+                im.AddExtension(jingleMessageInitiation = new JingleMessageInitiation(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "Configuration"))
+                im.AddExtension(configuration = new Configuration(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "Rainbow"))
+                im.AddExtension(rainbow = new Sharp.Xmpp.Extensions.Rainbow(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "RainbowMessage"))
+                im.AddExtension(rainbowMessage = new RainbowMessage(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "Conference"))
+                im.AddExtension(conference = new Conference(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "AdHocCommand"))
+                im.AddExtension(adHocCommand = new AdHocCommand(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "CallLog"))
+                im.AddExtension(callLog = new CallLog(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "Cap"))
+                im.AddExtension(cap = new Cap(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "MessageDeliveryReceipts"))
+                im.AddExtension(msgDeliveryReceipt = new MessageDeliveryReceipts(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "CallService"))
+                im.AddExtension(callService = new CallService(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "HubTelephony"))
+                im.AddExtension(hubTelephony = new HubTelephony(im, loggerPrefix));
+            if (ExtensionsUsed(extensions, "RPC"))
+                im.AddExtension(rpc = new RPC(im, loggerPrefix));
         }
     }
 }
