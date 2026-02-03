@@ -618,7 +618,7 @@ namespace Sharp.Xmpp.Core
                     webSocketClientManager.OnClientError += WebSocketClientManager_OnClientError;
                     webSocketClientManager.OnMessageReceived += WebSocketClientManager_OnMessageReceived;
 
-                    AsyncHelper.RunSync(async() => await webSocketClientManager.ConnectAsync(webSocketClientManagedId, WebSocketUri, WebProxy));
+                    AsyncHelper.RunSync(async() => await webSocketClientManager.ConnectAsync(webSocketClientManagedId, WebSocketUri, WebProxy).ConfigureAwait(false));
                 }
                 else
                 {
@@ -845,7 +845,7 @@ namespace Sharp.Xmpp.Core
         /// network.</exception>
         public void SendMessage(Message message)
         {
-            AsyncHelper.RunSync(async () => await SendMessageAsync(message).ConfigureAwait(false));
+            var _ = SendMessageAsync(message);
         }
 
         public async Task<Boolean> SendMessageAsync(Message message)
@@ -893,7 +893,7 @@ namespace Sharp.Xmpp.Core
         /// network.</exception>
         public void SendPresence(Presence presence)
         {
-            AsyncHelper.RunSync(async () => await SendPresenceAsync(presence).ConfigureAwait(false));
+            var _ = SendPresenceAsync(presence);
         }
 
         public async Task<Boolean> SendPresenceAsync(Presence presence)
@@ -1127,7 +1127,7 @@ namespace Sharp.Xmpp.Core
         /// network.</exception>
         public void IqResponse(Iq response)
         {
-            AsyncHelper.RunSync(async () => await IqResponseAsync(response).ConfigureAwait(false));
+            var _ = IqResponseAsync(response);
         }
 
         public async Task<Boolean> IqResponseAsync(Iq response)
@@ -1477,10 +1477,10 @@ namespace Sharp.Xmpp.Core
         /// the network.</exception>
         private void Send(string xml, Boolean isStanza)
         {
-            AsyncHelper.RunSync(async () => await SendAsync(xml, isStanza).ConfigureAwait(false));
+            var _ = SendAsync(xml, isStanza);
         }
 
-        private void LogMessage (Boolean sent, String message)
+        private void LogMessage (Boolean sent, String message, Boolean asError)
         {
             ILogger logger;
             // Log webRTC stuff
@@ -1494,7 +1494,10 @@ namespace Sharp.Xmpp.Core
                 logger = log;
 
             var header = sent ? "[ManageOutgoingMessage]" : "[ManageIncomingMessage]";
-            logger.LogDebug("{Header}: {Message}", header, message);
+            if(asError)
+                logger.LogError("{sent}{Header}: {Message}", sent ? "NOT SEND" : "", header, message);
+            else
+                logger.LogDebug("{Header}: {Message}", header, message);
         }
 
         private async Task<Boolean> SendAsync(string xmlAsString, Boolean isStanza)
@@ -1507,8 +1510,7 @@ namespace Sharp.Xmpp.Core
                 try
                 {
                     result = await WebSocketClientManager.Instance.SendAsync(webSocketClientManagedId, xmlAsString);
-                    if (result)
-                        LogMessage(true, xmlAsString);
+                    LogMessage(true, xmlAsString, !result);
 
                     if (isStanza && StreamManagementEnabled)
                         StreamManagementRequestAcknowledgement.Raise(this, null);
@@ -1660,7 +1662,7 @@ namespace Sharp.Xmpp.Core
         {
             try
             {
-                LogMessage(false, message);
+                LogMessage(false, message, false);
 
                 XmlDocument xmlDocument;
                 XmlElement elem, subElem;

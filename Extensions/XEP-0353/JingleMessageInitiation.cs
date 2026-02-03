@@ -173,7 +173,7 @@ namespace Sharp.Xmpp.Extensions
         /// <param name="jingleMessage">Jingle Message to send</param>
         public void Send(JingleMessage jingleMessage)
         {
-            AsyncHelper.RunSync(async () => await SendAsync(jingleMessage).ConfigureAwait(false));
+            var _ = SendAsync(jingleMessage);
         }
 
         public async Task<Boolean> SendAsync(JingleMessage jingleMessage)

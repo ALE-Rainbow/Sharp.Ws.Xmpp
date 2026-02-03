@@ -77,7 +77,7 @@ namespace Sharp.Xmpp.Extensions
         /// null.</exception>
         public void SetChatState(Jid jid, MessageType type, ChatState state)
         {
-            AsyncHelper.RunSync(async () => await SetChatStateAsync(jid, type, state).ConfigureAwait(false));
+            var _ = SetChatStateAsync(jid, type, state);
         }
 
         public async Task<Boolean> SetChatStateAsync(Jid jid, MessageType type, ChatState state)

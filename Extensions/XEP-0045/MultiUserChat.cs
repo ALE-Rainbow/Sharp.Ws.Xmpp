@@ -219,7 +219,7 @@ namespace Sharp.Xmpp.Extensions
         /// <param name="password">(Optional) Password</param>
         public void JoinRoom(Jid jid, string nickname, string password = null)
         {
-            AsyncHelper.RunSync(async () => await JoinRoomAsync(jid, nickname, password).ConfigureAwait(false));
+            var _ = JoinRoomAsync(jid, nickname, password);
         }
 
         public async Task<Boolean> JoinRoomAsync(Jid jid, string nickname, string password = null)

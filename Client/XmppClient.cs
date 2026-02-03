@@ -1951,7 +1951,7 @@ namespace Sharp.Xmpp.Client
         /// disposed.</exception>
         public void SendMessage(Message message)
         {
-            AsyncHelper.RunSync(async () => await SendMessageAsync(message).ConfigureAwait(false));
+            var _ = SendMessageAsync(message);
         }
 
         public async Task<Boolean> SendMessageAsync(Message message)
@@ -2084,7 +2084,7 @@ namespace Sharp.Xmpp.Client
         /// <param name="messageId">The ID of the message to mark as read</param>
         public void MarkMessageAsRead(Jid jid, string messageId, MessageType messageType)
         {
-            AsyncHelper.RunSync(async () => await MarkMessageAsync(jid, messageId, messageType, "read").ConfigureAwait(false));
+            var _ = MarkMessageAsync(jid, messageId, messageType, "read");
         }
 
         public async Task<Boolean> MarkMessageAsReadAsync(Jid jid, string messageId, MessageType messageType)
@@ -2121,7 +2121,7 @@ namespace Sharp.Xmpp.Client
         /// <param name="messageId">The ID of the message to mark as read</param>
         public void MarkMessageAsReceive(Jid jid, string messageId, MessageType messageType)
         {
-            AsyncHelper.RunSync(async () => await MarkMessageAsync(jid, messageId, messageType, "received").ConfigureAwait(false));
+            var _ = MarkMessageAsync(jid, messageId, messageType, "received");
         }
 
         public async Task<Boolean> MarkMessageAsReceiveAsync(Jid jid, string messageId, MessageType messageType)
@@ -2535,7 +2535,7 @@ namespace Sharp.Xmpp.Client
         /// <param name="to">The JID to send the request</param>
         public void AskPbxAgentInfo(String to)
         {
-            AsyncHelper.RunSync(async () => await AskPbxAgentInfoAsync(to).ConfigureAwait(false));
+            var _ = AskPbxAgentInfoAsync(to);
         }
 
         public async Task<Boolean> AskPbxAgentInfoAsync(String to)
@@ -2551,7 +2551,7 @@ namespace Sharp.Xmpp.Client
         /// <param name="to">The JID to send the request</param>
         public void AskVoiceMessagesNumber(String to)
         {
-            AsyncHelper.RunSync(async () => await AskVoiceMessagesNumberAsync(to).ConfigureAwait(false));
+            var _ = AskVoiceMessagesNumberAsync(to);
         }
 
         public async Task<Boolean> AskVoiceMessagesNumberAsync(String to)
@@ -2568,7 +2568,7 @@ namespace Sharp.Xmpp.Client
         /// <param name="onSecondary">To we want info about the SECONDARY device or not</param>
         public void AskPBXCallsInProgress(String to, Boolean onSecondary)
         {
-            AsyncHelper.RunSync(async () => await AskPBXCallsInProgressAsync(to, onSecondary).ConfigureAwait(false));
+            var _ = AskPBXCallsInProgressAsync(to, onSecondary);
         }
 
         public async Task<Boolean> AskPBXCallsInProgressAsync(String to, Boolean onSecondary)

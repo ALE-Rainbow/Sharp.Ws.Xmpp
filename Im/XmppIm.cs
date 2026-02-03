@@ -828,7 +828,7 @@ namespace Sharp.Xmpp.Im
         /// disposed.</exception>
         public void SendMessage(Message message)
         {
-            AsyncHelper.RunSync(async () => await SendMessageAsync(message).ConfigureAwait(false));
+            var _ = SendMessageAsync(message);
         }
 
         public async Task<Boolean> SendMessageAsync(Message message)
@@ -975,7 +975,7 @@ namespace Sharp.Xmpp.Im
         public void SetStatus(Availability availability, string message = null,
             sbyte priority = 0, XmlElement elementToAdd = null, String language = null)
         {
-            AsyncHelper.RunSync(async () => await SetStatusAsync(availability, message, priority, elementToAdd, language).ConfigureAwait(false));
+            var _ = SetStatusAsync(availability, message, priority, elementToAdd, language);
         }
 
         public async Task<Boolean> SetStatusAsync(Availability availability, string message = null,
@@ -1661,7 +1661,7 @@ namespace Sharp.Xmpp.Im
         /// disposed.</exception>
         internal void SendPresence(Presence presence)
         {
-            AsyncHelper.RunSync(async () => await SendPresenceAsync(presence).ConfigureAwait(false));
+            var _ = SendPresenceAsync(presence);
         }
 
         internal async Task<Boolean> SendPresenceAsync(Presence presence)

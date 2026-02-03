@@ -141,7 +141,7 @@ namespace Sharp.Xmpp.Extensions
         /// <param name="onSecondary">To we want info about the SECONDARY device or not</param>
         public void AskPBXCallsInProgress(String to, Boolean onSecondary)
         {
-            AsyncHelper.RunSync(async () => await AskPBXCallsInProgressAsync(to, onSecondary).ConfigureAwait(false));
+            var _ = AskPBXCallsInProgressAsync(to, onSecondary);
         }
 
         public async Task<(string Id, Iq Iq)> AskPBXCallsInProgressAsync(String to, Boolean onSecondary)
@@ -180,7 +180,7 @@ namespace Sharp.Xmpp.Extensions
         /// <param name="to">The JID to send the request</param>
         public void AskVoiceMessagesNumber(String to)
         {
-            AsyncHelper.RunSync(async () => await AskVoiceMessagesNumberAsync(to).ConfigureAwait(false));
+            var _ = AskVoiceMessagesNumberAsync(to);
         }
 
         public async Task<(string Id, Iq Iq)> AskVoiceMessagesNumberAsync(String to)
@@ -197,7 +197,7 @@ namespace Sharp.Xmpp.Extensions
         /// <param name="to">The JID to send the request</param>
         public void AskPbxAgentInfo(String to)
         {
-            AsyncHelper.RunSync(async () => await AskPbxAgentInfoAsync(to).ConfigureAwait(false));
+            var _ = AskPbxAgentInfoAsync(to);
         }
 
         public async Task<(string Id, Iq Iq)> AskPbxAgentInfoAsync(String to)

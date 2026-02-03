@@ -159,7 +159,7 @@ namespace Sharp.Xmpp.Extensions
         /// unspecified XMPP error occurred.</exception>
         public void RequestCallLogs(string queryId, int max, string before = null, string after = null)
         {
-            AsyncHelper.RunSync(async () => await RequestCallLogsAsync(queryId, max, before, after).ConfigureAwait(false));
+            var _ = RequestCallLogsAsync(queryId, max, before, after);
         }
 
         public async Task<Boolean> RequestCallLogsAsync(string queryId, int max, string before = null, string after = null)
@@ -233,7 +233,7 @@ namespace Sharp.Xmpp.Extensions
         /// <param name="callId">Id of the call log</param>
         public void DeleteCallLog(String callId)
         {
-            AsyncHelper.RunSync(async () => await DeleteCallLogAsync(callId).ConfigureAwait(false));
+            var _ = DeleteCallLogAsync(callId);
         }
 
         public async Task<Boolean> DeleteCallLogAsync(String callId)
@@ -252,7 +252,7 @@ namespace Sharp.Xmpp.Extensions
         /// <param name="contactJid">Jid of the contact</param>
         public void DeleteCallsLogForContact(String contactJid)
         {
-            AsyncHelper.RunSync(async () => await DeleteCallsLogForContactAsync(contactJid).ConfigureAwait(false));
+            var _ = DeleteCallsLogForContactAsync(contactJid);
         }
 
         public async Task<Boolean> DeleteCallsLogForContactAsync(String contactJid)
@@ -270,7 +270,7 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         public void DeleteAllCallsLog()
         {
-            AsyncHelper.RunSync(async () => await DeleteAllCallsLogAsync().ConfigureAwait(false));
+            var _ = DeleteAllCallsLogAsync();
         }
 
         public async Task<Boolean> DeleteAllCallsLogAsync()
@@ -288,7 +288,7 @@ namespace Sharp.Xmpp.Extensions
         /// <param name="callId">Id of the call log</param>
         public void MarkCallLogAsRead(String callId)
         {
-            AsyncHelper.RunSync(async () => await MarkCallLogAsReadAsync(callId).ConfigureAwait(false));
+            var _ = MarkCallLogAsReadAsync(callId);
         }
 
         public async Task<Boolean> MarkCallLogAsReadAsync(String callId)

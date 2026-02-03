@@ -264,7 +264,7 @@ namespace Sharp.Xmpp.Extensions
         /// unspecified XMPP error occurred.</exception>
         public void RequestArchivedMessages(Jid jid, string queryId, int max, bool isRoom, string before = null, string after = null, Boolean useBulk = false)
         {
-            AsyncHelper.RunSync(async () => await RequestArchivedMessagesAsync(jid, queryId, max, isRoom, before, after, useBulk).ConfigureAwait(false));
+            var _ = RequestArchivedMessagesAsync(jid, queryId, max, isRoom, before, after, useBulk);
         }
 
         public async Task<Boolean> RequestArchivedMessagesAsync(Jid jid, string queryId, int max, bool isRoom, string before = null, string after = null, Boolean useBulk = false)
