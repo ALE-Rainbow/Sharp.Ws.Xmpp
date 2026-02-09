@@ -635,6 +635,21 @@ namespace Sharp.Xmpp.Client
         }
 
         /// <summary>
+        /// The event that is raised when a chat message reaction is received.
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> MessageReaction
+        {
+            add
+            {
+                im.MessageReaction += value;
+            }
+            remove
+            {
+                im.MessageReaction -= value;
+            }
+        }
+
+        /// <summary>
         /// The event that is raised when the subject is changed in a group chat.
         /// </summary>
         public event EventHandler<Im.MessageEventArgs> GroupChatSubjectChanged

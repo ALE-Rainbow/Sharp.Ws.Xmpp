@@ -471,6 +471,11 @@ namespace Sharp.Xmpp.Im
         public event EventHandler<MessageEventArgs> Message;
 
         /// <summary>
+        /// The event that is raised when a chat message reaction is received.
+        /// </summary>
+        public event EventHandler<XmlElementEventArgs> MessageReaction;
+
+        /// <summary>
         /// The event that is raised when a subscription request made by the JID
         /// associated with this instance has been approved.
         /// </summary>
@@ -2113,10 +2118,15 @@ namespace Sharp.Xmpp.Im
                 used = true;
                 Message.Raise(this, new MessageEventArgs(message.From, message));
             }
+            else if(message.Data["reaction", "urn:xmpp:reaction"] is not null)
+            {
+                used = true;
+                MessageReaction.Raise(this, new XmlElementEventArgs(message.Data));
+            }
 
             // Also raise when the messages comes from an archive
             // Due to the different format the inner message is sent forward with the external timestamp included
-            if (message.Data["result"] != null && message.Data["result"]["forwarded"] != null)
+            if (message.Data["result"]?["forwarded"] is not null)
             {
                 used = true;
 
@@ -2124,31 +2134,41 @@ namespace Sharp.Xmpp.Im
                 var timestamp = message.Data["result"]["forwarded"]["delay"];
                 realMessageNode.AppendChild(timestamp);
                 var realMessage = new Message(new Core.Message(realMessageNode));
-                Message.Raise(this, new MessageEventArgs(realMessage.From, realMessage));
+
+                if ((realMessage.Data["reaction", "urn:xmpp:reaction"] is not null) && (realMessage.Data["body"] is null))
+                    MessageReaction.Raise(this, new XmlElementEventArgs(realMessage.Data));
+                else
+                    Message.Raise(this, new MessageEventArgs(realMessage.From, realMessage));
             }
 
-            if (message.Data["event"] != null && message.Data["event"]["items"] != null && message.Data["event"]["items"]["item"] != null && message.Data["event"]["items"]["item"]["message"] != null)
+            if (message.Data["event"]?["items"]?["item"]?["message"] is not null)
             {
                 used = true;
 
                 var realMessageNode = message.Data["event"]["items"]["item"]["message"];
                 var realMessage = new Message(new Core.Message(realMessageNode));
-                
-                Message.Raise(this, new MessageEventArgs(realMessage.From, realMessage));
+
+                if ((realMessage.Data["reaction", "urn:xmpp:reaction"] is not null) && (realMessage.Data["body"] is null))
+                    MessageReaction.Raise(this, new XmlElementEventArgs(realMessage.Data));
+                else
+                    Message.Raise(this, new MessageEventArgs(realMessage.From, realMessage));
             }
 
             // Manage carbon copy
-            if ( (message.Data["sent"] != null) && (message.Data["sent"]["forwarded"] != null) && (message.Data["sent"]["forwarded"]["message"] != null) && (message.Data["sent"]["forwarded"]["message"]["body"] != null))
+            if (message.Data["sent"]?["forwarded"]?["message"] != null)
             {
                 used = true;
 
                 var realMessageNode = message.Data["sent"]["forwarded"]["message"];
                 var realMessage = new Message(new Core.Message(realMessageNode));
 
-                Message.Raise(this, new MessageEventArgs(realMessage.From, realMessage, true));
+                if ((realMessage.Data["reaction", "urn:xmpp:reaction"] is not null) && (realMessage.Data["body"] is null))
+                    MessageReaction.Raise(this, new XmlElementEventArgs(realMessage.Data));
+                else
+                    Message.Raise(this, new MessageEventArgs(realMessage.From, realMessage, true));
             }
 
-            if(!used)
+            if (!used)
                 log.LogDebug("[OnMessage] not managed - MsgId:[{0}] ", message.Id);
         }
 
