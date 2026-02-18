@@ -1498,6 +1498,21 @@ namespace Sharp.Xmpp.Client
             }
         }
 
+        /// <summary>
+        /// The event raised when a antivirus status message has been received
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> AVStatus
+        {
+            add
+            {
+                configuration.AVStatus += value;
+            }
+            remove
+            {
+                configuration.AVStatus -= value;
+            }
+        }
+
 
         /// <summary>
         /// The event raised when the synhcronisation status with a provider has changed

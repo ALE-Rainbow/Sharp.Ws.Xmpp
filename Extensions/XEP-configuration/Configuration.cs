@@ -129,6 +129,11 @@ namespace Sharp.Xmpp.Extensions
         public event EventHandler<XmlElementEventArgs> CustomStatus;
 
         /// <summary>
+        /// The event raised when a antivirus status message has been received
+        /// </summary>
+        public event EventHandler<XmlElementEventArgs> AVStatus;
+
+        /// <summary>
         /// The event raised when the synhcronisation status with a provider has changed
         /// </summary>
         public event EventHandler<SynchroProviderStatusEventArgs> SynchroProviderStatus;
@@ -182,6 +187,13 @@ namespace Sharp.Xmpp.Extensions
                         }
                     }
                 }
+                // Do we receive message about antivirus scan status ?
+                else if (message.Data["vscan", "jabber:iq:configuration"] != null)
+                {
+                    AVStatus.Raise(this, new XmlElementEventArgs(message.Data["vscan", "jabber:iq:configuration"]));
+                    return true;
+                }
+
                 // Do we receive message about customstatus ?
                 else if (message.Data["customStatus", "jabber:iq:notification"] != null)
                 {
