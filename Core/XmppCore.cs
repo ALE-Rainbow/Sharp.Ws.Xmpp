@@ -682,7 +682,7 @@ namespace Sharp.Xmpp.Core
             RaiseConnectionStatus(false);
         }
 
-        private void WebSocketClientManager_OnClientConnected(string clientId)
+        private async void WebSocketClientManager_OnClientConnected(string clientId)
         {
             if (clientId != webSocketClientManagedId)
                 return;
@@ -693,15 +693,20 @@ namespace Sharp.Xmpp.Core
             Connected = true;
 
             // Set up the listener and dispatcher tasks.
-            Task.Factory.StartNew(ReadAction, TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach);
+            var _ = Task.Factory.StartNew(ReadAction, TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach);
 
             var xml = Xml.Element("open", "urn:ietf:params:xml:ns:xmpp-framing")
                 .Attr("to", hostname)
                 .Attr("version", "1.0")
                 .Attr("xmlns:stream", "http://etherx.jabber.org/streams")
                 .Attr("xml:lang", Util.GetCultureName());
-            Send(xml.ToXmlString(xmlDeclaration: true, leaveOpen: false), false);
 
+            var result = await SendAsync(xml.ToXmlString(xmlDeclaration: true, leaveOpen: false), false);
+            if(!result)
+            {
+                log.LogError("[WebSocketClientManager_OnClientConnected] Failed to send open stream element");
+                RaiseConnectionStatus(false);
+            }
         }
 
         private static Boolean IsFatalStreamError(String reason, String details)
