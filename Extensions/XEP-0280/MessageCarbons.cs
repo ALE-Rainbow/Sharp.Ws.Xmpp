@@ -2,6 +2,7 @@
 using Sharp.Xmpp.Im;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Sharp.Xmpp.Extensions
 {
@@ -25,18 +26,15 @@ namespace Sharp.Xmpp.Extensions
             ecapa = im.GetExtension(typeof(EntityCapabilities)) as EntityCapabilities;
         }
 
-        public void EnableCarbons(bool enable = true)
+        public async Task<Boolean> EnableCarbonsAsync(bool enable = true)
         {
             if (!ecapa.Supports(im.Jid.Domain, Extension.MessageCarbons))
             {
                 throw new NotSupportedException("The XMPP server does not support " +
                     "the 'Message Carbons' extension.");
             }
-            var iq = im.IqRequest(IqType.Set, null, im.Jid,
-                Xml.Element(enable ? "enable" : "disable", _namespaces[0]));
-            if (iq.Type == IqType.Error)
-                throw Util.ExceptionFromError(iq, "Message Carbons could not " +
-                    "be enabled.");
+            var result = await im.IqRequestAsync(IqType.Set, to:null, from: im.Jid, language:null, msDelay: 60000, data: Xml.Element(enable ? "enable" : "disable", _namespaces[0]));
+            return (result.Iq.Type != IqType.Error);
         }
 
         public MessageCarbons(XmppIm im, String loggerPrefix) :

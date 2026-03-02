@@ -689,6 +689,9 @@ namespace Sharp.Xmpp.Core
 
             log.LogDebug("[WebSocketClientManager_OnClientConnected]");
 
+            // Just to be sure that connection is really estabilished before sending data);
+            await Task.Delay(100);
+
             // We are connected.
             Connected = true;
 

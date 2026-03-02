@@ -655,13 +655,20 @@ namespace Sharp.Xmpp.Im
             RaiseConnectionStatus(e);
         }
 
-        private void Core_ActionToPerform(object sender, TextEventArgs e)
+        private async void Core_ActionToPerform(object sender, TextEventArgs e)
         {
             string action = e.Text;
+            Boolean result;
             switch (action)
             {
                 case XmppCore.ACTION_CREATE_SESSION:
-                    EstablishSession();
+                    result = await EstablishSessionAsync();
+                    if (!result)
+                    {
+                        log.LogError("[Core_ActionToPerform] Failed to establish session");
+                        RaiseConnectionStatus(false);
+                        return;
+                    }
                     core.QueueActionToPerform(XmppCore.ACTION_SERVICE_DISCOVERY);
                     break;
 
@@ -680,20 +687,41 @@ namespace Sharp.Xmpp.Im
                     {
                         var xml = Xml.Element("enable", "urn:xmpp:sm:3");
                         xml.SetAttribute("resume", "true");
-                        Send(xml, false);
+                        result = await SendAsync(xml, false);
+                        if(!result)
+                        {
+                            log.LogError("[Core_ActionToPerform] Failed to enable stream management");
+                            RaiseConnectionStatus(false);
+                            return;
+                        }
                     }
                     core.QueueActionToPerform(XmppCore.ACTION_ENABLE_MESSAGE_CARBONS);
                     break;
 
                 case XmppCore.ACTION_ENABLE_MESSAGE_CARBONS:
                     var messageCarbons = GetExtension(typeof(MessageCarbons)) as MessageCarbons;
-                    messageCarbons?.EnableCarbons(true);
+                    if (messageCarbons is not null)
+                    {
+                        result = await messageCarbons.EnableCarbonsAsync(true);
+                        if (!result)
+                        {
+                            log.LogError("[Core_ActionToPerform] Failed to enable carbon copy");
+                            RaiseConnectionStatus(false);
+                            return;
+                        }
+                    }
 
                     core.QueueActionToPerform(XmppCore.ACTION_GET_ROSTER);
                     break;
 
                 case XmppCore.ACTION_GET_ROSTER:
-                    GetRoster();
+                    var rosterResult = await GetRosterAsync();
+                    if(!rosterResult.success)
+                    {
+                        log.LogError("[Core_ActionToPerform] Failed to get roster");
+                        RaiseConnectionStatus(false);
+                        return;
+                    }
 
                     core.QueueActionToPerform(XmppCore.ACTION_FULLY_CONNECTED);
                     break;
@@ -1114,6 +1142,25 @@ namespace Sharp.Xmpp.Im
                 throw new XmppException("Erroneous server response.");
             return ParseRoster(iq.Data);
         }
+
+        public async Task<(Boolean success, Roster roster)> GetRosterAsync()
+        {
+            AssertValid();
+            Roster roster = null;
+            Boolean success = false;
+            var result = await IqRequestAsync(IqType.Get, to: null, from: Jid, language: null, msDelay: 60000, data: Xml.Element("query", "jabber:iq:roster"));
+            if (result.Iq.Type != IqType.Error)
+            {
+                var query = result.Iq.Data["query", "jabber:iq:roster"];
+                if (query != null)
+                {
+                    success = true;
+                    roster = ParseRoster(result.Iq.Data);
+                }
+            }
+            return (success, roster);
+        }
+
 
         /// <summary>
         /// Adds the specified item to the user's roster.
@@ -1911,6 +1958,12 @@ namespace Sharp.Xmpp.Im
                 Xml.Element("session", "urn:ietf:params:xml:ns:xmpp-session"));
             if (ret.Type == IqType.Error)
                 throw Util.ExceptionFromError(ret, "Session establishment failed for Hostname: " + Hostname);
+        }
+
+        private async Task<Boolean> EstablishSessionAsync()
+        {
+            var result = await IqRequestAsync(IqType.Set, to: Hostname, from: null, language: null, msDelay: 60000, data: Xml.Element("session", "urn:ietf:params:xml:ns:xmpp-session"));
+            return (result.Iq.Type != IqType.Error);
         }
 
         /// <summary>
