@@ -16,7 +16,7 @@ namespace Sharp.Xmpp.Core
     /// </summary>
     public class WebSocketClientManager
     {
-        private static WebSocketClientManager _instance = null;
+        private readonly static WebSocketClientManager _instance = new ();
 
         // Thread-safe dictionary to store active client connections
         private readonly ConcurrentDictionary<string, WebSocketClientManaged> _clients;
@@ -30,7 +30,7 @@ namespace Sharp.Xmpp.Core
         private readonly List<Task> _receiveWorkers;
         
         // Cancellation token for graceful shutdown
-        private CancellationTokenSource _shutdownCts;
+        private readonly CancellationTokenSource _shutdownCts;
         
         // Buffer size for receiving messages
         private const int BufferSize = 8192;
@@ -47,7 +47,7 @@ namespace Sharp.Xmpp.Core
 
         public static WebSocketClientManager Instance
         {
-            get => _instance ??= new WebSocketClientManager();
+            get => _instance;
         }
 
         private WebSocketClientManager(
@@ -69,9 +69,9 @@ namespace Sharp.Xmpp.Core
                 SingleReader = false
             });
             
-            _sendWorkers = new List<Task>();
-            _receiveWorkers = new List<Task>();
-            _shutdownCts = new CancellationTokenSource();
+            _sendWorkers = [];
+            _receiveWorkers = [];
+            _shutdownCts = new ();
            
             _sendWorkerCount = sendWorkerCount;
             _receiveWorkerCount = receiveWorkerCount;
@@ -189,7 +189,7 @@ namespace Sharp.Xmpp.Core
                 }
             }
 
-            throw new InvalidOperationException("Failed to add client to manager");
+            throw new InvalidOperationException($"Failed to add client to manager - clientId:[{clientId}]");
         }
 
         /// <summary>
@@ -254,17 +254,17 @@ namespace Sharp.Xmpp.Core
         /// <summary>
         /// Sends a text message through a specific client connection (via channel)
         /// </summary>
-        public async Task<bool> SendAsync(string clientId, string message)
+        public async Task<(bool success, String errMsg)> SendAsync(string clientId, string message)
         {
             try
             {
-                if(clientId is null) return false;
+                if(clientId is null) return (false, "clientId is null");
 
                 if (!_clients.TryGetValue(clientId, out var client))
-                    return false;
+                    return (false, $"not client with id:[{clientId}]");
 
                 if (client.WebSocket.State != WebSocketState.Open)
-                    return false;
+                    return (false, $"WebSocket.State:[{client.WebSocket.State}]");
 
                 var tcs = new TaskCompletionSource<bool>();
                 var msg = new OutgoingMessage(clientId, message, tcs);
@@ -275,11 +275,14 @@ namespace Sharp.Xmpp.Core
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
                 var completedTask = await Task.WhenAny(tcs.Task, Task.Delay(Timeout.Infinite, cts.Token));
 
-                return completedTask == tcs.Task && await tcs.Task;
+                var isTcsTask = completedTask == tcs.Task;
+                var isTcsTaskDoneCorrectly = await tcs.Task;
+
+                return (isTcsTask && isTcsTaskDoneCorrectly, $"isTcsTask:[{isTcsTask}] - isTcsTaskDoneCorrectly:[{isTcsTaskDoneCorrectly}]");
             }
-            catch
+            catch (Exception ex)
             {
-                return false;
+                return (false , ex.ToString());
             }
         }
 
@@ -288,8 +291,6 @@ namespace Sharp.Xmpp.Core
         /// </summary>
         public async Task BroadcastAsync(string message)
         {
-            var tasks = new List<Task>();
-
             foreach (var kvp in _clients)
             {
                 if (kvp.Value.WebSocket.State == WebSocketState.Open)

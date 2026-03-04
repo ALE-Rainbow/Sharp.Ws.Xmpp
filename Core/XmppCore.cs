@@ -674,10 +674,10 @@ namespace Sharp.Xmpp.Core
 
             // Remove previous event handlers
             var webSocketClientManager = WebSocketClientManager.Instance;
-            webSocketClientManager.OnClientConnected += WebSocketClientManager_OnClientConnected;
-            webSocketClientManager.OnClientDisconnected += WebSocketClientManager_OnClientDisconnected;
-            webSocketClientManager.OnClientError += WebSocketClientManager_OnClientError;
-            webSocketClientManager.OnMessageReceived += WebSocketClientManager_OnMessageReceived;
+            webSocketClientManager.OnClientConnected -= WebSocketClientManager_OnClientConnected;
+            webSocketClientManager.OnClientDisconnected -= WebSocketClientManager_OnClientDisconnected;
+            webSocketClientManager.OnClientError -= WebSocketClientManager_OnClientError;
+            webSocketClientManager.OnMessageReceived -= WebSocketClientManager_OnMessageReceived;
 
             RaiseConnectionStatus(false);
         }
@@ -687,10 +687,7 @@ namespace Sharp.Xmpp.Core
             if (clientId != webSocketClientManagedId)
                 return;
 
-            log.LogDebug("[WebSocketClientManager_OnClientConnected]");
-
-            // Just to be sure that connection is really estabilished before sending data);
-            await Task.Delay(100);
+            log.LogDebug("[WebSocketClientManager_OnClientConnected] clientId:[{clientId}]", clientId);
 
             // We are connected.
             Connected = true;
@@ -1488,7 +1485,7 @@ namespace Sharp.Xmpp.Core
             var _ = SendAsync(xml, isStanza);
         }
 
-        private void LogMessage (Boolean sent, String message, Boolean asError)
+        private void LogMessage (Boolean sent, String message, Boolean asError, String msgErr = "")
         {
             ILogger logger;
             // Log webRTC stuff
@@ -1502,8 +1499,12 @@ namespace Sharp.Xmpp.Core
                 logger = log;
 
             var header = sent ? "[ManageOutgoingMessage]" : "[ManageIncomingMessage]";
-            if(asError)
-                logger.LogError("{sent}{Header}: {Message}", sent ? "NOT SEND" : "", header, message);
+            if (asError)
+            {
+                if (!String.IsNullOrEmpty(msgErr))
+                    msgErr = $" - Error:[{msgErr}]";
+                logger.LogError("{Header}: {sent}{msgErr} {Message}", header, sent ? "NOT SEND" : "", msgErr, message);
+            }
             else
                 logger.LogDebug("{Header}: {Message}", header, message);
         }
@@ -1517,14 +1518,15 @@ namespace Sharp.Xmpp.Core
             {
                 try
                 {
-                    result = await WebSocketClientManager.Instance.SendAsync(webSocketClientManagedId, xmlAsString);
-                    LogMessage(true, xmlAsString, !result);
+                    (result, String msgErr) = await WebSocketClientManager.Instance.SendAsync(webSocketClientManagedId, xmlAsString);
+                    LogMessage(true, xmlAsString, !result, msgErr);
 
                     if (isStanza && StreamManagementEnabled)
                         StreamManagementRequestAcknowledgement.Raise(this, null);
                 }
-                catch
+                catch (Exception exc)
                 {
+                    log.LogError("[SendAsync] Exception:[{Exception}]", exc);
                     RaiseConnectionStatus(false);
                 }
                 return result;

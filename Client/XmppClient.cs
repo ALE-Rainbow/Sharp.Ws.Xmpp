@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Security;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -1755,6 +1756,37 @@ namespace Sharp.Xmpp.Client
             }
         }
 
+
+        private static void LogAssemblyInfo(ILogger log)
+        {
+            if (log is null) return; 
+            String productName;
+            String fileVersion;
+            try
+            {
+                var assembly = typeof(XmppClient).Assembly;
+                AssemblyName assemblyName = assembly.GetName();
+                productName = assemblyName.Name;
+                fileVersion = assemblyName.Version.ToString();
+
+                try
+                {
+                    var info = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
+                    fileVersion = info.InformationalVersion;
+                }
+                catch { }
+            }
+            catch
+            {
+                productName = "Sharp.Ws.Xmpp(backup)";
+                fileVersion = "0.0.0.1";
+            }
+
+            log.LogDebug("{productName} {fileVersion}", productName, fileVersion);
+        }
+
+
+
         /// <summary>
         /// Initializes a new instance of the XmppClient class.
         /// </summary>
@@ -1782,6 +1814,7 @@ namespace Sharp.Xmpp.Client
         {
             this.loggerPrefix = loggerPrefix;
             log = LogFactory.CreateLogger<XmppClient>(loggerPrefix);
+            LogAssemblyInfo(log);
             im = new XmppIm(address, hostname, username, password, port, tls, validate, loggerPrefix);
             // Initialize the various extension modules.
             LoadExtensions(extensions);
@@ -1812,6 +1845,7 @@ namespace Sharp.Xmpp.Client
             int port = 5222, bool tls = true, RemoteCertificateValidationCallback validate = null, string loggerPrefix = null, List<String> extensions = null)
         {
             log = LogFactory.CreateLogger<XmppClient>(loggerPrefix);
+            LogAssemblyInfo(log);
             im = new XmppIm(hostname, username, password, port, tls, validate, loggerPrefix);
             // Initialize the various extension modules.
             LoadExtensions(extensions);
@@ -1839,6 +1873,7 @@ namespace Sharp.Xmpp.Client
             RemoteCertificateValidationCallback validate = null, string loggerPrefix = null, List<String> extensions = null)
         {
             log = LogFactory.CreateLogger<XmppClient>(loggerPrefix);
+            LogAssemblyInfo(log);
             im = new XmppIm(hostname, port, tls, validate, loggerPrefix);
             // Initialize the various extension modules.
             LoadExtensions(extensions);
