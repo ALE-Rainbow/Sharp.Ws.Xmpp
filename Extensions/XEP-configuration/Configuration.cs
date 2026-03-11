@@ -22,7 +22,7 @@ namespace Sharp.Xmpp.Extensions
         {
             get
             {
-                return new string[] { "jabber:iq:configuration" };
+                return [ "jabber:iq:configuration" ];
             }
         }
 
@@ -107,6 +107,11 @@ namespace Sharp.Xmpp.Extensions
         /// The event raised when an Open Invite message has been received
         /// </summary>
         public event EventHandler<XmlElementEventArgs> OpenInvite;
+
+        /// <summary>
+        /// The event raised when an password status on a room has been updated
+        /// </summary>
+        public event EventHandler<XmlElementEventArgs> RoomPassword;
 
         /// <summary>
         /// The event raised when a SupervisionGroup message has been received
@@ -327,7 +332,7 @@ namespace Sharp.Xmpp.Extensions
                     }
                     catch (Exception exc)
                     {
-                        log.LogWarning("[Input] Exception occurred for thumbnail: [{0}]", Util.SerializeException(exc));
+                        log.LogWarning("[Input] Exception occurred for thumbnail: [{Exception}]", Util.SerializeException(exc));
                     }
 
                     ThumbnailManagement.Raise(this, new ThumbnailEventArgs(fileId, width, height));
@@ -339,7 +344,7 @@ namespace Sharp.Xmpp.Extensions
                     string jid = message.To.GetBareJid().ToString();
                     string channelId = e.GetAttribute("channelid");
 
-                    string action = "";
+                    string action;
                     string type = "";
 
                     // Check avatar node
@@ -383,6 +388,11 @@ namespace Sharp.Xmpp.Extensions
                 {
                     XmlElement e = message.Data["openinvite"];
                     OpenInvite.Raise(this, new XmlElementEventArgs(e));
+                }
+                else if (message.Data["roompassword"] != null)
+                {
+                    XmlElement e = message.Data["roompassword"];
+                    RoomPassword.Raise(this, new XmlElementEventArgs(e));
                 }
                 else if (message.Data["supervisiongroup"] != null)
                 {

@@ -1440,6 +1440,21 @@ namespace Sharp.Xmpp.Client
         }
 
         /// <summary>
+        /// The event raised when an password status on a room has been updated
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> RoomPassword
+        {
+            add
+            {
+                configuration.RoomPassword += value;
+            }
+            remove
+            {
+                configuration.RoomPassword -= value;
+            }
+        }
+
+        /// <summary>
         /// The event raised when an SupervisionGroup message has been received
         /// </summary>
         public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> SupervisionGroup
@@ -1513,7 +1528,6 @@ namespace Sharp.Xmpp.Client
                 configuration.AVStatus -= value;
             }
         }
-
 
         /// <summary>
         /// The event raised when the synhcronisation status with a provider has changed
