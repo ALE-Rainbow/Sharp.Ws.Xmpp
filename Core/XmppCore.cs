@@ -124,7 +124,8 @@ namespace Sharp.Xmpp.Core
         /// </summary>
         private string resource;
 
-        SaslMechanism saslMechanism = null;
+        SaslAuthClient saslMechanism = null;
+        SaslStepResult saslStepResult = null;
 
         /// <summary>
         /// Write lock for the network stream.
@@ -618,7 +619,7 @@ namespace Sharp.Xmpp.Core
                     webSocketClientManager.OnClientError += WebSocketClientManager_OnClientError;
                     webSocketClientManager.OnMessageReceived += WebSocketClientManager_OnMessageReceived;
 
-                    AsyncHelper.RunSync(async() => await webSocketClientManager.ConnectAsync(webSocketClientManagedId, WebSocketUri, WebProxy).ConfigureAwait(false));
+                    var _ = webSocketClientManager.ConnectAsync(webSocketClientManagedId, WebSocketUri, WebProxy);
                 }
                 else
                 {
@@ -758,20 +759,8 @@ namespace Sharp.Xmpp.Core
         {
             Connected = status.Connected;
             if (!Connected)
-            {
-                if (webSocketClientManagedId is not null)
-                {
-                    var id = webSocketClientManagedId;
-                    webSocketClientManagedId = null;
+                DisconnectWebSocket();
 
-                    AsyncHelper.RunSync(async () =>
-                    {
-                        if (id is not null) // Check again since a deconnection could have been done in the meantime
-                            await WebSocketClientManager.Instance.DisconnectAsync(id).ConfigureAwait(false);
-                    });
-                    
-                }
-            }
             ConnectionStatus.Raise(this, status);
         }
 
@@ -1193,17 +1182,28 @@ namespace Sharp.Xmpp.Core
                     tcpClient?.Close();
                     tcpClient = null;
 
-                    if(webSocketClientManagedId is not null)
-                    {
-                        AsyncHelper.RunSync(async () => await WebSocketClientManager.Instance.DisconnectAsync(webSocketClientManagedId).ConfigureAwait(false));
-                        webSocketClientManagedId = null;
-                    }
+                    DisconnectWebSocket();
                 }
 
                 // Get rid of unmanaged resources.
                 // ...
             }
         }
+
+
+        private void DisconnectWebSocket()
+        {
+            var id = webSocketClientManagedId;
+            webSocketClientManagedId = null;
+
+            AsyncHelper.RunSync(async () =>
+            {
+                if (id is not null) // Check again since a deconnection could have been done in the meantime
+                    await WebSocketClientManager.Instance.DisconnectAsync(id).ConfigureAwait(false);
+            });
+        }
+
+
 
         /// <summary>
         /// Asserts the instance has not been disposed of and is connected to the
@@ -1368,23 +1368,26 @@ namespace Sharp.Xmpp.Core
         private XmlElement Authenticate(IEnumerable<string> mechanisms, string username,
             string password, string hostname)
         {
-            string name = SelectMechanism(mechanisms);
+            string name = SaslAuthClient.PickBest(mechanisms);
+            saslMechanism = new SaslAuthClient(name, Username, Password);
+            saslStepResult = saslMechanism.Begin();
 
-            saslMechanism = SaslFactory.Create(name, Username, Password);
             var xml = Xml.Element("auth", "urn:ietf:params:xml:ns:xmpp-sasl")
                 .Attr("mechanism", name)
-                .Text(saslMechanism.HasInitial ? saslMechanism.GetResponse(String.Empty) : String.Empty);
+                .Text(saslStepResult.Payload);
             Send(xml, false);
             while (true)
             {
                 XmlElement ret = parser.NextElement("challenge", "success", "failure");
                 if (ret.Name == "failure")
                     throw new SaslException("SASL authentication failed.");
-                if (ret.Name == "success" && saslMechanism.IsCompleted)
+                if (ret.Name == "success" && saslStepResult.IsComplete)
                     break;
                 // Server has successfully authenticated us, but mechanism still needs
                 // to verify server's signature.
-                string response = saslMechanism.GetResponse(ret.InnerText);
+
+                saslStepResult = saslMechanism.Step(ret.InnerText);
+                string response = saslStepResult.Payload;
                 // If the response is the empty string, the server's signature has been
                 // verified.
                 if (ret.Name == "success")
@@ -1401,27 +1404,6 @@ namespace Sharp.Xmpp.Core
             Authenticated = true;
             // Finally, initiate a new XML-stream.
             return InitiateStream(hostname);
-        }
-
-        /// <summary>
-        /// Selects the best SASL mechanism that we support from the list of mechanisms
-        /// advertised by the server.
-        /// </summary>
-        /// <param name="mechanisms">An enumerable collection of SASL mechanisms
-        /// advertised by the server.</param>
-        /// <returns>The IANA name of the selcted SASL mechanism.</returns>
-        /// <exception cref="SaslException">No supported mechanism could be found in
-        /// the list of mechanisms advertised by the server.</exception>
-        private static string SelectMechanism(IEnumerable<string> mechanisms)
-        {
-            var m = Mechanisms.ListByPriority; 
-
-            for (int i = 0; i < m.Count; i++)
-            {
-                if (mechanisms.Contains(m[i], StringComparer.InvariantCultureIgnoreCase))
-                    return m[i];
-            }
-            throw new SaslException("No supported SASL mechanism found.");
         }
 
         /// <summary>
@@ -1690,7 +1672,8 @@ namespace Sharp.Xmpp.Core
                 {
                     case "challenge":
                         //log.LogDebug("challenge received");
-                        response = saslMechanism.GetResponse(elem.InnerText);
+                        saslStepResult = saslMechanism.Step(elem.InnerText);
+                        response = saslStepResult.Payload;
                         xmlResponse = Xml.Element("response",
                             "urn:ietf:params:xml:ns:xmpp-sasl").Text(response);
                         Send(xmlResponse, false);
@@ -1698,8 +1681,9 @@ namespace Sharp.Xmpp.Core
 
                     case "success":
                         //log.LogDebug("success received");
-                        if (saslMechanism.IsCompleted ||
-                                (saslMechanism.GetResponse(elem.InnerText) == String.Empty))
+                        saslStepResult = saslMechanism.Step(elem.InnerText);
+
+                        if (saslStepResult.IsComplete)
                         {
                             Authenticated = true;
 
@@ -1716,6 +1700,7 @@ namespace Sharp.Xmpp.Core
                         log.LogWarning("Failure received");
                         if (elem.NamespaceURI == "urn:ietf:params:xml:ns:xmpp-sasl")
                         {
+                            // We consider here to have not a fatal error, since previous REST authentication was a success
                             var status = new ConnectionStatusEventArgs(false, "fatal", "Invalid username or password");
                             RaiseConnectionStatus(status);
                         }
@@ -1734,11 +1719,12 @@ namespace Sharp.Xmpp.Core
                                 list.Add(mech.InnerText);
                                 mech = mech.NextSibling;
                             }
-                            string name = SelectMechanism(list);
-                            saslMechanism = SaslFactory.Create(name, Username, Password);
+                            string name = SaslAuthClient.PickBest(list);
+                            saslMechanism = new SaslAuthClient(name, Username, Password);
+                            saslStepResult = saslMechanism.Begin();
                             xmlResponse = Xml.Element("auth", "urn:ietf:params:xml:ns:xmpp-sasl")
                                 .Attr("mechanism", name)
-                                .Text(saslMechanism.HasInitial ? saslMechanism.GetResponse(String.Empty) : String.Empty);
+                                .Text(saslStepResult.Payload);
                             Send(xmlResponse, false);
                         }
                         else if (subElem.Name == "bind")
