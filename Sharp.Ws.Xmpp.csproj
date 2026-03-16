@@ -26,9 +26,4 @@ Several extensions have been added to support Rainbow features (https://openrain
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
     <PackageReference Include="System.Threading.Channels" Version="10.0.2" />
   </ItemGroup>
-	
-  <ItemGroup>
-    <ProjectReference Include="..\SDK.Cryptography\SDK.Cryptography.csproj" />
-  </ItemGroup>
-
 </Project>
