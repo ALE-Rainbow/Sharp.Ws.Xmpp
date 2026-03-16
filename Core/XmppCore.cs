@@ -1671,7 +1671,6 @@ namespace Sharp.Xmpp.Core
                 switch (elem.Name)
                 {
                     case "challenge":
-                        //log.LogDebug("challenge received");
                         saslStepResult = saslMechanism.Step(elem.InnerText);
                         response = saslStepResult.Payload;
                         xmlResponse = Xml.Element("response",
@@ -1680,9 +1679,7 @@ namespace Sharp.Xmpp.Core
                         break;
 
                     case "success":
-                        //log.LogDebug("success received");
                         saslStepResult = saslMechanism.Step(elem.InnerText);
-
                         if (saslStepResult.IsComplete)
                         {
                             Authenticated = true;
@@ -1694,21 +1691,23 @@ namespace Sharp.Xmpp.Core
                                     .Attr("xml:lang", Util.GetCultureName());
                             Send(elem.ToXmlString(xmlDeclaration: true, leaveOpen: false), false);
                         }
+                        else
+                        {
+                            var status = new ConnectionStatusEventArgs(false, "fatal", "Authentication not completed");
+                            RaiseConnectionStatus(status);
+                        }
                         break;
 
                     case "failure":
                         log.LogWarning("Failure received");
                         if (elem.NamespaceURI == "urn:ietf:params:xml:ns:xmpp-sasl")
                         {
-                            // We consider here to have not a fatal error, since previous REST authentication was a success
                             var status = new ConnectionStatusEventArgs(false, "fatal", "Invalid username or password");
                             RaiseConnectionStatus(status);
                         }
                         break;
 
                     case "stream:features":
-                        //log.LogDebug("stream:features received");
-
                         subElem = (XmlElement)elem.FirstChild;
                         if (subElem.Name == "mechanisms")
                         {
