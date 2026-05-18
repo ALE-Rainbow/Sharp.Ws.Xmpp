@@ -129,6 +129,11 @@ namespace Sharp.Xmpp.Extensions
         public event EventHandler<XmlElementEventArgs> Logs;
 
         /// <summary>
+        /// The event raised when ConferenceRecordings message has been received
+        /// </summary>
+        public event EventHandler<XmlElementEventArgs> ConferenceRecordings;
+
+        /// <summary>
         /// The event raised when a CustomStatus message has been received
         /// </summary>
         public event EventHandler<XmlElementEventArgs> CustomStatus;
@@ -298,9 +303,21 @@ namespace Sharp.Xmpp.Extensions
                     //VoiceMailManagement.Raise(this, new VoiceMailManagementEventArgs(msgId, fileId, action, url, mimeType, fileName, size, md5, duration));
                 //}
                 // Do we receive message about file
-                else if (message.Data["file"] != null)
+                else if ( (message.Data["file"] != null) || (message.Data["archive"] != null))
                 {
-                    XmlElement e = message.Data["file"];
+                    XmlElement e;
+                    Boolean isArchive;
+                    if (message.Data["file"] is not null)
+                    {
+                        e = message.Data["file"];
+                        isArchive = false;
+                    }
+                    else
+                    {
+                        e = message.Data["archive"];
+                        isArchive = true;
+                    }
+
                     string action = e.GetAttribute("action");
 
                     // We can have several "fileid" nodes
@@ -310,7 +327,7 @@ namespace Sharp.Xmpp.Extensions
                         List<String> filesId = [];
                         foreach (XmlElement el in nodes)
                             filesId.Add(el.InnerText);
-                        FileManagement.Raise(this, new FileManagementEventArgs(filesId, action));
+                        FileManagement.Raise(this, new FileManagementEventArgs(filesId, action, isArchive));
                     }
                 }
                 // Do we receive message about thumbnail
@@ -408,6 +425,16 @@ namespace Sharp.Xmpp.Extensions
                 {
                     XmlElement e = message.Data["logs"];
                     Logs.Raise(this, new XmlElementEventArgs(e));
+                }
+                else if (message.Data["conferencerecordings"] != null)
+                {
+                    XmlElement e = message.Data["conferencerecordings"];
+                    ConferenceRecordings.Raise(this, new XmlElementEventArgs(e));
+                }
+                else if (message.Data["conferencerecordingstatus"] != null)
+                {
+                    XmlElement e = message.Data["conferencerecordingstatus"];
+                    ConferenceRecordings.Raise(this, new XmlElementEventArgs(e));
                 }
                 else
                     log.LogInformation("[Input] Message not managed");

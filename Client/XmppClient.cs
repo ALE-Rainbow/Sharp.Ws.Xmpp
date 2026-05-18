@@ -1500,6 +1500,21 @@ namespace Sharp.Xmpp.Client
         }
 
         /// <summary>
+        /// The event raised when ConferenceRecordings message has been received
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> ConferenceRecordings
+        {
+            add
+            {
+                configuration.ConferenceRecordings += value;
+            }
+            remove
+            {
+                configuration.ConferenceRecordings -= value;
+            }
+        }
+
+        /// <summary>
         /// The event raised when a CustomStatus message has been received
         /// </summary>
         public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> CustomStatus

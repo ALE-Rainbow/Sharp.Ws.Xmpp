@@ -15,10 +15,16 @@ namespace Sharp.Xmpp.Extensions
         /// </summary>
         public String Action { get; private set; }
 
-        public FileManagementEventArgs(List<String> filesId, String action)
+        /// <summary>
+        /// True if it's an archive
+        /// </summary>
+        public Boolean IsArchive { get; private set; }
+
+        public FileManagementEventArgs(List<String> filesId, String action, Boolean isArchive)
         {
             FilesId = filesId;
             Action = action;
+            IsArchive = isArchive;
         }
     }
 }
