@@ -159,7 +159,7 @@ namespace Sharp.Xmpp.Core
         /// <summary>
         /// Creates and connects a new WebSocket client to a server
         /// </summary>
-        public async Task ConnectAsync(string clientId, string serverUrl, WebProxy webProxy, CancellationToken ct = default)
+        public async Task<Boolean> ConnectAsync(string clientId, string serverUrl, WebProxy webProxy, CancellationToken ct = default)
         {
             //string clientId = Guid.NewGuid().ToString();
             var client = new WebSocketClientManaged(clientId, serverUrl);
@@ -179,11 +179,16 @@ namespace Sharp.Xmpp.Core
                     // Start receiving messages in background (one task per connection for minimal latency)
                     _ = Task.Run(() => ReceiveMessagesAsync(client, _shutdownCts.Token), ct);
 
-                    return;
+                    return true;
                 }
                 catch (Exception ex)
                 {
                     _clients.TryRemove(clientId, out _);
+                    try
+                    {
+                        client.WebSocket.Dispose();
+                    }
+                    catch { }
                     ThreadPool.QueueUserWorkItem(_ => OnClientDisconnected?.Invoke(clientId, "", ex));
                     throw;
                 }

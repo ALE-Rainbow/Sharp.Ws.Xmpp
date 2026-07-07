@@ -12,6 +12,7 @@ using System.Security.Authentication;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Sharp.Xmpp.Im
 {
@@ -648,6 +649,50 @@ namespace Sharp.Xmpp.Im
             {
                 throw new IOException("Could not connect to the server", e);
             }
+        }
+
+
+        /// <summary>
+        /// Establishes a connection to the XMPP server. (in Web Socket only here)
+        /// </summary>
+        /// <param name="resource">The resource identifier to bind with. If this is null,
+        /// a resource identifier will be assigned by the server.</param>
+        /// <returns>True on success</returns>
+        public async Task<Boolean> ConnectAsync(string resource = null)
+        {
+            if (disposed)
+            {
+                log.LogError("Object already disposed");
+                return false;
+            }
+
+            // Call 'Initialize' method of each loaded extension.
+            foreach (XmppExtension ext in extensions.Values)
+            {
+                try
+                {
+                    ext.Initialize();
+                }
+                catch (Exception e)
+                {
+                    log.LogError("Initialization of {Xep} failed:{Exception}", ext.Xep, e);
+                    return false;
+                }
+            }
+            
+            try
+            {
+                // Ensure to remove previous events (if any)
+                core.ConnectionStatus -= Core_ConnectionStatus;
+                core.ActionToPerform -= Core_ActionToPerform;
+
+                // Add events
+                core.ConnectionStatus += Core_ConnectionStatus;
+                core.ActionToPerform += Core_ActionToPerform;
+                return await core.ConnectAsync(resource);
+            }
+            catch { }
+            return false;
         }
 
         private void Core_ConnectionStatus(object sender, ConnectionStatusEventArgs e)

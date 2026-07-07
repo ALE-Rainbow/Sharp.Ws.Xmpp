@@ -1913,7 +1913,6 @@ namespace Sharp.Xmpp.Client
         /// </summary>
         /// <param name="resource">The resource identifier to bind with. If this is null,
         /// a resource identifier will be assigned by the server.</param>
-        /// <returns>The user's roster (contact list).</returns>
         /// <exception cref="System.Security.Authentication.AuthenticationException">An
         /// authentication error occured while trying to establish a secure connection, or
         /// the provided credentials were rejected by the server, or the server requires
@@ -1929,6 +1928,26 @@ namespace Sharp.Xmpp.Client
         public void Connect(string resource = null)
         {
             im.Connect(resource);
+        }
+
+        /// <summary>
+        /// Establishes a connection to the XMPP server. (in Web Socket only here)
+        /// </summary>
+        /// <param name="resource">The resource identifier to bind with. If this is null,
+        /// a resource identifier will be assigned by the server.</param>
+        /// <returns>True on success</returns>
+        public async Task<Boolean> ConnectAsync(string resource = null)
+        {
+            try
+            {
+                return await im.ConnectAsync(resource);
+            }
+            catch (Exception ex)
+            {
+                log.LogError("Error while connecting to the XMPP server: {Exception}", ex);
+            }
+            
+            return false;
         }
 
         /// <summary>

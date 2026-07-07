@@ -577,7 +577,7 @@ namespace Sharp.Xmpp.Core
             this(hostname, string.Empty, string.Empty, port, tls, validate, loggerPrefix)
         { }
 
-         /// <summary>
+        /// <summary>
         /// Establishes a connection to the XMPP server.
         /// </summary>
         /// <param name="resource">The resource identifier to bind with. If this is null,
@@ -653,6 +653,55 @@ namespace Sharp.Xmpp.Core
             {
                 RaiseConnectionStatus(false);
             }
+        }
+
+        /// <summary>
+        /// Establishes a connection to the XMPP server. (in Web Socket only here)
+        /// </summary>
+        /// <param name="resource">The resource identifier to bind with. If this is null,
+        /// it is assigned by the server.</param>
+        /// <exception cref="ObjectDisposedException">The XmppCore object has been
+        /// disposed.</exception>
+        /// <remarks>If a username has been supplied, this method automatically performs
+        /// authentication.</remarks>
+        /// <returns>True on success</returns>
+        public async Task<Boolean> ConnectAsync(string resource)
+        {
+#if NETSTANDARD2_0 || NETSTANDARD2_1
+            if (disposed)
+                throw new ObjectDisposedException(GetType().FullName);
+#else
+            ObjectDisposedException.ThrowIf(disposed, GetType().FullName);
+#endif
+
+            this.resource = resource;
+            var webSocketClientManager = WebSocketClientManager.Instance;
+            try
+            {
+                if (String.IsNullOrEmpty(WebSocketUri))
+                    RaiseConnectionStatus(false);
+
+                webSocketClientManagedId = Guid.NewGuid().ToString();
+
+                // Ensure to remove previous events (if any)
+                webSocketClientManager.OnClientConnected -= WebSocketClientManager_OnClientConnected;
+                webSocketClientManager.OnClientDisconnected -= WebSocketClientManager_OnClientDisconnected;
+                webSocketClientManager.OnClientError -= WebSocketClientManager_OnClientError;
+                webSocketClientManager.OnMessageReceived -= WebSocketClientManager_OnMessageReceived;
+
+                // Add events
+                webSocketClientManager.OnClientConnected += WebSocketClientManager_OnClientConnected;
+                webSocketClientManager.OnClientDisconnected += WebSocketClientManager_OnClientDisconnected;
+                webSocketClientManager.OnClientError += WebSocketClientManager_OnClientError;
+                webSocketClientManager.OnMessageReceived += WebSocketClientManager_OnMessageReceived;
+
+                return await webSocketClientManager.ConnectAsync(webSocketClientManagedId, WebSocketUri, WebProxy);
+            }
+            catch
+            {
+                RaiseConnectionStatus(false);
+            }
+            return false;
         }
 
         private void WebSocketClientManager_OnMessageReceived(string clientId, string message)
