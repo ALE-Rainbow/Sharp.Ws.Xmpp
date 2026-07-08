@@ -503,7 +503,7 @@ namespace Sharp.Xmpp.Im
         /// <summary>
         /// The event that is raised when an unrecoverable error condition occurs.
         /// </summary>
-        public event EventHandler<ErrorEventArgs> Error;
+        public event EventHandler<Core.ErrorEventArgs> Error;
 
         /// <summary>
         /// Initializes a new instance of the XmppIm.
@@ -2027,7 +2027,7 @@ namespace Sharp.Xmpp.Im
                 }
                 catch (Exception ePresence)
                 {
-                    log.LogError("[SetupEventHandlers] cannot create new Presence object:\r\nStanza:\r\n{0}\r\nException:\r\n{1}", e.Stanza.ToString(), Util.SerializeException(ePresence));
+                    log.LogError("[SetupEventHandlers] cannot create new Presence object:\r\nStanza:\r\n{0}\r\nException:\r\n{1}", e.Stanza.ToString(), ePresence);
                 }
                 
             };
@@ -2041,14 +2041,14 @@ namespace Sharp.Xmpp.Im
                 }
                 catch (Exception eMessage)
                 {
-                    log.LogError("[SetupEventHandlers] cannot create new Message object:\r\nStanza:\r\n{0}\r\nException:\r\n{1}", e.Stanza.ToString(), Util.SerializeException(eMessage));
+                    log.LogError("[SetupEventHandlers] cannot create new Message object:\r\nStanza:\r\n{0}\r\nException:\r\n{1}", e.Stanza.ToString(), eMessage);
                 }
             };
 
             core.Error += (sender, e) =>
             {
-                log.LogError("[SetupEventHandlers] error fired\r\nException[{0}]", Util.SerializeException(e.Exception));
-                Error.Raise(sender, new ErrorEventArgs(e.Exception));
+                log.LogError("[SetupEventHandlers] error fired\r\nException[{0}]", e?.Exception);
+                Error.Raise(sender, e);
             };
 
             core.StreamManagementStanza += (sender, e) =>
@@ -2060,7 +2060,7 @@ namespace Sharp.Xmpp.Im
                 }
                 catch (Exception eMessage)
                 {
-                    log.LogError("[SetupEventHandlers] cannot create new StreamManagementStanza object:\r\nStanza:\r\n{0}\r\nException:\r\n{1}", e.Stanza.ToString(), Util.SerializeException(eMessage));
+                    log.LogError("[SetupEventHandlers] cannot create new StreamManagementStanza object:\r\nStanza:\r\n{0}\r\nException:\r\n{1}", e.Stanza.ToString(), eMessage);
                 }
             };
 

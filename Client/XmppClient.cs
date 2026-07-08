@@ -840,7 +840,7 @@ namespace Sharp.Xmpp.Client
         /// <summary>
         /// The event that is raised when an unrecoverable error condition occurs.
         /// </summary>
-        public event EventHandler<Im.ErrorEventArgs> Error
+        public event EventHandler<Core.ErrorEventArgs> Error
         {
             add
             {

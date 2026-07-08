@@ -51,18 +51,6 @@ namespace Sharp.Xmpp
         }
 
         /// <summary>
-        /// Permits to serialize exception (to log it for example)
-        /// </summary>
-        /// <param name="exception"><see cref="Exception"/>Exception object to serialize</param>
-        /// <returns>String as a serialization result</returns>
-        public static String SerializeException(Exception exception)
-        {
-            if (exception != null)
-                return exception.ToString();
-            return "";
-        }
-
-        /// <summary>
         /// Creates an exception from the specified Iq stanza.
         /// </summary>
         /// <param name="errorIq">The Iq stanza to create the exception from. The

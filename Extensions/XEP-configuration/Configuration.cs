@@ -349,7 +349,7 @@ namespace Sharp.Xmpp.Extensions
                     }
                     catch (Exception exc)
                     {
-                        log.LogWarning("[Input] Exception occurred for thumbnail: [{Exception}]", Util.SerializeException(exc));
+                        log.LogWarning("[Input] Exception occurred for thumbnail: [{Exception}]", exc);
                     }
 
                     ThumbnailManagement.Raise(this, new ThumbnailEventArgs(fileId, width, height));
