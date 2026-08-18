@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using System;
 
 namespace Sharp.Xmpp
 {
@@ -20,6 +21,8 @@ namespace Sharp.Xmpp
     public class LogFactory
     {
         private ILoggerFactory _factory = NullLoggerFactory.Instance;
+        private IScopedLoggers _scopedLoggers = null;
+
         private static LogFactory _appLog;
 
         /// <summary>
@@ -50,10 +53,13 @@ namespace Sharp.Xmpp
         /// <returns><see cref="ILogger"/> - ILogger interface</returns>
         public static ILogger CreateLogger(string categoryName, string prefix = null)
         {
-            if (string.IsNullOrEmpty(prefix))
-                return Instance._factory.CreateLogger(categoryName);
-            else
-                return Instance._factory.CreateLogger($"{prefix}{categoryName}");
+            var inner = string.IsNullOrEmpty(prefix)
+                ? Instance._factory.CreateLogger(categoryName)
+                : Instance._factory.CreateLogger($"{prefix}{categoryName}");
+
+            return (String.IsNullOrEmpty(prefix) || Instance._scopedLoggers is null)
+                ? inner
+                : Instance._scopedLoggers.Create(inner, prefix);
         }
 
         /// <summary>
@@ -72,6 +78,11 @@ namespace Sharp.Xmpp
         public static void Set(ILoggerFactory factory)
         {
             Instance._factory = factory;
+        }
+
+        public static void SetScopedLoggers(IScopedLoggers scopedLoggers)
+        {
+            Instance._scopedLoggers = scopedLoggers;
         }
 
         private LogFactory()
