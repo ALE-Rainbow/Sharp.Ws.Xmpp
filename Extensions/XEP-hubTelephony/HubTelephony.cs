@@ -65,6 +65,8 @@ namespace Sharp.Xmpp.Extensions.XEP_hubTelephony
         /// on to the next handler.</returns>
         public bool Input(Sharp.Xmpp.Im.Message message)
         {
+            Boolean eventRaised = false;
+
             // No XSD for this one ...
             var routingElement = message.Data["routing", RVCP_NS];
             if (routingElement != null)
@@ -72,7 +74,7 @@ namespace Sharp.Xmpp.Extensions.XEP_hubTelephony
                 if (routingElement["routingUpdated"] != null)
                 {
                     HubTelephonyRoutingUpdated.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(routingElement["routingUpdated"]));
-                    return true;
+                    eventRaised = true;
                 }
             }
 
@@ -84,31 +86,31 @@ namespace Sharp.Xmpp.Extensions.XEP_hubTelephony
                 if (telephonyElement["event"] != null)
                 {
                     HubTelephonyEvent.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(telephonyElement["event"]));
-                    return true;
+                    eventRaised = true;
                 }
 
                 if (telephonyElement["callLog"] != null)
                 {
                     HubTelephonyCallLog.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(telephonyElement["callLog"]));
-                    return true;
+                    eventRaised = true;
                 }
 
                 if (telephonyElement["mwi"] != null)
                 {
                     HubTelephonyMwi.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(telephonyElement["mwi"]));
-                    return true;
+                    eventRaised = true;
                 }
 
                 if (telephonyElement["gmwi"] != null)
                 {
                     HubTelephonyGmwi.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(telephonyElement["gmwi"]));
-                    return true;
+                    eventRaised = true;
                 }
 
                 if (telephonyElement["forwardUpdated"] != null)
                 {
                     HubTelephonyForwardUpdated.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(telephonyElement["forwardUpdated"]));
-                    return true;
+                    eventRaised = true;
                 }
             }
 
@@ -119,6 +121,8 @@ namespace Sharp.Xmpp.Extensions.XEP_hubTelephony
             {
                 supervisionElement = message.Data["forwarded"]["supervision"];
                 from = message.Data["forwarded"]["delay"]?.GetAttribute("from");
+                if(String.IsNullOrEmpty(from))
+                    from = message.Data.GetAttribute("from");
             }
             else
             {
@@ -129,15 +133,11 @@ namespace Sharp.Xmpp.Extensions.XEP_hubTelephony
             if ((supervisionElement != null)
                     && (supervisionElement.NamespaceURI == HUBSUPERVISION_NS))
             {
-                var delay = message.Data["forwarded"]["delay"];
-                if (delay != null)
-                {
-                    // set "from" attribute
-                    supervisionElement.SetAttribute("from", from);
+                // set "from" attribute
+                supervisionElement.SetAttribute("from", from ?? "");
 
-                    HubTelephonySupervision.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(supervisionElement));
-                    return true;
-                }
+                HubTelephonySupervision.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(supervisionElement));
+                eventRaised = true;
             }
 
             // Cf. https://git.openrainbow.org/rainbow-backends/servers/core/components/rvcp-pcg/-/blob/master/xsd/group.xsd?ref_type=heads
@@ -147,13 +147,13 @@ namespace Sharp.Xmpp.Extensions.XEP_hubTelephony
                 if (groupElement["realTime"] != null)
                 {
                     HubTelephonyGroupRealTime.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(groupElement["realTime"]));
-                    return true;
+                    eventRaised = true;
                 }
 
                 if (groupElement["callLog"] != null)
                 {
                     HubTelephonyGroupCallLog.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(groupElement["callLog"]));
-                    return true;
+                    eventRaised = true;
                 }
             }
 
@@ -161,11 +161,10 @@ namespace Sharp.Xmpp.Extensions.XEP_hubTelephony
             if (clirElement != null)
             {
                 HubTelephonyClirUpdated.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(clirElement));
-                return true;
+                eventRaised = true;
             }
 
-            // Pass the message to the next handler.
-            return false;
+            return eventRaised;
         }
 
         /// <summary>
