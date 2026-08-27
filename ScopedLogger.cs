@@ -56,7 +56,7 @@ namespace Sharp.Xmpp
         /// <returns><see cref="ILogger"/> - <see cref="ScopedLogger"/> object</returns>
         public ILogger Create(ILogger inner, string loggerPrefix, LogLevel logLevel = LogLevel.Debug)
         {
-            _levels.AddOrUpdate(loggerPrefix, logLevel, (_, _) => logLevel);
+            _levels.TryAdd(loggerPrefix, logLevel);
             return new ScopedLogger(inner, loggerPrefix, this);
         }
 
