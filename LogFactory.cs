@@ -7,16 +7,7 @@ namespace Sharp.Xmpp
     /// <summary>
     /// Class used to manage LoggerFactory object
     /// 
-    /// It permits to use any back-ends log provider based on Microsoft Extension Logging (MEL):
-    /// <a href="https://github.com/getsentry/sentry-dotnet">Sentry</a> provider for the Sentry service
-    /// <a href="https://github.com/serilog/serilog-framework-logging">Serilog</a> provider for the Serilog library
-    /// <a href="https://github.com/elmahio/Elmah.Io.Extensions.Logging">elmah.io</a> provider for the elmah.io service
-    /// <a href="https://github.com/imobile3/Loggr.Extensions.Logging">Loggr</a> provider for the Loggr service
-    /// <a href="https://github.com/NLog/NLog.Extensions.Logging">NLog</a> provider for the NLog service
-    /// <a href="https://github.com/mattwcole/gelf-extensions-logging">Graylog</a> provider for the Graylog service
-    /// <a href="https://github.com/airbrake/sharpbrake#microsoftextensionslogging-integration">Sharpbrake</a> provider for the Sharpbrake service
-    /// <a href="https://github.com/catalingavan/KissLog-net">KissLog.net</a> provider for the KissLog.net service
-    /// 
+    /// It permits to use any back-ends log provider based on Microsoft Extension Logging (MEL)
     /// </summary>
     public class LogFactory
     {

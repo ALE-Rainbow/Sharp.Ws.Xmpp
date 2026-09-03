@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
 namespace Sharp.Xmpp
 {
@@ -18,8 +17,9 @@ namespace Sharp.Xmpp
         /// <param name="inner"><see cref="ILogger"/>ILogger object</param>
         /// <param name="loggerPrefix"><see cref="String"/>Prefix to use</param>
         /// <param name="logLevel"><see cref="LogLevel"/>Minimum Log level to use</param>
+        /// <param name="scopes"><see cref="T:Dictionary{String, Object}"/>Scopes to use</param>
         /// <returns><see cref="ILogger"/> - ILogger object</returns>
-        ILogger Create(ILogger inner, string loggerPrefix, LogLevel logLevel = LogLevel.Debug);
+        ILogger Create(ILogger inner, string loggerPrefix, LogLevel logLevel = LogLevel.Debug, Dictionary<string, object> scopes = null);
 
         /// <summary>
         /// Change Log Level for all loggers with the specified prefix.
@@ -37,8 +37,11 @@ namespace Sharp.Xmpp
     }
 
     /// <summary>
-    /// Based on <see cref="IScopedLoggers"/> interface.
-    /// Permit to create <see cref="ScopedLogger"/> and change easily Log Level of all of them based on their prefix.
+    /// Default class inheriting from <see cref="IScopedLoggers"/>.
+    /// Permits to create <see cref="ScopedLogger"/>:
+    /// - loggerPrefix will be automatically added to each log entry as "LoggerPrefix" scope
+    /// - scopes specified will be automatically added to each log entry
+    /// - logLevel can be easily changed at runtime for all loggers with the same prefix
     /// </summary>
     public class ScopedLoggers : IScopedLoggers
     {
@@ -46,25 +49,33 @@ namespace Sharp.Xmpp
         private readonly ConcurrentDictionary<string, LogLevel> _levels = new();
 
         /// <summary>
-        /// To create a <see cref="ScopedLogger"/> (inherits from <see cref="ILogger"/>) based :
-        /// - on the specified <see cref="ILogger"/> 
-        /// - and on the specified prefix
+        /// To create a <see cref="ScopedLogger"/> (inheriting from <see cref="ILogger"/>) based
+        /// - on a <see cref="ILogger"/> 
+        /// - on a loggerPrefix (used as "LoggerPrefix" scope)
+        /// - on a logLevel (used to filter log entries)
+        /// - on scopes (used as additional scopes for each log entry)
         /// </summary>
         /// <param name="inner"><see cref="ILogger"/>ILogger object</param>
         /// <param name="loggerPrefix"><see cref="String"/>Prefix to use</param>
         /// <param name="logLevel"><see cref="LogLevel"/>Minimum Log level to use</param>
+        /// <param name="scopes"><see cref="T:Dictionary{String, Object}"/>Scopes to use</param>
         /// <returns><see cref="ILogger"/> - <see cref="ScopedLogger"/> object</returns>
-        public ILogger Create(ILogger inner, string loggerPrefix, LogLevel logLevel = LogLevel.Debug)
+        public ILogger Create(ILogger inner, string loggerPrefix, LogLevel logLevel = LogLevel.Debug, Dictionary<string, object> scopes = null)
         {
             _levels.TryAdd(loggerPrefix, logLevel);
-            return new ScopedLogger(inner, loggerPrefix, this);
+            return new ScopedLogger(this, inner, loggerPrefix, scopes);
         }
 
         /// <summary>
         /// Change log level for all loggers with the specified prefix.
+        /// 
+        /// Note: 
+        /// - the LogFactory configuration set a minimum log level for all loggers, which will be respected by the underlying <see cref="ILogger"/>.
+        /// - this minimum level cannot be changed using this method.
+        /// - it this minimum level is too high (for example LogLevel.Information), then this method will have no effect for log entries below this level (for example LogLevel.Debug).
         /// </summary>
-        /// <param name="loggerPrefix">The prefix for the loggers to modify.</param>
-        /// <param name="level">The new log level.</param>
+        /// <param name="loggerPrefix"><see cref="String"/>The prefix for the loggers to modify.</param>
+        /// <param name="level"><see cref="LogLevel"/>The new log level.</param>
         public void SetLevel(string loggerPrefix, LogLevel level)
         {
             _levels[loggerPrefix] = level;
@@ -79,27 +90,57 @@ namespace Sharp.Xmpp
             _levels.TryGetValue(loggerPrefix, out var level) ? level : LogLevel.Debug;
     }
 
+    /// <summary>
+    /// Class inheriting from <see cref="ILogger"/> created by <see cref="ScopedLoggers"/>
+    /// - loggerPrefix will be automatically added to each log entry as "LoggerPrefix" scope
+    /// - scopes specified will be automatically added to each log entry
+    /// </summary>
     public class ScopedLogger : ILogger
     {
         private readonly ILogger _inner;
         private readonly string _loggerPrefix;
-        private readonly IScopedLoggers _levels;
+        private readonly IScopedLoggers _scopedLoggers;
         private readonly Dictionary<string, object> _state;
 
-        public ScopedLogger(ILogger inner, string loggerPrefix, IScopedLoggers levels)
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="scopedLoggers"><see cref="IScopedLoggers"/>IScopedLoggers object</param>
+        /// <param name="inner"><see cref="ILogger"/>ILogger object</param>
+        /// <param name="loggerPrefix"><see cref="String"/>Prefix to use</param>
+        /// <param name="scopes"><see cref="T:Dictionary{String, Object}"/>Scopes to use</param>
+        public ScopedLogger(IScopedLoggers scopedLoggers, ILogger inner, string loggerPrefix, Dictionary<string, object> scopes = null)
         {
             _inner = inner;
             _loggerPrefix = loggerPrefix;
-            _levels = levels;
-            _state = new Dictionary<string, object> { ["LoggerPrefix"] = loggerPrefix };
+            _scopedLoggers = scopedLoggers;
+            _state = new Dictionary<string, object> { ["LoggerPrefix"] = loggerPrefix }; // <= this scope will be added each a log entry is added
+            if (scopes != null) // <= We add automatically more scopes if any
+            {
+                foreach (var kvp in scopes)
+                { 
+                    if (!_state.ContainsKey(kvp.Key))
+                        _state[kvp.Key] = kvp.Value;
+                }
+            }
         }
 
+        /// <summary>
+        /// Begin a logical operation scope
+        /// </summary>
+        /// <param name="state">the type of the state to begin scope for</param>
+        /// <returns><see cref="IDisposable"/>An IDisposable object thatn ends the logicla scope on dispose</returns>
         public IDisposable BeginScope<TState>(TState state) => _inner.BeginScope(state);
 
+        /// <summary>
+        /// Check if the given log level is enabled.
+        /// </summary>
+        /// <param name="logLevel"><see cref="LogLevel"/>The log level to check.</param>
+        /// <returns><see cref="bool"/>True if the log level is enabled; otherwise, false.</returns>
         public bool IsEnabled(LogLevel logLevel)
         {
             // The level specific to this instance must be respected.
-            var instanceLevel = _levels.GetLevel(_loggerPrefix);
+            var instanceLevel = _scopedLoggers.GetLevel(_loggerPrefix);
             if (logLevel < instanceLevel)
                 return false;
 
@@ -107,6 +148,14 @@ namespace Sharp.Xmpp
             return _inner.IsEnabled(logLevel);
         }
 
+        /// <summary>
+        /// Logs a message with the specified log level, event ID, state, exception, and formatter.
+        /// </summary>
+        /// <param name="logLevel"><see cref="LogLevel"/>The log level to use.</param>
+        /// <param name="eventId"><see cref="EventId"/>The event ID to use.</param>
+        /// <param name="state"><see cref="TState"/>The state to use.</param>
+        /// <param name="exception"><see cref="Exception"/>The exception to use.</param>
+        /// <param name="formatter"><see cref="Func{TState, Exception, string}"/>The formatter to use.</param>
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state,
             Exception exception, Func<TState, Exception, string> formatter)
         {
