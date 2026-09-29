@@ -16,7 +16,24 @@ Several extensions have been added to support Rainbow features (https://openrain
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="docs\**" />
+    <Compile Remove="tests\**" />
+    <EmbeddedResource Remove="docs\**" />
+    <EmbeddedResource Remove="tests\**" />
+    <None Remove="docs\**" />
+    <None Remove="tests\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Sharp.Ws.Xmpp.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.7.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
+	<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.32" />
+	<!-- Pinned above the EF Core 3.1 transitive 2.1.2 to pick up the SQLite fix for GHSA-2m69-gcr7-jv3q -->
+	<PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.12" />
   </ItemGroup>
 
 </Project>

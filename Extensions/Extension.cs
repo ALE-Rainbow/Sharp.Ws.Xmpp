@@ -203,6 +203,11 @@
         /// <summary>
         /// An extension added by Rainbow Hub to manage conference
         /// </summary>
-        Conference
+        Conference,
+
+        /// <summary>
+        /// OMEMO end-to-end encryption (XEP-0384).
+        /// </summary>
+        OmemoEncryption
     }
 }

@@ -1,0 +1,599 @@
+## WORKSPACE EXECUTIVE SUMMARY (YAML)
+# Generated: 2026-06-25T12:54:43.3963016-04:00
+# Root: F:\Users\xamlz\repos\xamlzealot\Sharp.Ws.Xmpp
+Architecture:
+  Type: Backend (C#/.NET)
+  Scale: 240 relevant source files
+  Components: 0
+  Controllers: 0
+  Models: 0
+  Services: 1
+---
+- File: Sharp.Ws.Xmpp.csproj
+  Preview: "<Project Sdk='Microsoft.NET.Sdk'>  <PropertyGroup>   <TargetFrameworks>netstandard2.0;netcoreapp3.1</TargetFrameworks>   <AssemblyName>Sharp.Ws.Xmpp</..."
+- File: Sharp.Xmpp.sln
+  Preview: "Microsoft Visual Studio Solution File, Format Version 12.00 # Visual Studio Version 18 VisualStudioVersion = 18.2.11430.68 MinimumVisualStudioVersion ..."
+- File: AGENTS.md
+  Preview: "# Codex Instructions This file contains high-level instructions for Codex to follow when working in this project. For detailed guidance, refer to the ..."
+- File: ErrorCondition.cs
+  Preview: "namespace Sharp.Xmpp {   /// <summary>   /// Defines possible values for the condition of XMPP errors.   /// </summary>   public enum ErrorCondition  ..."
+- File: ErrorType.cs
+  Symbols: [of]
+  Preview: "namespace Sharp.Xmpp {   /// <summary>   /// Defines possible values for the type of XMPP errors.   /// </summary>   public enum ErrorType   {     ///..."
+- File: Jid.cs
+  Preview: "using System; using System.Text; using System.Text.RegularExpressions; namespace Sharp.Xmpp {   /// <summary>   /// Represents the address of an XMPP ..."
+- File: License.md
+  Preview: "### The MIT License Sharp.Ws.Xmpp Copyright (c) 2019 ALE International. Sharp.Xmpp Copyright (c) 2015 Panos Georgiou Stath. S22.Xmpp Copyright (c) 201..."
+- File: LogFactory.cs
+  Preview: "using Microsoft.Extensions.Logging; using Microsoft.Extensions.Logging.Abstractions; using System; using System.Collections.Generic; using System.Text..."
+- File: Readme.md
+  Preview: "### Introduction This repository contains an easy-to-use and well-documented .NET assembly for communicating with an XMPP server using Web Socket. It ..."
+- File: ReleaseNotes.md
+  Preview: "# 0.0.1.0 Firts Sharp.Ws.Xmpp Release ##Other improvements Add support of Web Socket as the primary transport layer (TCPStream) Update project to buil..."
+- File: Util.cs
+  Symbols: [TextEventArgs]
+  Preview: "using Sharp.Xmpp.Core; using System; using System.Collections; using System.Diagnostics; using System.Reflection; using System.Xml; namespace Sharp.Xm..."
+- File: Xml.cs
+  Preview: "using System; using System.Security; using System.Text; using System.Text.RegularExpressions; using System.Xml; namespace Sharp.Xmpp {   /// <summary>..."
+- File: XmppDisconnectionException.cs
+  Preview: "using System; using System.Runtime.Serialization; namespace Sharp.Xmpp {   /// <summary>   /// The exception that is thrown when a generic XMPP error ..."
+- File: XmppError.cs
+  Symbols: [XmppError]
+  Preview: "using System; using System.Collections.Generic; using System.Text; using System.Xml; namespace Sharp.Xmpp {   /// <summary>   /// Represents an XMPP e..."
+- File: XmppErrorException.cs
+  Preview: "using System; using System.Runtime.Serialization; namespace Sharp.Xmpp {   /// <summary>   /// The exception that is thrown when a recoverable XMPP er..."
+- File: XmppExceptions.cs
+  Preview: "using System; using System.Runtime.Serialization; namespace Sharp.Xmpp {   /// <summary>   /// The exception that is thrown when a generic XMPP error ..."
+- File: Client\Examples.xml
+  Preview: "<Sharp>  <Xmpp>   <Client>    <XmppClient name='GetFeatures'>     <example>      This example shows how to use the GetFeatures method to print out a  ..."
+- File: Client\FileTransferSettings.cs
+  Preview: "using Sharp.Xmpp.Extensions; using System; using System.Collections.Generic; using System.Net; namespace Sharp.Xmpp.Client {   /// <summary>   /// Con..."
+- File: Client\XmppClient.cs
+  Preview: "using System; using System.Collections.Generic; using System.Globalization; using System.IO; using System.Net; using System.Net.Security; using System..."
+- File: Core\ConnectionStatusEventArgs.cs
+  Preview: "using System; using System.Collections.Generic; using System.Linq; using System.Text; using System.Threading.Tasks; namespace Sharp.Xmpp.Core {   /// ..."
+- File: Core\ErrorEventArgs.cs
+  Symbols: [ErrorEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Core {   /// <summary>   /// Provides data for the Error event.   /// </summary>   public class ErrorEventArgs : Ev..."
+- File: Core\Iq.cs
+  Symbols: [Iq]
+  Preview: "using System; using System.Collections.Generic; using System.Globalization; using System.Xml; namespace Sharp.Xmpp.Core {   /// <summary>   /// Repres..."
+- File: Core\IqEventArgs.cs
+  Symbols: [IqEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Core {   /// <summary>   /// Provides data for the Iq event.   /// </summary>   public class IqEventArgs : EventArg..."
+- File: Core\IqType.cs
+  Preview: "namespace Sharp.Xmpp.Core {   /// <summary>   /// Defines the possible types for IQ stanzas.   /// </summary>   public enum IqType   {     /// <summar..."
+- File: Core\Message.cs
+  Symbols: [Message]
+  Preview: "using System; using System.Globalization; using System.Xml; namespace Sharp.Xmpp.Core {   /// <summary>   /// Represents a Message XML stanza.   /// <..."
+- File: Core\MessageEventArgs.cs
+  Symbols: [MessageEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Core {   /// <summary>   /// Provides data for the Message event.   /// </summary>   public class MessageEventArgs ..."
+- File: Core\NodeParsedEventArgs.cs
+  Preview: "using System; namespace Sharp.Ws.Xmpp.Core {   public class NodeParsedEventArgs : EventArgs   {     public NodeParsedEventArgs(string xml)     {      ..."
+- File: Core\Presence.cs
+  Symbols: [Presence]
+  Preview: "using System; using System.Globalization; using System.Xml; namespace Sharp.Xmpp.Core {   /// <summary>   /// Represents a Presence XML stanza.   /// ..."
+- File: Core\PresenceEventArgs.cs
+  Symbols: [PresenceEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Core {   /// <summary>   /// Provides data for the Presence event.   /// </summary>   public class PresenceEventArg..."
+- File: Core\Stanza.cs
+  Symbols: [for]
+  Preview: "using System; using System.Globalization; using System.Xml; namespace Sharp.Xmpp.Core {   /// <summary>   /// Represents the base class for XML stanza..."
+- File: Core\StreamManagementStanza.cs
+  Symbols: [StreamManagementStanza]
+  Preview: "using System; using System.Collections.Generic; using System.Text; using System.Xml; namespace Sharp.Xmpp.Core {     public class StreamManagementStan..."
+- File: Core\StreamManagementStanzaEventArgs.cs
+  Symbols: [StreamManagementStanzaEventArgs]
+  Preview: "using System; using System.Collections.Generic; using System.Text; namespace Sharp.Xmpp.Core {   /// <summary>   /// Provides data for the Presence ev..."
+- File: Core\StreamParser.cs
+  Symbols: [StreamParser, StreamParser, ReadRootElement, NextElement, XmlReaderSettings, for, XmlElement, Close, Dispose]
+  Preview: "using Sharp.Ws.Xmpp.Core; using System; using System.Globalization; using System.IO; using System.Linq; using System.Xml; namespace Sharp.Xmpp.Core { ..."
+- File: Core\WebSocket.cs
+  Preview: "using System; using System.Collections.Concurrent; using System.Collections.Generic; using System.Globalization; using System.IO; using System.Net; us..."
+- File: Core\XmppCore.cs
+  Symbols: [a, SelectMechanism, Authenticate, Authenticate, Send, Send, Send, Connect, of, of, of, ReadAction, RaiseConnectionStatus, lock, InitiateStream]
+  Preview: "using Sharp.Xmpp.Core.Sasl; using Sharp.Xmpp.Extensions; using System; using System.Collections.Concurrent; using System.Collections.Generic; using Sy..."
+- File: docs\coding-guidelines.md
+  Preview: "# Coding Guidelines ## 1. Scope These guidelines apply to all production code in this repository, with priority order: 1. Existing repository patterns..."
+- File: docs\functional-requirements.md
+  Preview: "# Sharp.Ws.Xmpp Functional Requirements ## 1. Purpose Define the functional requirements for a .NET XMPP client library focused on WebSocket-based com..."
+- File: docs\project-overview.md
+  Preview: "# Sharp.Ws.Xmpp — Project Overview ## Summary `Sharp.Ws.Xmpp` is a .NET library for communicating with XMPP servers over **WebSocket**.  It focuses on..."
+- File: docs\ui-guidelines.md
+  Preview: "# UI Guidelines for Sharp.Ws.Xmpp (.NET MAUI) ## 1. Purpose Define consistent, accessible, and performant UI standards for an XMPP messaging applicati..."
+- File: Extensions\Extension.cs
+  Preview: "namespace Sharp.Xmpp.Extensions {   /// <summary>   /// An enumeration of supported XMPP extensions.   /// </summary>   public enum Extension   {     ..."
+- File: Extensions\IInputFilter.cs
+  Symbols: [of]
+  Preview: "using Sharp.Xmpp.Core; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Represents an extension that filters incoming stanzas.   /// </summary>..."
+- File: Extensions\IOutputFilter.cs
+  Symbols: [of]
+  Preview: "using Sharp.Xmpp.Core; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Represents an extension that filters outgoing stanzas.   /// </summary>..."
+- File: Extensions\JidEventArgs.cs
+  Symbols: [JidEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides data for the MessageDeliveryReceived event.   /// </summary>   public c..."
+- File: Extensions\XmppExtension.cs
+  Symbols: [from]
+  Preview: "using Sharp.Xmpp.Im; using System.Collections.Generic; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// The base class from which all implement..."
+- File: Im\Availability.cs
+  Preview: "namespace Sharp.Xmpp.Im {   /// <summary>   /// Defines the possible values for a user's availability status.   /// </summary>   public enum Availabil..."
+- File: Im\ErrorEventArgs.cs
+  Symbols: [ErrorEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Im {   /// <summary>   /// Provides data for the Error event.   /// </summary>   public class ErrorEventArgs : Core..."
+- File: Im\GroupPrivacyRule.cs
+  Symbols: [GroupPrivacyRule]
+  Preview: "using System; namespace Sharp.Xmpp.Im {   /// <summary>   /// Represents a privacy rule pertaining to a group.   /// </summary>   public class GroupPr..."
+- File: Im\JidPrivacyRule.cs
+  Symbols: [JidPrivacyRule]
+  Preview: "using System; namespace Sharp.Xmpp.Im {   /// <summary>   /// Represents a privacy rule pertaining to a JID.   /// </summary>   public class JidPrivac..."
+- File: Im\Message.cs
+  Preview: "using System; using System.Collections.Generic; using System.Globalization; using System.Linq; using System.Xml; namespace Sharp.Xmpp.Im {   /// <summ..."
+- File: Im\MessageEventArgs.cs
+  Symbols: [MessageEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Im {   /// <summary>   /// Provides data for the Message event.   /// </summary>   public class MessageEventArgs : ..."
+- File: Im\MessageType.cs
+  Preview: "namespace Sharp.Xmpp.Im {   /// <summary>   /// Defines the possible types for Message stanzas.   /// </summary>   public enum MessageType   {     ///..."
+- File: Im\Presence.cs
+  Symbols: [Presence]
+  Preview: "using System; using System.Globalization; using System.Xml; namespace Sharp.Xmpp.Im {   /// <summary>   /// Represents a Presence XML stanza as define..."
+- File: Im\PresenceType.cs
+  Preview: "namespace Sharp.Xmpp.Im {   /// <summary>   /// Defines the possible types for Presence stanzas.   /// </summary>   internal enum PresenceType   {    ..."
+- File: Im\PrivacyGranularity.cs
+  Preview: "using System; namespace Sharp.Xmpp.Im {   /// <summary>   /// Defines the possible values for specifying more granular control over   /// which kinds ..."
+- File: Im\PrivacyList.cs
+  Symbols: [PrivacyList]
+  Preview: "using System; using System.Collections; using System.Collections.Generic; namespace Sharp.Xmpp.Im {   /// <summary>   /// Represents an XMPP privacy l..."
+- File: Im\PrivacyRule.cs
+  Symbols: [PrivacyRule]
+  Preview: "namespace Sharp.Xmpp.Im {   /// <summary>   /// Represents a generic privacy rule.   /// </summary>   public class PrivacyRule   {     /// <summary>  ..."
+- File: Im\Roster.cs
+  Preview: "using System.Collections; using System.Collections.Generic; namespace Sharp.Xmpp.Im {   /// <summary>   /// Represents the user's roster.   /// </summ..."
+- File: Im\RosterItem.cs
+  Preview: "using System; using System.Collections.Generic; namespace Sharp.Xmpp.Im {   /// <summary>   /// Represents a roster item.   /// </summary>   /// <rema..."
+- File: Im\RosterUpdatedEventArgs.cs
+  Symbols: [RosterUpdatedEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Im {   /// <summary>   /// Provides data for the RosterUpdated Event.   /// </summary>   public class RosterUpdated..."
+- File: Im\Status.cs
+  Preview: "using System; using System.Collections.Generic; using System.Globalization; using System.Linq; namespace Sharp.Xmpp.Im {   /// <summary>   /// Provide..."
+- File: Im\StatusEventArgs.cs
+  Symbols: [StatusEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Im {   /// <summary>   /// Provides data for the Status event.   /// </summary>   public class StatusEventArgs : Ev..."
+- File: Im\SubscriptionApprovedEventArgs.cs
+  Symbols: [SubscriptionApprovedEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Im {   /// <summary>   /// Provides data for the SubscriptionApproved Event.   /// </summary>   public class Subscr..."
+- File: Im\SubscriptionPrivacyRule.cs
+  Symbols: [SubscriptionPrivacyRule]
+  Preview: "namespace Sharp.Xmpp.Im {   /// <summary>   /// Represents a privacy rule pertaining to a subscription state.   /// </summary>   public class Subscrip..."
+- File: Im\SubscriptionRefusedEventArgs.cs
+  Symbols: [SubscriptionRefusedEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Im {   /// <summary>   /// Provides data for the SubscriptionRefused Event.   /// </summary>   public class Subscri..."
+- File: Im\SubscriptionRequest.cs
+  Preview: "namespace Sharp.Xmpp.Im {   /// <summary>   /// Represents a request for subscription.   /// </summary>   /// <param name='from'>The JID of the XMPP u..."
+- File: Im\SubscriptionRequestEventArgs.cs
+  Symbols: [SubscriptionRequestEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Im {   /// <summary>   /// Provides data for the SubscriptionRequest Event.   /// </summary>   public class Subscri..."
+- File: Im\SubscriptionState.cs
+  Preview: "namespace Sharp.Xmpp.Im {   /// <summary>   /// Defines the possible values for the subscription state of a roster item.   /// </summary>   public enu..."
+- File: Im\UnsubscribedEventArgs.cs
+  Symbols: [UnsubscribedEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Im {   /// <summary>   /// Provides data for the Unsubscribed Event.   /// </summary>   public class UnsubscribedEv..."
+- File: Im\XmlDictionary.cs
+  Symbols: [XmlDictionary]
+  Preview: "using System; using System.Collections; using System.Collections.Generic; using System.Xml; namespace Sharp.Xmpp.Im {   /// <summary>   /// An XML-bac..."
+- File: Im\XmppIm.cs
+  Symbols: [attribute, IqResult, EstablishSession, containing, OnIq, Core_ActionToPerform, OnMessage, RevokeSubscription, OnPresence, ProcessUnsubscribeRequest, Core_ConnectionStatus, Send, SetDefaultStatus, Connect, ApproveSubscriptionRequest]
+  Preview: "using Microsoft.Extensions.Logging; using Sharp.Ws.Xmpp.Core; using Sharp.Xmpp.Core; using Sharp.Xmpp.Extensions; using System; using System.Collectio..."
+- File: Core\Sasl\SaslException.cs
+  Preview: "using System; using System.Runtime.Serialization; namespace Sharp.Xmpp.Core.Sasl {   /// <summary>   /// The exception is thrown when a Sasl-related e..."
+- File: Core\Sasl\SaslFactory.cs
+  Symbols: [for, SaslFactory]
+  Preview: "using System; using System.Collections.Generic; namespace Sharp.Xmpp.Core.Sasl {   /// <summary>   /// A factory class for producing instances of Sasl..."
+- File: Core\Sasl\SaslMechanism.cs
+  Symbols: [from]
+  Preview: "using System; using System.Collections.Generic; namespace Sharp.Xmpp.Core.Sasl {   /// <summary>   /// The abstract base class from which all classes ..."
+- File: Extensions\CustomExtension\CustomIqExtension.cs
+  Preview: "using Sharp.Xmpp.Core; using Sharp.Xmpp.Im; using System; using System.Collections.Generic; using System.Xml; namespace Sharp.Xmpp.Extensions {   /// ..."
+- File: Extensions\CustomExtension\CustomIqRequestDelegate.cs
+  Preview: "namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Invoked when a CustomIqRequest is made.   /// </summary>   /// <param name='jid'>The jid</para..."
+- File: Extensions\XEP-0004\DataForms.cs
+  Symbols: [DataForms]
+  Preview: "using Sharp.Xmpp.Im; using System.Collections.Generic; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Implements the 'Data Forms' extension a..."
+- File: Extensions\XEP-0020\FeatureNegotiation.cs
+  Preview: "using Sharp.Xmpp.Extensions.Dataforms; using Sharp.Xmpp.Im; using System; using System.Collections.Generic; using System.Xml; namespace Sharp.Xmpp.Ext..."
+- File: Extensions\XEP-0030\Identity.cs
+  Symbols: [Identity]
+  Preview: "using System; using System.Collections.Generic; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Represents an identity of an XMPP entity as de..."
+- File: Extensions\XEP-0030\Item.cs
+  Symbols: [Item]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Represents an item of an XMPP entity as defined in XEP-0030.   /// </summary>   ..."
+- File: Extensions\XEP-0030\ServiceDiscovery.cs
+  Preview: "using Sharp.Xmpp.Core; using Sharp.Xmpp.Im; using System; using System.Collections.Generic; using System.Linq; using System.Reflection; using System.X..."
+- File: Extensions\XEP-0045\Affiliation.cs
+  Preview: "namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Describes the Affiliation of a participant in a group chat.   /// </summary>   public enum Aff..."
+- File: Extensions\XEP-0045\GroupErrorEventArgs.cs
+  Symbols: [GroupErrorEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Represents a group presence error event in a group chat. Ref XEP-0045   /// </su..."
+- File: Extensions\XEP-0045\GroupInviteDeclinedEventArgs.cs
+  Symbols: [GroupInviteDeclinedEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Represents a group invite event in a group chat. Ref XEP-0045   /// </summary>  ..."
+- File: Extensions\XEP-0045\GroupInviteEventArgs.cs
+  Symbols: [GroupInviteEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Represents a group invite event in a group chat. Ref XEP-0045   /// </summary>  ..."
+- File: Extensions\XEP-0045\GroupPresenceEventArgs.cs
+  Symbols: [GroupPresenceEventArgs]
+  Preview: "using System; using System.Collections.Generic; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Represents a presence change event in a group ..."
+- File: Extensions\XEP-0045\History.cs
+  Symbols: [History]
+  Preview: "using System; using System.Xml; using Sharp.Xmpp.Core; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Implements the message history request ..."
+- File: Extensions\XEP-0045\Invite.cs
+  Preview: "using System; using System.Collections.Generic; using System.Linq; using System.Xml; using Sharp.Xmpp.Core; namespace Sharp.Xmpp.Extensions {   /// <s..."
+- File: Extensions\XEP-0045\InviteDeclined.cs
+  Preview: "using System; using System.Collections.Generic; using System.Linq; using System.Xml; using Sharp.Xmpp.Core; namespace Sharp.Xmpp.Extensions {   /// <s..."
+- File: Extensions\XEP-0045\MucError.cs
+  Preview: "using System; using System.Collections.Generic; using System.Linq; using System.Xml; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Implement..."
+- File: Extensions\XEP-0045\MucNs.cs
+  Preview: "namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Identifiers used to describe objects in objects in the MUC Namespace.   /// Really this wants ..."
+- File: Extensions\XEP-0045\MucStatusType.cs
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Defines an extensible format for status conditions in MUC.   /// </summary>   pu..."
+- File: Extensions\XEP-0045\MultiUserChat.cs
+  Preview: "using System; using System.Collections.Generic; using System.Linq; using System.Text; using System.Threading.Tasks; using System.Xml; using Sharp.Xmpp..."
+- File: Extensions\XEP-0045\Occupant.cs
+  Preview: "using System; using System.Collections.Generic; using System.Linq; using System.Text; using System.Threading.Tasks; namespace Sharp.Xmpp.Extensions { ..."
+- File: Extensions\XEP-0045\Role.cs
+  Preview: "namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Describes the role of a participant in a group chat.   /// </summary>   public enum Role   {  ..."
+- File: Extensions\XEP-0045\RoomAnonymity.cs
+  Preview: "namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Describes whether a conference room occupant's full JID is visible   /// to all other room occ..."
+- File: Extensions\XEP-0045\RoomInfoBasic.cs
+  Preview: "using System; using System.Collections.Generic; using System.Linq; using System.Text; using System.Threading.Tasks; namespace Sharp.Xmpp.Extensions { ..."
+- File: Extensions\XEP-0045\RoomInfoExtended.cs
+  Preview: "using System; using System.Collections.Generic; using System.Globalization; using System.Linq; using System.Text; using System.Threading.Tasks; using ..."
+- File: Extensions\XEP-0045\RoomModeration.cs
+  Preview: "namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Describes whether a conference room is moderated.   /// </summary>   public enum RoomModeratio..."
+- File: Extensions\XEP-0045\RoomPersistence.cs
+  Preview: "namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Describes how long a conference room will exist for.   /// </summary>   public enum RoomPersis..."
+- File: Extensions\XEP-0045\RoomPrivacy.cs
+  Preview: "namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Describes whether a conference room requires a membership to enter.   /// </summary>   public ..."
+- File: Extensions\XEP-0045\RoomProtection.cs
+  Preview: "namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Describes whether a conference room is password protected.   /// </summary>   public enum Room..."
+- File: Extensions\XEP-0045\RoomVisibility.cs
+  Preview: "namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Describes the visibility of a conference room.   /// </summary>   public enum RoomVisibility  ..."
+- File: Extensions\XEP-0047\InBandBytestreams.cs
+  Preview: "using Sharp.Xmpp.Core; using Sharp.Xmpp.Im; using System; using System.Collections.Generic; using System.IO; namespace Sharp.Xmpp.Extensions {   /// <..."
+- File: Extensions\XEP-0065\IPAddressExtensions.cs
+  Symbols: [IPAddressExtensions]
+  Preview: "using System; using System.Net; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Contains extension methods for the IPAddress class.   /// </su..."
+- File: Extensions\XEP-0065\Socks5Bytestreams.cs
+  Preview: "using Sharp.Xmpp.Core; using Sharp.Xmpp.Extensions.Socks5; using Sharp.Xmpp.Extensions.Stun; using Sharp.Xmpp.Im; using System; using System.Collectio..."
+- File: Extensions\XEP-0065\Streamhost.cs
+  Symbols: [Streamhost]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Represents a streamhost entry as is used during S5B negotiation.   /// </summary..."
+- File: Extensions\XEP-0077\InBandRegistration.cs
+  Preview: "using Sharp.Xmpp.Core; using Sharp.Xmpp.Extensions.Dataforms; using Sharp.Xmpp.Im; using System; using System.Collections.Generic; using System.Linq; ..."
+- File: Extensions\XEP-0077\RegistrationCallback.cs
+  Preview: "using Sharp.Xmpp.Extensions.Dataforms; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// A callback method which is invoked during the registrat..."
+- File: Extensions\XEP-0084\AvatarChangedEventArgs.cs
+  Symbols: [AvatarChangedEv]
+  Preview: "using System; #if WINDOWSPLATFORM using System.Drawing; #endif namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides data for the AvatarCha..."
+- File: Extensions\XEP-0084\UserAvatar.cs
+  Preview: "#if WINDOWSPLATFORM using System.Drawing; using System.Drawing.Imaging; #endif namespace Sharp.Xmpp.Extensions { #if WINDOWSPLATFORM 	/// <summary> 	/..."
+- File: Extensions\XEP-0085\ChatState.cs
+  Preview: "namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Defines possible values for the chat state of an XMPP user.   /// </summary>   /// <remarks>  ..."
+- File: Extensions\XEP-0085\ChatStateChangedEventArgs.cs
+  Symbols: [ChatStateChangedEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides data for the ChatStateChanged event.   /// </summary>   [Serializable] ..."
+- File: Extensions\XEP-0085\ChatStateNotifications.cs
+  Preview: "using Sharp.Xmpp.Im; using System; using System.Collections.Generic; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Implements the 'Chat Stat..."
+- File: Extensions\XEP-0092\SoftwareVersion.cs
+  Preview: "using Sharp.Xmpp.Core; using Sharp.Xmpp.Im; using System; using System.Collections.Generic; using System.Reflection; namespace Sharp.Xmpp.Extensions {..."
+- File: Extensions\XEP-0092\VersionInformation.cs
+  Symbols: [VersionInformation]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides information about the software application associated with an   /// XMP..."
+- File: Extensions\XEP-0095\InitiationResult.cs
+  Symbols: [InitiationResult]
+  Preview: "using System; using System.Xml; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Represents the result of a stream initiation.   /// </summary>..."
+- File: Extensions\XEP-0095\StreamInitiation.cs
+  Preview: "using Sharp.Xmpp.Core; using Sharp.Xmpp.Extensions.Dataforms; using Sharp.Xmpp.Im; using System; using System.Collections.Generic; using System.Linq; ..."
+- File: Extensions\XEP-0096\BytesTransferredEventArgs.cs
+  Symbols: [BytesT]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides data for the 'BytesTransferred' event which is raised by   /// IDataStr..."
+- File: Extensions\XEP-0096\FileMetaData.cs
+  Symbols: [FileMetaData]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Represents meta-data of a file.   /// </summary>   [Serializable]   internal cla..."
+- File: Extensions\XEP-0096\FileTransfer.cs
+  Symbols: [FileTransfer]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Represents an on-going file-transfer operation.   /// </summary>   [Serializable..."
+- File: Extensions\XEP-0096\FileTransferAbortedEventArgs.cs
+  Symbols: [FileTransferAbortedEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides data for the 'FileTransferAborted' event.   /// </summary>   [Serializa..."
+- File: Extensions\XEP-0096\FileTransferProgressEventArgs.cs
+  Symbols: [FileTransferProgressEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides data for the 'FileTransferProgress' event.   /// </summary>   [Serializ..."
+- File: Extensions\XEP-0096\FileTransferRequest.cs
+  Preview: "namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Represents a request for a file-transfer.   /// </summary>   /// <param name='transfer'>A File..."
+- File: Extensions\XEP-0096\IDataStream.cs
+  Symbols: [IDataStream]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Represents an XMPP extension that implements a data-stream for transferring   //..."
+- File: Extensions\XEP-0096\SIFileTransfer.cs
+  Preview: "using Sharp.Xmpp.Core; using Sharp.Xmpp.Extensions.Dataforms; using Sharp.Xmpp.Im; using System; using System.Collections.Concurrent; using System.Col..."
+- File: Extensions\XEP-0096\SISession.cs
+  Symbols: [SISession]
+  Preview: "using System; using System.IO; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Represents an SI session as is negotiated during stream initiat..."
+- File: Extensions\XEP-0096\TransferAbortedEventArgs.cs
+  Symbols: [Transfe]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides data for the 'TransferAborted' event which is raised by   /// IDataStre..."
+- File: Extensions\XEP-0107\Mood.cs
+  Preview: "namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Defines possible values for the mood of an XMPP user.   /// </summary>   /// <remarks>Refer to..."
+- File: Extensions\XEP-0107\MoodChangedEventArgs.cs
+  Symbols: [MoodChangedEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides data for the MoodChanged event.   /// </summary>   [Serializable]   pub..."
+- File: Extensions\XEP-0107\UserMood.cs
+  Preview: "using Sharp.Xmpp.Im; using System; using System.Collections.Generic; using System.Text; using System.Xml; namespace Sharp.Xmpp.Extensions {   /// <sum..."
+- File: Extensions\XEP-0108\ActivityChangedEventArgs.cs
+  Symbols: [ActivityChangedEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides data for the ActivityChanged event.   /// </summary>   [Serializable]  ..."
+- File: Extensions\XEP-0108\GeneralActivity.cs
+  Preview: "namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Defines possible values for the general activity of an XMPP user.   /// </summary>   /// <rema..."
+- File: Extensions\XEP-0108\SpecificActivity.cs
+  Preview: "namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Defines possible values for more specific activities of an XMPP user.   /// </summary>   /// <..."
+- File: Extensions\XEP-0108\UserActivity.cs
+  Preview: "using Sharp.Xmpp.Im; using System; using System.Collections.Generic; using System.Text; using System.Xml; namespace Sharp.Xmpp.Extensions {   /// <sum..."
+- File: Extensions\XEP-0115\EntityCapabilities.cs
+  Preview: "using Sharp.Xmpp.Im; using System; using System.Collections.Generic; using System.Linq; using System.Security.Cryptography; using System.Text; namespa..."
+- File: Extensions\XEP-0118\TuneEventArgs.cs
+  Symbols: [TuneEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides data for the Tune event.   /// </summary>   [Serializable]   public cla..."
+- File: Extensions\XEP-0118\TuneInformation.cs
+  Symbols: [TuneInformation]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides information about the music to which a user is listening.   /// </summa..."
+- File: Extensions\XEP-0118\UserTune.cs
+  Preview: "using Sharp.Xmpp.Im; using System; using System.Collections.Generic; using System.Xml; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Impleme..."
+- File: Extensions\XEP-0153\vCardAvatars.cs
+  Preview: "using Sharp.Xmpp.Core; using Sharp.Xmpp.Im; using System; using System.Collections.Generic; using System.IO; using System.Linq; using System.Security...."
+- File: Extensions\XEP-0153\VCardChangedEventArgs.cs
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Defines possible values for the information changed   /// </summary>   public en..."
+- File: Extensions\XEP-0163\Pep.cs
+  Preview: "using Sharp.Xmpp.Core; using Sharp.Xmpp.Im; using System; using System.Collections.Generic; using System.Xml; namespace Sharp.Xmpp.Extensions {   /// ..."
+- File: Extensions\XEP-0184\MessageDeliveryReceipts.cs
+  Preview: "using Sharp.Xmpp.Im; using System; using System.Collections.Generic; using System.Xml; namespace Sharp.Xmpp.Extensions {   public enum ReceiptType   {..."
+- File: Extensions\XEP-0184\MessageDeliveryReceivedEventArgs.cs
+  Symbols: [MessageDeliveryReceivedEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides data for the MessageDeliveryReceived event.   /// </summary>   public c..."
+- File: Extensions\XEP-0191\BlockingCommand.cs
+  Preview: "using Sharp.Xmpp.Core; using Sharp.Xmpp.Im; using System; using System.Collections.Generic; using System.Xml; namespace Sharp.Xmpp.Extensions {   /// ..."
+- File: Extensions\XEP-0198\StreamManagement.cs
+  Preview: "using Microsoft.Extensions.Logging; using Sharp.Xmpp.Core; using Sharp.Xmpp.Im; using System; using System.Collections.Generic; namespace Sharp.Xmpp.E..."
+- File: Extensions\XEP-0199\Ping.cs
+  Preview: "using Sharp.Xmpp.Core; using Sharp.Xmpp.Im; using System; using System.Collections.Generic; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Im..."
+- File: Extensions\XEP-0202\EntityTime.cs
+  Preview: "using Sharp.Xmpp.Core; using Sharp.Xmpp.Im; using System; using System.Collections.Generic; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Im..."
+- File: Extensions\XEP-0224\Attention.cs
+  Symbols: [Attention]
+  Preview: "using Sharp.Xmpp.Im; using System; using System.Collections.Generic; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Implements the 'Attention..."
+- File: Extensions\XEP-0231\BitsOfBinary.cs
+  Preview: "using Sharp.Xmpp.Core; using Sharp.Xmpp.Im; using System; using System.Collections.Generic; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Im..."
+- File: Extensions\XEP-0231\BobData.cs
+  Preview: "using System; using System.Security.Cryptography; using System.Text; using System.Xml; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Represe..."
+- File: Extensions\XEP-0279\ServerIpCheck.cs
+  Preview: "using Sharp.Xmpp.Core; using Sharp.Xmpp.Im; using System; using System.Collections.Generic; using System.Net; namespace Sharp.Xmpp.Extensions {   /// ..."
+- File: Extensions\XEP-0280\MessageCarbons.cs
+  Symbols: [MessageCarbons]
+  Preview: "using Sharp.Xmpp.Core; using Sharp.Xmpp.Im; using System; using System.Collections.Generic; namespace Sharp.Xmpp.Extensions {   internal class Message..."
+- File: Extensions\XEP-0313\MessageArchiveEventArgs.cs
+  Symbols: [MessageArchiveEventArgs]
+  Preview: "using System; using Sharp.Xmpp.Im; namespace Sharp.Xmpp.Extensions {   public class MessageArchiveEventArgs : EventArgs   {     /// <summary>     /// ..."
+- File: Extensions\XEP-0313\MessageArchiveManagementResultEventArgs.cs
+  Preview: "using System; using System.Collections.Generic; using System.Text; namespace Sharp.Xmpp.Extensions {   public enum MamResult   {     /// <summary>    ..."
+- File: Extensions\XEP-0313\MessageArchiveManagmentExtension.cs
+  Preview: "using Sharp.Xmpp.Core; using Sharp.Xmpp.Im; using System; using System.Collections.Generic; using System.Diagnostics; using System.Xml; using Microsof..."
+- File: Extensions\XEP-0313\MessageArchiveManagmentRequestDelegate.cs
+  Preview: "namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Invoked when a CustomIqRequest is made.   /// </summary>   /// <param name='jid'>The jid</para..."
+- File: Extensions\XEP-0353\JingleMessage.cs
+  Symbols: [JingleMessage]
+  Preview: "using System; using System.Collections.Generic; using System.Text; namespace Sharp.Xmpp.Extensions {   public class JingleMessage   {     /// <summary..."
+- File: Extensions\XEP-0353\JingleMessageEventArgs.cs
+  Symbols: [JingleMessageEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   public class JingleMessageEventArgs : EventArgs   {     public JingleMessage JingleMessage     {    ..."
+- File: Extensions\XEP-0353\JingleMessageInitiation.cs
+  Symbols: [JingleMessageInitiation]
+  Preview: "using System; using System.Collections.Generic; using System.Xml; using Sharp.Xmpp.Core; using Sharp.Xmpp.Im; using Microsoft.Extensions.Logging;  nam..."
+- File: Extensions\XEP-0353\XmlElementEventArgs.cs
+  Symbols: [XmlElementEventArgs]
+  Preview: "using System; using System.Xml; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides data for the XmlElementEventArgs event   /// </summar..."
+- File: Extensions\XEP-0384\IOmemoCryptoProvider.cs
+  Symbols: [HmacSha256, EncryptTransport, Concat, EnsureSession, ResolveDeviceId, Verify, GenerateEcKeyPair, lock, lock, OmemoCryptoProvider, OmemoCryptoProvider, CompareBytes, DeriveSessionKey, Sign, ComputeSharedSecret]
+  Preview: "using System; using System.Collections.Generic; using System.IO; using System.Linq; using System.Security.Cryptography; using System.Text; namespace S..."
+- File: Extensions\XEP-0384\IOmemoStore.cs
+  Symbols: [InMemoryOmemoStore, IOmemoStore, SetDevices, GetDevices, SetBundle, GetBundle]
+  Preview: "using System.Collections.Generic; using System.Linq; namespace Sharp.Xmpp.Extensions {   internal interface IOmemoStore   {     IEnumerable<OmemoDevic..."
+- File: Extensions\XEP-0384\OmemoConstants.cs
+  Symbols: [OmemoConstants]
+  Preview: "namespace Sharp.Xmpp.Extensions {   public static class OmemoConstants   {     public const string OmemoNamespace = 'urn:xmpp:omemo:2';     public con..."
+- File: Extensions\XEP-0384\OmemoEncryption.cs
+  Symbols: [OmemoEncryption, EnsureSession, PublishDevices, Output, EnsureDevicesCached, Initialize, Input, catch, catch, PublishBundle, base, PublishOwnDeviceAndBundle]
+  Preview: "using Microsoft.Extensions.Logging; using Sharp.Xmpp.Core; using Sharp.Xmpp.Im; using System; using System.Collections.Generic; using System.Linq; usi..."
+- File: Extensions\XEP-0384\OmemoModels.cs
+  Symbols: [OmemoDevice]
+  Preview: "using System.Collections.Generic; namespace Sharp.Xmpp.Extensions {   internal sealed class OmemoDevice   {     public int Id { get; set; }     public..."
+- File: Extensions\XEP-0384\OmemoPayloadCipher.cs
+  Symbols: [OmemoPayloadCipher]
+  Preview: "using System; using System.IO; using System.Security.Cryptography; using System.Text; namespace Sharp.Xmpp.Extensions {   internal static class OmemoP..."
+- File: Extensions\XEP-0384\OmemoRuntime.cs
+  Symbols: [CreateStore, OmemoRuntime, CreateCryptoProvider]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   internal static class OmemoRuntime   {     public static Func<IOmemoCryptoProvider> CryptoProviderFa..."
+- File: Extensions\XEP-0384\OmemoXml.cs
+  Symbols: [OmemoXml]
+  Preview: "using System; using System.Collections.Generic; using System.Linq; using System.Text; using System.Xml; namespace Sharp.Xmpp.Extensions {   internal s..."
+- File: Extensions\XEP-0384\README.md
+  Preview: "# OMEMO (XEP-0384) Extension This folder contains a .NET OMEMO extension implementation scaffold for `Sharp.Xmpp`: - XML wire format (`urn:xmpp:omemo:..."
+- File: Extensions\XEP-0384\SqliteOmemoStore.cs
+  Symbols: [OmemoPreKeyEntity, lock, lock, lock, lock, OmemoDeviceEntity, SetDevices, OnModelCreating, OmemoBundleEntity, GetDevices, SqliteOmemoStore, SqliteOmemoStore, SetBundle, OmemoStoreDbContext, base]
+  Preview: "using System; using System.Collections.Generic; using System.Linq; using Microsoft.EntityFrameworkCore; namespace Sharp.Xmpp.Extensions {   internal s..."
+- File: Extensions\XEP-callLog\CallLog.cs
+  Preview: "using Sharp.Xmpp.Core; using Sharp.Xmpp.Im; using System; using System.Collections.Generic; using System.Xml; using Microsoft.Extensions.Logging;  nam..."
+- File: Extensions\XEP-callLog\CallLogItemDeletedEventArgs.cs
+  Symbols: [CallLogItemDeletedEve]
+  Preview: "using System; using System.Collections.Generic; using System.Text; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides data for the CallL..."
+- File: Extensions\XEP-callLog\CallLogItemEventArgs.cs
+  Symbols: [CallLogItemEventArgs]
+  Preview: "using System; using System.Collections.Generic; using System.Text; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides data for the CallL..."
+- File: Extensions\XEP-callLog\CallLogReadEventArgs.cs
+  Symbols: [CallLogReadEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides data for the CallLogReadEventArgs event   /// </summary>   public class..."
+- File: Extensions\XEP-callLog\CallLogResultEventArgs.cs
+  Preview: "using System; using System.Collections.Generic; using System.Text; namespace Sharp.Xmpp.Extensions {   public enum CallLogResult   {     /// <summary>..."
+- File: Extensions\XEP-callService\CallForwardEventArgs.cs
+  Symbols: [CallForwardEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides data for the CallLogItemEventArgs event   /// </summary>   public class..."
+- File: Extensions\XEP-callService\CallService.cs
+  Preview: "using Sharp.Xmpp.Core; using Sharp.Xmpp.Im; using System; using System.Collections.Generic; using System.Xml; using Microsoft.Extensions.Logging;  nam..."
+- File: Extensions\XEP-callService\MessageEventArgs.cs
+  Symbols: [MessageEventArgs]
+  Preview: " using System; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides data for the MessageEventArgs event   /// </summary>   public class Me..."
+- File: Extensions\XEP-callService\NomadicEventArgs.cs
+  Symbols: [NomadicEventArgs]
+  Preview: "using System; using System.Collections.Generic; using System.Text; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides data for the Nomad..."
+- File: Extensions\XEP-callService\PbxAgentInfoEventArgs.cs
+  Symbols: [PbxAgentInfoEventArgs]
+  Preview: "using System; using System.Collections.Generic; using System.Text; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides data for the PbxAg..."
+- File: Extensions\XEP-callService\VoiceMessagesEventArgs.cs
+  Symbols: [VoiceMessagesEventArgs]
+  Preview: "using System; using System.Collections.Generic; using System.Text; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides data for the CallL..."
+- File: Extensions\XEP-cap\Cap.cs
+  Preview: "using System; using System.Collections.Generic; using System.Text; using Microsoft.Extensions.Logging; using Sharp.Xmpp.Im; namespace Sharp.Xmpp.Exten..."
+- File: Extensions\XEP-conference\Conference.cs
+  Preview: "using Sharp.Xmpp.Im; using System; using System.Collections.Generic; using Microsoft.Extensions.Logging; using System.Xml;  namespace Sharp.Xmpp.Exten..."
+- File: Extensions\XEP-configuration\ChannelManagementEventArgs.cs
+  Symbols: [ChannelManagementEven]
+  Preview: "using System; using System.Collections.Generic; using System.Text; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides data for the Chann..."
+- File: Extensions\XEP-configuration\Configuration.cs
+  Preview: "using Sharp.Xmpp.Im; using System; using System.Collections.Generic; using Microsoft.Extensions.Logging; using System.Xml;  namespace Sharp.Xmpp.Exten..."
+- File: Extensions\XEP-configuration\ConversationManagementEventArgs.cs
+  Symbols: [ConversationMana]
+  Preview: "using System; using System.Collections.Generic; using System.Text; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides data for the Conve..."
+- File: Extensions\XEP-configuration\FavoriteManagementEventArgs.cs
+  Symbols: [FavoriteManagementEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   public class FavoriteManagementEventArgs : EventArgs   {     /// <summary>     /// The favorite id  ..."
+- File: Extensions\XEP-configuration\FileManagementEventArgs.cs
+  Symbols: [FileManagementEventArgs]
+  Preview: "using System; using System.Collections.Generic; using System.Text; namespace Sharp.Xmpp.Extensions {   public class FileManagementEventArgs : EventArg..."
+- File: Extensions\XEP-configuration\RoomInvitationEventArgs.cs
+  Symbols: [RoomInvitationEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   public class RoomInvitationEventArgs : EventArgs   {     /// <summary>     /// The room id     /// <..."
+- File: Extensions\XEP-configuration\RoomManagementEventArgs.cs
+  Symbols: [RoomManagementEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   public class RoomManagementEventArgs : EventArgs   {     /// <summary>     /// The room id     /// <..."
+- File: Extensions\XEP-configuration\ThumbnailEventArgs.cs
+  Symbols: [ThumbnailEventArgs]
+  Preview: "using System; namespace Sharp.Xmpp.Extensions {   public class ThumbnailEventArgs : EventArgs   {     /// <summary>     /// The file id     /// </summ..."
+- File: Extensions\XEP-configuration\UserInvitationEventArgs.cs
+  Preview: "using System; using System.Collections.Generic; using System.Text; namespace Sharp.Xmpp.Extensions {   /// <summary>   /// Provides data for the UserI..."
+- File: Extensions\XEP-configuration\VoiceMailManagementEventArgs.cs
+  Symbols: [VoiceMailManagementEventArgs]
+  Preview: "using System; using System.Collections.Generic; using System.Text; namespace Sharp.Xmpp.Extensions {   public class VoiceMailManagementEventArgs : Eve..."
+- File: Core\Sasl\Mechanisms\SaslDigestMd5.cs
+  Preview: "using System; using System.Collections.Specialized; using System.Security.Cryptography; using System.Text; namespace Sharp.Xmpp.Core.Sasl.Mechanisms {..."
+- File: Core\Sasl\Mechanisms\SaslPlain.cs
+  Symbols: [SaslPlain]
+  Preview: "using System; using System.Text; namespace Sharp.Xmpp.Core.Sasl.Mechanisms {   /// <summary>   /// Implements the Sasl Plain authentication method as ..."
+- File: Core\Sasl\Mechanisms\SaslScramSha1.cs
+  Preview: "using System; using System.Collections.Specialized; using System.Linq; using System.Security.Cryptography; using System.Text; namespace Sharp.Xmpp.Cor..."
+- File: Extensions\XEP-0004\Dataforms\BooleanField.cs
+  Symbols: [BooleanField]
+  Preview: "using System; using System.Xml; namespace Sharp.Xmpp.Extensions.Dataforms {   /// <summary>   /// Represents a field that provides an either-or choice..."
+- File: Extensions\XEP-0004\Dataforms\CancelForm.cs
+  Symbols: [CancelForm]
+  Preview: "using System; using System.Xml; namespace Sharp.Xmpp.Extensions.Dataforms {   /// <summary>   /// Represents a data-form that signals cancellation of ..."
+- File: Extensions\XEP-0004\Dataforms\DataField.cs
+  Symbols: [from]
+  Preview: "using System; using System.Collections.Generic; using System.Text; using System.Xml; namespace Sharp.Xmpp.Extensions.Dataforms {   /// <summary>   ///..."
+- File: Extensions\XEP-0004\Dataforms\DataFieldType.cs
+  Preview: "namespace Sharp.Xmpp.Extensions.Dataforms {   /// <summary>   /// Defines possible values for the different types of data-fields.   /// </summary>   p..."
+- File: Extensions\XEP-0004\Dataforms\DataForm.cs
+  Symbols: [from]
+  Preview: "using System; using System.Xml; namespace Sharp.Xmpp.Extensions.Dataforms {   /// <summary>   /// The abstract base class from which all implementatio..."
+- File: Extensions\XEP-0004\Dataforms\DataFormFactory.cs
+  Symbols: [DataFormFactory]
+  Preview: "using System; using System.Xml; namespace Sharp.Xmpp.Extensions.Dataforms {   /// <summary>   /// A factory for creating data-form instances.   /// </..."
+- File: Extensions\XEP-0004\Dataforms\DataFormType.cs
+  Preview: "namespace Sharp.Xmpp.Extensions.Dataforms {   /// <summary>   /// Defines possible values for the different types of data-forms.   /// </summary>   pu..."
+- File: Extensions\XEP-0004\Dataforms\FieldList.cs
+  Preview: "using System; using System.Collections; using System.Collections.Generic; using System.Text; using System.Xml; namespace Sharp.Xmpp.Extensions.Datafor..."
+- File: Extensions\XEP-0004\Dataforms\FixedField.cs
+  Preview: "using System; using System.Xml; namespace Sharp.Xmpp.Extensions.Dataforms {   /// <summary>   /// Represents a field that is intended for data descrip..."
+- File: Extensions\XEP-0004\Dataforms\HiddenField.cs
+  Preview: "using System; using System.Collections.Generic; using System.Xml; namespace Sharp.Xmpp.Extensions.Dataforms {   /// <summary>   /// Represents a field..."
+- File: Extensions\XEP-0004\Dataforms\JidField.cs
+  Preview: "using System; using System.Xml; namespace Sharp.Xmpp.Extensions.Dataforms {   /// <summary>   /// Represents a field for gathering or providing a sing..."
+- File: Extensions\XEP-0004\Dataforms\JidMultiField.cs
+  Preview: "using System; using System.Collections.Generic; using System.Xml; namespace Sharp.Xmpp.Extensions.Dataforms {   /// <summary>   /// Represents a field..."
+- File: Extensions\XEP-0004\Dataforms\ListField.cs
+  Preview: "using System; using System.Collections.Generic; using System.Xml; namespace Sharp.Xmpp.Extensions.Dataforms {   /// <summary>   /// Represents a field..."
+- File: Extensions\XEP-0004\Dataforms\ListMultiField.cs
+  Preview: "using System; using System.Collections.Generic; using System.Xml; namespace Sharp.Xmpp.Extensions.Dataforms {   /// <summary>   /// Represents a field..."
+- File: Extensions\XEP-0004\Dataforms\Option.cs
+  Symbols: [Option]
+  Preview: "using System; using System.Xml; namespace Sharp.Xmpp.Extensions.Dataforms {   /// <summary>   /// Represents an option of a list data-field.   /// </s..."
+- File: Extensions\XEP-0004\Dataforms\PasswordField.cs
+  Preview: "using System; using System.Xml; namespace Sharp.Xmpp.Extensions.Dataforms {   /// <summary>   /// Represents a field for gathering or providing a sing..."
+- File: Extensions\XEP-0004\Dataforms\RequestForm.cs
+  Preview: "using System; using System.Xml; namespace Sharp.Xmpp.Extensions.Dataforms {   /// <summary>   /// Represents a requesting data-form.   /// </summary> ..."
+- File: Extensions\XEP-0004\Dataforms\ResultForm.cs
+  Preview: "using System; using System.Collections.Generic; using System.Xml; namespace Sharp.Xmpp.Extensions.Dataforms {   /// <summary>   /// Represents a resul..."
+- File: Extensions\XEP-0004\Dataforms\SubmitForm.cs
+  Preview: "using System; using System.Xml; namespace Sharp.Xmpp.Extensions.Dataforms {   /// <summary>   /// Represents a data-form for data submission.   /// </..."
+- File: Extensions\XEP-0004\Dataforms\TextField.cs
+  Preview: "using System; using System.Xml; namespace Sharp.Xmpp.Extensions.Dataforms {   /// <summary>   /// Represents a field for gathering or providing a sing..."
+- File: Extensions\XEP-0004\Dataforms\TextMultiField.cs
+  Preview: "using System; using System.Collections.Generic; using System.Xml; namespace Sharp.Xmpp.Extensions.Dataforms {   /// <summary>   /// Represents a field..."
+- File: Extensions\XEP-0004\Dataforms\XmlCollection.cs
+  Preview: "using System; using System.Collections; using System.Collections.Generic; using System.Xml; namespace Sharp.Xmpp.Extensions.Dataforms {   /// <summary..."
+- File: Extensions\XEP-0065\Socks5\ATyp.cs
+  Symbols: [field]
+  Preview: "namespace Sharp.Xmpp.Extensions.Socks5 {   /// <summary>   /// Defines possible values for the address type field.   /// </summary>   internal enum AT..."
+- File: Extensions\XEP-0065\Socks5\AuthMethod.cs
+  Preview: "namespace Sharp.Xmpp.Extensions.Socks5 {   /// <summary>   /// Defines possible values for the different authentication methods   /// supported by SOC..."
+- File: Extensions\XEP-0065\Socks5\AuthRequest.cs
+  Symbols: [AuthRequest]
+  Preview: "using System; using System.Text; namespace Sharp.Xmpp.Extensions.Socks5 {   /// <summary>   /// Represents a SOCKS5 Username/Password auth-request mes..."
+- File: Extensions\XEP-0065\Socks5\AuthResponse.cs
+  Preview: "using System; using System.IO; using System.Runtime.Serialization; namespace Sharp.Xmpp.Extensions.Socks5 {   /// <summary>   /// Represents a SOCKS5 ..."
+- File: Extensions\XEP-0065\Socks5\BinaryReader.cs
+  Symbols: [Bin, to]
+  Preview: "using System.IO; namespace Sharp.Xmpp.Extensions.Socks5 {   /// <summary>   /// Adds extension methods to the BinaryReader class to simplify the   ///..."
+- File: Extensions\XEP-0065\Socks5\ByteBuilder.cs
+  Symbols: [modeled]
+  Preview: "using System; using System.Text; namespace Sharp.Xmpp.Extensions.Socks5 {   /// <summary>   /// A utility class modeled after the BCL StringBuilder to..."
+- File: Extensions\XEP-0065\Socks5\ClientGreeting.cs
+  Preview: "using System; using System.Collections.Generic; using System.IO; using System.Runtime.Serialization; namespace Sharp.Xmpp.Extensions.Socks5 {   /// <s..."
+- File: Extensions\XEP-0065\Socks5\ReplyStatus.cs
+  Preview: "namespace Sharp.Xmpp.Extensions.Socks5 {   /// <summary>   /// Defines possible values for the reply field of a SOCKS5 reply.   /// </summary>   inter..."
+- File: Extensions\XEP-0065\Socks5\ServerGreeting.cs
+  Symbols: [Ser]
+  Preview: "using System; using System.IO; using System.Runtime.Serialization; namespace Sharp.Xmpp.Extensions.Socks5 {   /// <summary>   /// Represents a SOCKS5 ..."
+- File: Extensions\XEP-0065\Socks5\Socks5Client.cs
+  Preview: "using System; using System.Collections.Generic; using System.IO; using System.Net; using System.Net.Sockets; using System.Text; namespace Sharp.Xmpp.E..."
+- File: Extensions\XEP-0065\Socks5\Socks5Exception.cs
+  Preview: "using System; using System.Runtime.Serialization; namespace Sharp.Xmpp.Extensions.Socks5 {   /// <summary>   /// The exception that is thrown when a S..."
+- File: Extensions\XEP-0065\Socks5\Socks5Server.cs
+  Preview: "using System; using System.IO; using System.Linq; using System.Net; using System.Net.Sockets; using System.Text; namespace Sharp.Xmpp.Extensions.Socks..."
+- File: Extensions\XEP-0065\Socks5\SocksCommand.cs
+  Preview: "namespace Sharp.Xmpp.Extensions.Socks5 {   /// <summary>   /// Defines possible values for the command field of a SOCKS5 request.   /// </summary>   i..."
+- File: Extensions\XEP-0065\Socks5\SocksReply.cs
+  Preview: "using System; using System.IO; using System.Net; using System.Net.Sockets; using System.Runtime.Serialization; using System.Text; namespace Sharp.Xmpp..."
+- File: Extensions\XEP-0065\Socks5\SocksRequest.cs
+  Preview: "using System; using System.IO; using System.Net; using System.Net.Sockets; using System.Runtime.Serialization; using System.Text; namespace Sharp.Xmpp..."
+- File: Extensions\XEP-0065\Socks5\TcpListenerExtensions.cs
+  Symbols: [TcpListenerExtensions]
+  Preview: "using System; using System.Net.Sockets; namespace Sharp.Xmpp.Extensions.Socks5 {   /// <summary>   /// Provides extension methods for the TcpListener ..."
+- File: Extensions\XEP-0065\Stun\BindingRequest.cs
+  Preview: "using Sharp.Xmpp.Extensions.Socks5; using System; using System.Security.Cryptography; namespace Sharp.Xmpp.Extensions.Stun {   /// <summary>   /// Rep..."
+- File: Extensions\XEP-0065\Stun\BindingResponse.cs
+  Preview: "using Sharp.Xmpp.Extensions.Socks5; using System; using System.IO; using System.Linq; using System.Net; using System.Runtime.Serialization; namespace ..."
+- File: Extensions\XEP-0065\Stun\StunClient.cs
+  Preview: "using System; using System.Linq; using System.Net; using System.Net.Sockets; using System.Runtime.Serialization; namespace Sharp.Xmpp.Extensions.Stun ..."
+- File: Extensions\XEP-0065\UPnP\DeviceFinderCallback.cs
+  Symbols: [is, for]
+  Preview: "#if WINDOWSPLATFORM using UPNPLib; #endif namespace Sharp.Xmpp.Extensions.Upnp { #if WINDOWSPLATFORM 	/// <summary> 	/// Represents a class for collec..."
+- File: Extensions\XEP-0065\UPnP\UPnP.cs
+  Preview: "#if WINDOWSPLATFORM using UPNPLib; #endif namespace Sharp.Xmpp.Extensions.Upnp { #if WINDOWSPLATFORM 	/// <summary> 	/// Provides static methods for r..."

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Sharp.Ws.Xmpp.Core;
+using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -115,9 +116,14 @@ namespace Sharp.Xmpp.Core
                 }
                 if (expected.Length > 0 && !expected.Contains(elem.Name))
                     throw new XmlException("Unexpected XML element: " + elem.Name);
+
+                NodeParsed?.Invoke(this, new NodeParsedEventArgs(elem.OuterXml));
+
                 return elem;
             }
         }
+
+        public event EventHandler<NodeParsedEventArgs> NodeParsed;
 
         /// <summary>
         /// Closes the stream parser.

@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using System.Xml;
 
 using Microsoft.Extensions.Logging;
+using Sharp.Ws.Xmpp.Core;
 
 
 namespace Sharp.Xmpp.Core
@@ -1241,6 +1242,9 @@ namespace Sharp.Xmpp.Core
             // include this, but we make sure nonetheless.
             Language = parser.Language ?? new CultureInfo("en");
             // The first element of the stream must be <stream:features>.
+
+            parser.NodeParsed += (s, e) => this.NodeParsedEvent?.Invoke(this, e);
+
             return parser.NextElement("stream:features");
         }
 
@@ -1400,6 +1404,8 @@ namespace Sharp.Xmpp.Core
             Send(element.ToXmlString(), isStanza);
         }
 
+        public event EventHandler<NodeParsedEventArgs> NodeParsedEvent;
+
         /// <summary>
         /// Sends the specified string to the server.
         /// </summary>
@@ -1410,6 +1416,7 @@ namespace Sharp.Xmpp.Core
         private void Send(string xml, Boolean isStanza)
         {
             xml.ThrowIfNull("xml");
+
             // XMPP is guaranteed to be UTF-8.
             byte[] buf = Encoding.UTF8.GetBytes(xml);
 

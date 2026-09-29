@@ -216,6 +216,16 @@ namespace Sharp.Xmpp.Client
         /// </summary>
         private StreamManagement streamManagement;
 
+        /// <summary>
+        /// Provides the OMEMO encryption extension (XEP-0384).
+        /// </summary>
+        private OmemoEncryption omemo;
+
+        /// <summary>
+        /// Returns true if outgoing messages are encrypted with OMEMO.
+        /// </summary>
+        public bool OmemoEnabled => omemo != null && omemo.Enabled;
+
         public Tuple<String, String, String> WebProxyInfo
         {
             get
@@ -2875,6 +2885,225 @@ namespace Sharp.Xmpp.Client
         }
 
         /// <summary>
+        /// Enables or disables OMEMO encryption (XEP-0384) of outgoing messages. Incoming OMEMO
+        /// messages are always decrypted. While enabled, SendMessage throws
+        /// <see cref="OmemoSendException"/> instead of sending plaintext when a message cannot be
+        /// encrypted for at least one trusted device of each recipient.
+        /// </summary>
+        /// <param name="enabled">true to encrypt outgoing messages; false to send plaintext.</param>
+        /// <remarks>OMEMO state is stored in the SQLite file named by the
+        /// XMPP_OMEMO_DB_PATH environment variable.</remarks>
+        public void EnableOmemo(bool enabled = true)
+        {
+            if (omemo != null)
+                omemo.Enabled = enabled;
+        }
+
+        /// <summary>
+        /// Publishes this device's OMEMO bundle and makes sure the device is on the account's
+        /// device list, rotating keys when due (XEP-0384 §5.3). Call after every login.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">The client is not connected, or OMEMO
+        /// storage is not configured.</exception>
+        /// <exception cref="XmppErrorException">The server rejected the publication.</exception>
+        public void PublishOmemoBundle()
+        {
+            AssertValid();
+            omemo?.PublishOwnDeviceAndBundle();
+        }
+
+        /// <summary>
+        /// Removes this device from the account's OMEMO device list and deletes its bundle, so
+        /// contacts stop encrypting for it (XEP-0384 §6). Also disables OMEMO for sending.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">The client is not connected.</exception>
+        /// <exception cref="XmppErrorException">The server rejected the request.</exception>
+        public void UnpublishOmemoDevice()
+        {
+            AssertValid();
+            omemo?.UnpublishOwnDevice();
+        }
+
+        /// <summary>
+        /// Gets or sets an optional label for this OMEMO device (e.g. "JabberWalkie on Android").
+        /// It is published signed with the next <see cref="PublishOmemoBundle"/>.
+        /// </summary>
+        public string OmemoDeviceLabel
+        {
+            get => omemo?.DeviceLabel;
+            set
+            {
+                if (omemo != null)
+                    omemo.DeviceLabel = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether legacy OMEMO (eu.siacs.conversations.axolotl, used by
+        /// Conversations) is supported next to OMEMO 0.9. Enabled by default. The device is
+        /// announced in both versions and each contact device is encrypted for in the newest
+        /// version it announced. Set before <see cref="PublishOmemoBundle"/>.
+        /// </summary>
+        public bool OmemoLegacyEnabled
+        {
+            get => omemo?.LegacyEnabled ?? false;
+            set
+            {
+                if (omemo != null)
+                    omemo.LegacyEnabled = value;
+            }
+        }
+
+        /// <summary>
+        /// The OMEMO device id of this client, or 0 before login.
+        /// </summary>
+        public int OmemoDeviceId => omemo?.LocalDeviceId ?? 0;
+
+        /// <summary>
+        /// The OMEMO fingerprint of this device (lowercase hex of the Curve25519 IdentityKey), or
+        /// null before login. Use <see cref="OmemoDeviceInfo.FormatFingerprint"/> for display.
+        /// </summary>
+        public string OmemoFingerprint => omemo?.LocalFingerprint;
+
+        /// <summary>
+        /// Returns the OMEMO devices of a contact (or of the own account) with fingerprints and
+        /// trust decisions.
+        /// </summary>
+        /// <param name="jid">The contact; only the bare JID is used.</param>
+        /// <param name="refresh">true to fetch the device list from the server first.</param>
+        /// <exception cref="ArgumentNullException">The jid parameter is null.</exception>
+        /// <exception cref="InvalidOperationException">The client is not connected.</exception>
+        public IList<OmemoDeviceInfo> GetOmemoDevices(Jid jid, bool refresh = false)
+        {
+            AssertValid();
+            jid.ThrowIfNull("jid");
+            return omemo?.GetDevices(jid, refresh) ?? new List<OmemoDeviceInfo>();
+        }
+
+        /// <summary>
+        /// Sets the trust decision for a device's current IdentityKey (XEP-0384 §8). Messages are
+        /// only encrypted for trusted or verified devices.
+        /// </summary>
+        /// <param name="jid">The device owner; only the bare JID is used.</param>
+        /// <param name="deviceId">The OMEMO device id.</param>
+        /// <param name="trust">The decision.</param>
+        /// <exception cref="ArgumentNullException">The jid parameter is null.</exception>
+        /// <exception cref="InvalidOperationException">The device's IdentityKey is unknown, or
+        /// the client is not connected.</exception>
+        public void SetOmemoTrust(Jid jid, int deviceId, OmemoTrustLevel trust)
+        {
+            AssertValid();
+            jid.ThrowIfNull("jid");
+            omemo?.SetTrust(jid, deviceId, trust);
+        }
+
+        /// <summary>
+        /// Sets the trust decision for an IdentityKey given by its fingerprint (see
+        /// <see cref="OmemoDeviceInfo.Fingerprint"/>). Decisions apply in both OMEMO versions.
+        /// </summary>
+        /// <param name="jid">The key owner; only the bare JID is used.</param>
+        /// <param name="fingerprint">The hex fingerprint; spaces are ignored.</param>
+        /// <param name="trust">The decision.</param>
+        /// <exception cref="ArgumentNullException">The jid or fingerprint parameter is null.</exception>
+        /// <exception cref="ArgumentException">The fingerprint is not 32 bytes of hex.</exception>
+        public void SetOmemoTrust(Jid jid, string fingerprint, OmemoTrustLevel trust)
+        {
+            AssertValid();
+            jid.ThrowIfNull("jid");
+            fingerprint.ThrowIfNull("fingerprint");
+            omemo?.SetTrust(jid, fingerprint, trust);
+        }
+
+        /// <summary>
+        /// Replaces all OMEMO sessions with a contact, e.g. after a backup restore broke them
+        /// (XEP-0384 §6).
+        /// </summary>
+        /// <param name="jid">The contact; only the bare JID is used.</param>
+        /// <exception cref="ArgumentNullException">The jid parameter is null.</exception>
+        /// <exception cref="InvalidOperationException">The client is not connected.</exception>
+        public void ResetOmemoSessions(Jid jid)
+        {
+            AssertValid();
+            jid.ThrowIfNull("jid");
+            omemo?.ResetSessions(jid);
+        }
+
+        /// <summary>
+        /// Tells a contact that this account wants to stop using OMEMO (XEP-0384 §5.7) and
+        /// sends plaintext to that contact from then on.
+        /// </summary>
+        /// <param name="jid">The contact.</param>
+        /// <param name="reason">An optional reason.</param>
+        /// <exception cref="ArgumentNullException">The jid parameter is null.</exception>
+        /// <exception cref="OmemoSendException">The opt-out could not be encrypted.</exception>
+        public void SendOmemoOptOut(Jid jid, string reason = null)
+        {
+            AssertValid();
+            jid.ThrowIfNull("jid");
+            omemo?.SendOptOut(jid, reason);
+        }
+
+        /// <summary>
+        /// Confirms that plaintext may be sent to a contact that opted out of OMEMO
+        /// (see <see cref="OmemoOptOutReceived"/>). Until then, sending to it is blocked.
+        /// </summary>
+        /// <param name="jid">The contact.</param>
+        /// <exception cref="ArgumentNullException">The jid parameter is null.</exception>
+        public void ConfirmOmemoPlaintext(Jid jid)
+        {
+            AssertValid();
+            jid.ThrowIfNull("jid");
+            omemo?.ConfirmPlaintext(jid);
+        }
+
+        /// <summary>
+        /// Goes back to OMEMO for a contact after an opt-out (XEP-0384 §5.7).
+        /// </summary>
+        /// <param name="jid">The contact.</param>
+        /// <exception cref="ArgumentNullException">The jid parameter is null.</exception>
+        public void ResumeOmemo(Jid jid)
+        {
+            AssertValid();
+            jid.ThrowIfNull("jid");
+            omemo?.ResumeEncryption(jid);
+        }
+
+        /// <summary>
+        /// true if the contact opted out of OMEMO (pending confirmation or confirmed plaintext).
+        /// </summary>
+        /// <param name="jid">The contact.</param>
+        public bool IsOmemoOptedOut(Jid jid) => omemo != null && omemo.IsOptedOut(jid);
+
+        /// <summary>
+        /// Raised when an incoming OMEMO message could not be decrypted. The message is still
+        /// delivered through <see cref="Message"/>, with a warning as its body.
+        /// </summary>
+        public event EventHandler<OmemoDecryptionFailedEventArgs> OmemoDecryptionFailed
+        {
+            add { omemo.DecryptionFailed += value; }
+            remove { omemo.DecryptionFailed -= value; }
+        }
+
+        /// <summary>
+        /// Raised when a contact asks to stop using OMEMO (XEP-0384 §5.7). Sending to the
+        /// contact is blocked until <see cref="ConfirmOmemoPlaintext"/> is called.
+        /// </summary>
+        public event EventHandler<OmemoOptOutEventArgs> OmemoOptOutReceived
+        {
+            add { omemo.OptOutReceived += value; }
+            remove { omemo.OptOutReceived -= value; }
+        }
+
+        /// <summary>
+        /// Raised when the OMEMO device list of a contact or of the own account changed.
+        /// </summary>
+        public event EventHandler<JidEventArgs> OmemoDevicesChanged
+        {
+            add { omemo.DevicesChanged += value; }
+            remove { omemo.DevicesChanged -= value; }
+        }
+
+        /// <summary>
         /// Closes the connection with the XMPP server. This automatically disposes
         /// of the object.
         /// </summary>
@@ -2955,6 +3184,9 @@ namespace Sharp.Xmpp.Client
             time = im.LoadExtension<EntityTime>();
             block = im.LoadExtension<BlockingCommand>();
             pep = im.LoadExtension<Pep>();
+            // XEP-0384: loaded right after PEP so its input filter decrypts messages (including
+            // carbons and archived messages) before other extensions consume them.
+            omemo = im.LoadExtension<OmemoEncryption>();
             userTune = im.LoadExtension<UserTune>();
 
             userMood = im.LoadExtension<UserMood>();
@@ -2986,7 +3218,6 @@ namespace Sharp.Xmpp.Client
             cap = im.LoadExtension<Cap>();
             msgDeliveryReceipt = im.LoadExtension<MessageDeliveryReceipts>();
             callService = im.LoadExtension<CallService>();
-            
         }
     }
 }

@@ -1,6 +1,7 @@
-﻿using Sharp.Xmpp.Core;
+﻿using Microsoft.Extensions.Logging;
+using Sharp.Ws.Xmpp.Core;
+using Sharp.Xmpp.Core;
 using Sharp.Xmpp.Extensions;
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -11,8 +12,6 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Xml;
-
-using Microsoft.Extensions.Logging;
 
 
 namespace Sharp.Xmpp.Im
@@ -56,6 +55,8 @@ namespace Sharp.Xmpp.Im
         }
 
         public Availability defaultStatus = Availability.Online;
+
+        public event EventHandler<NodeParsedEventArgs> NodeParsedEvent;
 
         /// <summary>
         /// Is web socket used - false by default
@@ -1879,6 +1880,8 @@ namespace Sharp.Xmpp.Im
         {
             core.Iq += (sender, e) => { OnIq(e.Stanza); };
 
+            core.NodeParsedEvent += (s, e) => NodeParsedEvent?.Invoke(this, e);
+
             core.Presence += (sender, e) =>
             {
                 try
@@ -2103,6 +2106,17 @@ namespace Sharp.Xmpp.Im
                 var realMessage = new Message(new Core.Message(realMessageNode));
 
                 Message.Raise(this, new MessageEventArgs(realMessage.From, realMessage, true));
+            }
+
+            // Received carbon copies (XEP-0280), e.g. decrypted by the OMEMO extension. Only
+            // carbons sent by our own account are accepted.
+            var received = message.Data["received"];
+            if (received != null && received.NamespaceURI == "urn:xmpp:carbons:2" &&
+                (message.From == null || message.From.ToString() == Jid.GetBareJid().ToString()) &&
+                received["forwarded"]?["message"]?["body"] != null)
+            {
+                var realMessage = new Message(new Core.Message(received["forwarded"]["message"]));
+                Message.Raise(this, new MessageEventArgs(realMessage.From, realMessage));
             }
         }
 
