@@ -2237,7 +2237,7 @@ namespace Sharp.Xmpp.Client
             var _ = MarkMessageAsync(jid, messageId, messageType, "received");
         }
 
-        public async Task<Boolean> MarkMessageAsReceiveAsync(Jid jid, string messageId, MessageType messageType)
+        public async Task<Boolean> MarkMessageAsReceivedAsync(Jid jid, string messageId, MessageType messageType)
         {
             return await MarkMessageAsync(jid, messageId, messageType, "received");
         }
