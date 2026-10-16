@@ -1122,6 +1122,22 @@ namespace Sharp.Xmpp.Client
             }
         }
 
+
+        /// <summary>
+        /// The event that is raised when an hub group has been created / updated / deleted
+        /// </summary>
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyGroupUpdated
+        {
+            add
+            {
+                hubTelephony.HubTelephonyGroupUpdated += value;
+            }
+            remove
+            {
+                hubTelephony.HubTelephonyGroupUpdated -= value;
+            }
+        }
+
         /// <summary>
         /// The event that is raised when an hub telephony event is received
         /// </summary>

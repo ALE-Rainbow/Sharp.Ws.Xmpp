@@ -16,6 +16,10 @@ namespace Sharp.Xmpp.Extensions.XEP_hubTelephony
 
         private static readonly String RVCP_NS = "urn:xmpp:rvcp:userConfiguration:1";
 
+        private static readonly String CONFIGURATION_NS = "jabber:iq:configuration";
+
+        public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyGroupUpdated;  // Use CONFIGURATION_NS
+
         public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyRoutingUpdated;// Use RVCP_NS
         public event EventHandler<Sharp.Xmpp.Extensions.XmlElementEventArgs> HubTelephonyClirUpdated;   // Use RVCP_NS
 
@@ -77,6 +81,14 @@ namespace Sharp.Xmpp.Extensions.XEP_hubTelephony
                     eventRaised = true;
                 }
             }
+
+            var rvcpgroupElement = message.Data["rvcpgroup", CONFIGURATION_NS];
+            if (rvcpgroupElement != null)
+            {
+                HubTelephonyGroupUpdated.Raise(this, new Sharp.Xmpp.Extensions.XmlElementEventArgs(rvcpgroupElement));
+                eventRaised = true;
+            }
+
 
             // Cf. https://git.openrainbow.org/rainbow-backends/servers/core/components/rvcp-pcg/-/blob/master/xsd/telephony.xsd?ref_type=heads
             var telephonyElement = message.Data["telephony", HUBTELEPHONY_NS];
