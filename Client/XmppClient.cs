@@ -2171,7 +2171,7 @@ namespace Sharp.Xmpp.Client
             callLog?.DeleteCallLog(callId);
         }
 
-        public async Task<Boolean> DeleteCallLogAsync(String callId)
+        public async Task<int> DeleteCallLogAsync(String callId)
         {
             return await callLog?.DeleteCallLogAsync(callId);
         }
@@ -2181,7 +2181,7 @@ namespace Sharp.Xmpp.Client
             callLog?.DeleteCallsLogForContact(contactJid);
         }
 
-        public async Task<Boolean> DeleteCallsLogForContactAsync(String contactJid)
+        public async Task<int> DeleteCallsLogForContactAsync(String contactJid)
         {
             return await callLog?.DeleteCallsLogForContactAsync(contactJid);
         }
@@ -2191,7 +2191,7 @@ namespace Sharp.Xmpp.Client
             callLog?.DeleteAllCallsLog();
         }
 
-        public async Task<Boolean> DeleteAllCallsLogAsync()
+        public async Task<int> DeleteAllCallsLogAsync()
         {
             return await callLog?.DeleteAllCallsLogAsync();
         }
@@ -2204,6 +2204,11 @@ namespace Sharp.Xmpp.Client
         public async Task<Boolean> MarkCallLogAsReadAsync(String callId)
         {
             return await callLog?.MarkCallLogAsReadAsync(callId);
+        }
+
+        public async Task<int> GetNbUnreadCallLogsAsync(String queryId)
+        {
+            return await callLog?.GetNbUnreadCallLogsAsync(queryId);
         }
 
         /// <summary>

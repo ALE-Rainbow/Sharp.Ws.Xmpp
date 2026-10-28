@@ -90,7 +90,7 @@ namespace Sharp.Xmpp.Extensions
             }
             else if (message.Data["result", "jabber:iq:telephony:call_log"] != null)
             {
-                var evt = GetXmlElementEventArgs(message.Data.GetAttribute("id"), message.Data["updated_call_log"]);
+                var evt = GetXmlElementEventArgs(message.Data.GetAttribute("id"), message.Data["result"]);
                 if (evt != null)
                     CallLogItemRetrieved.Raise(this, evt);
                 else
@@ -162,45 +162,49 @@ namespace Sharp.Xmpp.Extensions
             var _ = RequestCallLogsAsync(queryId, max, before, after);
         }
 
-        public async Task<Boolean> RequestCallLogsAsync(string queryId, int max, string before = null, string after = null)
+        static private XmlElement CreateQuery(string queryId, int max, string before = null, string after = null, Dictionary<String, String> fields = null)
         {
             var xml = Xml.Element("query", "jabber:iq:telephony:call_log");
             xml.SetAttribute("queryid", queryId);
             var xmlParam = Xml.Element("set", "http://jabber.org/protocol/rsm");
             if (max > 0) xmlParam.Child(Xml.Element("max").Text(max.ToString()));
-            if (before == null)
-                xmlParam.Child(Xml.Element("before"));
-            else
+            if (before is not null)
                 xmlParam.Child(Xml.Element("before").Text(before));
-            if (after != null)
+            if (after is not null)
                 xmlParam.Child(Xml.Element("after").Text(after));
             xml.Child(xmlParam);
 
-            var result = await im.IqRequestAsync(IqType.Set, null, im.Jid, null, 60000, xml);
-
-            var iq = result.Iq;
-            //For any reply we execute the callback
-            if (iq.Type == IqType.Error)
+            if (fields?.Count > 0)
             {
-                CallLogResult.Raise(this, new CallLogResultEventArgs());
-                return false;
+                var x = Xml.Element("x", "jabber:x:data");
+                x.SetAttribute("type", "submit");
+                foreach(var field in fields)
+                {
+                    var fieldXml = Xml.Element("field");
+                    fieldXml.SetAttribute("var", field.Key);
+                    fieldXml.Child(Xml.Element("value").Text(field.Value));
+
+                    x.Child(fieldXml);
+                }
+                xml.Child(x);
             }
+            return xml;
+        }
 
-            if (iq.Type == IqType.Result)
+        static private (Boolean success, int count, string first, string last) ParseQueryResult(Iq iq, ILogger log)
+        {
+            Boolean success = false;
+            int count = 0;
+            string first = "";
+            string last = "";
+
+            if (iq?.Type == IqType.Result)
             {
-                string queryid = "";
-                CallLogResult complete = Sharp.Xmpp.Extensions.CallLogResult.Error;
-                int count = 0;
-                string first = "";
-                string last = "";
                 try
                 {
                     if ((iq.Data["query"] != null) && (iq.Data["query"]["set"] != null))
                     {
                         XmlElement e = iq.Data["query"];
-
-                        queryid = e.GetAttribute("queryid");
-                        complete = (e.GetAttribute("complete") == "false") ? Sharp.Xmpp.Extensions.CallLogResult.InProgress : Sharp.Xmpp.Extensions.CallLogResult.Complete;
 
                         if (e["set"]["count"] != null)
                             count = Int16.Parse(e["set"]["count"].InnerText);
@@ -210,21 +214,52 @@ namespace Sharp.Xmpp.Extensions
 
                         if (e["set"]["last"] != null)
                             last = e["set"]["last"].InnerText;
+                    }
+                    success = true;
+                }
+                catch (Exception ex)
+                {
+                    log?.LogError("ParseQueryResult - an error occurred:{Exception}", ex);
+                }
+            }
+            
+            return (success, count, first, last);
+        }
 
-                        //log.LogDebug("[Input] call log result received - queryid:[{0}] - complete:[{1}] - count:[{2}] - first:[{3}] - last:[{4}]"
-                        //                , queryid, complete, count, first, last);
-                        CallLogResult.Raise(this, new CallLogResultEventArgs(queryid, complete, count, first, last));
-                        return true;
+        static private int ParseDeleteQueryResult(Iq iq, ILogger log)
+        {
+            int count = -1;
+            
+            if (iq?.Type == IqType.Result)
+            {
+                try
+                {
+                    if (iq.Data["deleted"] != null)
+                    {
+                        XmlElement deletedXml = iq.Data["deleted"];
+                        if (!Int32.TryParse(deletedXml.GetAttribute("count"), out count))
+                            count = -1;
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    log.LogError("RequestCustomIqAsync - an error occurred ...");
+                    log?.LogError("ParseDeleteQueryResult - an error occurred:{Exception}", ex);
                 }
-
-                CallLogResult.Raise(this, new CallLogResultEventArgs(queryid, Sharp.Xmpp.Extensions.CallLogResult.Error, count, first, last));
             }
-            return false;
+
+            return count;
+        }
+
+        public async Task<Boolean> RequestCallLogsAsync(string queryId, int max, string before = null, string after = null)
+        {
+            var xml = CreateQuery(queryId, max, before, after);
+            var result = await im.IqRequestAsync(IqType.Set, null, im.Jid, null, 60000, xml);
+
+            (Boolean success, int count, string first, string last) = ParseQueryResult(result.Iq, log);
+
+            if(success)
+                CallLogResult.Raise(this, new CallLogResultEventArgs(queryId, Sharp.Xmpp.Extensions.CallLogResult.Complete, count, first, last));
+            return success;
         }
 
         /// <summary>
@@ -236,15 +271,7 @@ namespace Sharp.Xmpp.Extensions
             var _ = DeleteCallLogAsync(callId);
         }
 
-        public async Task<Boolean> DeleteCallLogAsync(String callId)
-        {
-            var xml = Xml.Element("delete", "jabber:iq:telephony:call_log");
-            xml.SetAttribute("call_id", callId);
-
-            string jid = im.Jid.Node + "@" + im.Jid.Domain;
-            var result = await im.IqRequestAsync(IqType.Get, jid, jid, null, 60000, xml);
-            return result.Iq.Type != Core.IqType.Error;
-        }
+        public async Task<int> DeleteCallLogAsync(String callId) => await DeleteCallsLogInternalAsync("call_id", callId);
 
         /// <summary>
         /// Delete all calls log related to the specified contact
@@ -255,15 +282,7 @@ namespace Sharp.Xmpp.Extensions
             var _ = DeleteCallsLogForContactAsync(contactJid);
         }
 
-        public async Task<Boolean> DeleteCallsLogForContactAsync(String contactJid)
-        {
-            var xml = Xml.Element("delete", "jabber:iq:telephony:call_log");
-            xml.SetAttribute("peer", contactJid);
-
-            string jid = im.Jid.Node + "@" + im.Jid.Domain;
-            var result = await im.IqRequestAsync(IqType.Get, jid, jid, null, 60000, xml);
-            return result.Iq.Type != Core.IqType.Error;
-        }
+        public async Task<int> DeleteCallsLogForContactAsync(String contactJid) => await DeleteCallsLogInternalAsync("peer", contactJid);
 
         /// <summary>
         /// Delete all call logs
@@ -273,13 +292,18 @@ namespace Sharp.Xmpp.Extensions
             var _ = DeleteAllCallsLogAsync();
         }
 
-        public async Task<Boolean> DeleteAllCallsLogAsync()
+        public async Task<int> DeleteAllCallsLogAsync() => await DeleteCallsLogInternalAsync(null, null);
+
+        private async Task<int> DeleteCallsLogInternalAsync(String param, String value)
         {
             var xml = Xml.Element("delete", "jabber:iq:telephony:call_log");
-            string jid = im.Jid.Node + "@" + im.Jid.Domain;
+            if (!String.IsNullOrEmpty(param))
+                xml.SetAttribute(param, value);
 
-            var result = await im.IqRequestAsync(IqType.Get, jid, jid, null, 60000, xml);
-            return result.Iq.Type != Core.IqType.Error;
+            string jid = im.Jid.Node + "@" + im.Jid.Domain;
+            var result = await im.IqRequestAsync(IqType.Set, jid, jid, null, 60000, xml);
+
+            return ParseDeleteQueryResult(result.Iq, log);
         }
 
         /// <summary>
@@ -303,6 +327,22 @@ namespace Sharp.Xmpp.Extensions
             e.AppendChild(read);
 
             return await im.SendMessageAsync(message);
+        }
+
+        public async Task<int> GetNbUnreadCallLogsAsync(string queryId)
+        {
+            Dictionary<String, String> fields = new()
+            {
+                { "read", "false" }
+            };
+            var xml = CreateQuery(queryId, 0, null, null, fields);
+            var result = await im.IqRequestAsync(IqType.Set, null, im.Jid, null, 60000, xml);
+
+            (Boolean success, int count, string _1, string _2) = ParseQueryResult(result.Iq, log);
+
+            if (success)
+                return count;
+            return -1;
         }
 
         /// <summary>
