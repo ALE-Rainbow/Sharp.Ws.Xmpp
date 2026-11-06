@@ -66,7 +66,7 @@ namespace Sharp.Xmpp.Extensions
             string tzo = ((span < TimeSpan.Zero) ? "-" : "+") +
                 span.ToString(@"hh\:mm");
             // The UTC time according to the responding entity.
-            string utc = DateTime.UtcNow.ToUniversalTime()
+            string utc = DateTime.UtcNow
                 .ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'''Z'");
             var time = Xml.Element("time", "urn:xmpp:time")
                 .Child(Xml.Element("tzo").Text(tzo))
@@ -111,7 +111,7 @@ namespace Sharp.Xmpp.Extensions
             // Try to parse utc into datetime, tzo into timespan.
             try
             {
-                DateTime dt = DateTime.Parse(utc).ToUniversalTime();
+                DateTime dt = DateTime.SpecifyKind(DateTime.Parse(utc), DateTimeKind.Utc);
                 TimeSpan sp = TimeSpan.Parse(tzo.TrimStart('+'));
                 return dt.Add(sp);
             }

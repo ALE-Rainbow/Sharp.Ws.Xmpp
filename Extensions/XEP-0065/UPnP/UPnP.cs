@@ -324,14 +324,14 @@ namespace Sharp.Xmpp.Extensions.Upnp
 		/// <exception cref="InvalidOperationException">An error occurred while
 		/// performing an SSDP search-operation.</exception>
 		static void VerifyCache() {
-			TimeSpan span = DateTime.Now - lastUPnPFind;
+			TimeSpan span = DateTime.UtcNow - lastUPnPFind;
 			// Cache entries are still recent enough.
 			if (span < TimeSpan.FromMinutes(5))
 				return;
 			// Perform a new search for UPnP devices with a 5-second timeout.
 			cachedDevices = FindDevices(stIpConnection, TimeSpan.FromSeconds(5));
 			// Remember the last time we searched.
-			lastUPnPFind = DateTime.Now;
+			lastUPnPFind = DateTime.UtcNow;
 		}
 
 		/// <summary>

@@ -2334,11 +2334,12 @@ namespace Sharp.Xmpp.Im
             // Parse the optional 'until' element.
             DateTime until = DateTime.MinValue;
             e = presence.Data["until"];
-            if (e != null && !String.IsNullOrEmpty(e.InnerText))
+            if (!String.IsNullOrEmpty(e?.InnerText))
             {
                 if (!DateTime.TryParse(e.InnerText, out until))
-                    until = DateTime.Now;
+                    until = DateTime.UtcNow;
             }
+            until = DateTime.SpecifyKind(until, DateTimeKind.Utc);
 
             Status status = new(availability, dict, prio, until, presence.Date, apply);
             // Raise Status event.

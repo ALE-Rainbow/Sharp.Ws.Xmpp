@@ -348,7 +348,7 @@ namespace Sharp.Xmpp.Extensions
 
             if (DateTime.TryParse(value, out DateTime tmp))
             {
-                return tmp;
+                return DateTime.SpecifyKind(tmp, DateTimeKind.Utc);
             }
 
             return null;

@@ -102,7 +102,8 @@ namespace Sharp.Xmpp.Extensions
                         if (!String.IsNullOrEmpty(value))
                             DateTime.TryParse(value, out dateTime);
                     }
-                    
+                    dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+
                     if (message.Type == MessageType.Chat)
                         MessageDeliveryReceived.Raise(this, new MessageDeliveryReceivedEventArgs(messageId, receiptType, dateTime));
                     else

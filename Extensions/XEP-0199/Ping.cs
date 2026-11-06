@@ -90,12 +90,12 @@ namespace Sharp.Xmpp.Extensions
                 throw new NotSupportedException("The XMPP entity does not support the " +
                     "'Ping' extension.");
             }
-            DateTime start = DateTime.Now;
+            DateTime start = DateTime.UtcNow;
             Iq iq = im.IqRequest(IqType.Get, jid, im.Jid,
                 Xml.Element("ping", "urn:xmpp:ping"));
             if (iq.Type == IqType.Error)
                 throw Util.ExceptionFromError(iq, "Could not ping XMPP entity.");
-            return DateTime.Now.Subtract(start);
+            return DateTime.UtcNow.Subtract(start);
         }
 
         /// <summary>

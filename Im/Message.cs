@@ -18,7 +18,7 @@ namespace Sharp.Xmpp.Im
         /// <summary>
         /// The time at which the message was originally sent.
         /// </summary>
-        private DateTime timestamp = DateTime.MinValue;
+        private DateTime timestamp = DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc);
 
         /// <summary>
         /// The type of the message stanza.
@@ -79,6 +79,7 @@ namespace Sharp.Xmpp.Im
                         timestamp = DateTime.UtcNow;
                 }
 
+                timestamp = DateTime.SpecifyKind(timestamp, DateTimeKind.Utc);
                 return timestamp;
             }
         }

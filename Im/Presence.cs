@@ -72,14 +72,10 @@ namespace Sharp.Xmpp.Im
         public DateTime ParseDate()
         {
             DateTime result = DateTime.UtcNow;
-            if(element["delay"] != null)
-            {
-                String stamp = element["delay"].GetAttribute("stamp");
-                if(!String.IsNullOrEmpty(stamp))
-                {
-                    DateTime.TryParse(stamp, out result);
-                }
-            }
+            String stamp = element?["delay"]?.GetAttribute("stamp");
+            if(!String.IsNullOrEmpty(stamp))
+                DateTime.TryParse(stamp, out result);
+            result = DateTime.SpecifyKind(result, DateTimeKind.Utc);
             return result;
         }
 

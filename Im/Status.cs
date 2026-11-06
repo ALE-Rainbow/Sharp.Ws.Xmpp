@@ -101,7 +101,7 @@ namespace Sharp.Xmpp.Im
             Availability = availability;
             Priority = priority;
             Messages = [];
-            Until = DateTime.MinValue;
+            Until = DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc);
             if (String.IsNullOrEmpty(language))
                 language = Util.GetCultureName();
             if (message != null)
