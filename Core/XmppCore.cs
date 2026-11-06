@@ -708,7 +708,9 @@ namespace Sharp.Xmpp.Core
         {
             if (clientId != webSocketClientManagedId)
                 return;
-            ManageMessageReceived(message);
+
+            if (WebSocketClientManager.Instance.IsConnected(clientId))
+                ManageMessageReceived(message);
         }
 
         private void WebSocketClientManager_OnClientError(string clientId, Exception exception)
@@ -1244,12 +1246,7 @@ namespace Sharp.Xmpp.Core
         {
             var id = webSocketClientManagedId;
             webSocketClientManagedId = null;
-
-            AsyncHelper.RunSync(async () =>
-            {
-                if (id is not null) // Check again since a deconnection could have been done in the meantime
-                    await WebSocketClientManager.Instance.DisconnectAsync(id).ConfigureAwait(false);
-            });
+            var _ = WebSocketClientManager.Instance.DisconnectAsync(id);
         }
 
 
@@ -2014,8 +2011,10 @@ namespace Sharp.Xmpp.Core
 
             // Close the XML stream.
             if (normalClosure)
-                Send("<close xmlns='urn:ietf:params:xml:ns:xmpp-framing'/>", false);
-            
+            {
+                var _ = SendAsync("<close xmlns='urn:ietf:params:xml:ns:xmpp-framing'/>", false);
+            }
+
             Connected = false;
             Authenticated = false;
         }
