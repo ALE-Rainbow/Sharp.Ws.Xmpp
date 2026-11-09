@@ -2097,7 +2097,12 @@ namespace Sharp.Xmpp.Client
 
         public async Task<Boolean> SendJingleMessageAsync(JingleMessage jingleMessage)
         {
-            return await jingleMessageInitiation?.SendAsync(jingleMessage);
+            if (jingleMessageInitiation is null)
+            {
+                log.LogWarning("JingleMessageInitiation is not initialized. Cannot send JingleMessage.");
+                return false;
+            }
+            return await jingleMessageInitiation.SendAsync(jingleMessage);
         }
 
         /// <summary>
@@ -2173,7 +2178,12 @@ namespace Sharp.Xmpp.Client
 
         public async Task<int> DeleteCallLogAsync(String callId)
         {
-            return await callLog?.DeleteCallLogAsync(callId);
+            if(callLog is null)
+            {
+                log.LogWarning("CallLog is not initialized. Cannot delete call log for callId: {callId}", callId);
+                return 0;
+            }
+            return await callLog.DeleteCallLogAsync(callId);
         }
 
         public void DeleteCallsLogForContact(String contactJid)
@@ -2183,7 +2193,12 @@ namespace Sharp.Xmpp.Client
 
         public async Task<int> DeleteCallsLogForContactAsync(String contactJid)
         {
-            return await callLog?.DeleteCallsLogForContactAsync(contactJid);
+            if (callLog is null)
+            {
+                log.LogWarning("CallLog is not initialized. Cannot delete call log for contactJid: {contactJid}", contactJid);
+                return 0;
+            }
+            return await callLog.DeleteCallsLogForContactAsync(contactJid);
         }
 
         public void DeleteAllCallsLog()
@@ -2193,7 +2208,12 @@ namespace Sharp.Xmpp.Client
 
         public async Task<int> DeleteAllCallsLogAsync()
         {
-            return await callLog?.DeleteAllCallsLogAsync();
+            if (callLog is null)
+            {
+                log.LogWarning("CallLog is not initialized. Cannot delete all call logs.");
+                return -1;
+            }
+            return await callLog.DeleteAllCallsLogAsync();
         }
 
         public void MarkCallLogAsRead(String callId)
@@ -2203,12 +2223,22 @@ namespace Sharp.Xmpp.Client
 
         public async Task<Boolean> MarkCallLogAsReadAsync(String callId)
         {
-            return await callLog?.MarkCallLogAsReadAsync(callId);
+            if (callLog is null)
+            {
+                log.LogWarning("CallLog is not initialized. Cannot mark call log as read for callId: {callId}", callId);
+                return false;
+            }
+            return await callLog.MarkCallLogAsReadAsync(callId);
         }
 
         public async Task<int> GetNbUnreadCallLogsAsync(String queryId)
         {
-            return await callLog?.GetNbUnreadCallLogsAsync(queryId);
+            if(callLog is null)
+            {
+                log.LogWarning("CallLog is not initialized. Cannot get unread call log count for queryId: {queryId}", queryId);
+                return -1;
+            }
+            return await callLog.GetNbUnreadCallLogsAsync(queryId);
         }
 
         /// <summary>
