@@ -1199,7 +1199,15 @@ namespace Sharp.Xmpp.Core
             this.normalClosure = normalClosure;
             // Close the XML stream.
             if (Connected) Disconnect();
-            if (!disposed) Dispose();
+        }
+
+        public async Task CloseAsync(bool normalClosure = true)
+        {
+            //FIXME, instead of asert valid I have ifs, only for the closing
+            //AssertValid();
+            this.normalClosure = normalClosure;
+            // Close the XML stream.
+            if (Connected) await DisconnectAsync();
         }
 
         /// <summary>
@@ -1232,24 +1240,12 @@ namespace Sharp.Xmpp.Core
 
                     tcpClient?.Close();
                     tcpClient = null;
-
-                    DisconnectWebSocket();
                 }
 
                 // Get rid of unmanaged resources.
                 // ...
             }
         }
-
-
-        private void DisconnectWebSocket()
-        {
-            var id = webSocketClientManagedId;
-            webSocketClientManagedId = null;
-            var _ = WebSocketClientManager.Instance.DisconnectAsync(id);
-        }
-
-
 
         /// <summary>
         /// Asserts the instance has not been disposed of and is connected to the
@@ -2017,6 +2013,30 @@ namespace Sharp.Xmpp.Core
 
             Connected = false;
             Authenticated = false;
+        }
+
+        private async Task DisconnectAsync()
+        {
+            if (!Connected)
+                return;
+
+            // Close the XML stream.
+            if (normalClosure)
+                await SendAsync("<close xmlns='urn:ietf:params:xml:ns:xmpp-framing'/>", false);
+
+            var id = webSocketClientManagedId;
+            webSocketClientManagedId = null;
+            await WebSocketClientManager.Instance.DisconnectAsync(id);
+
+            Connected = false;
+            Authenticated = false;
+        }
+
+        private void DisconnectWebSocket()
+        {
+            var id = webSocketClientManagedId;
+            webSocketClientManagedId = null;
+            var _ = WebSocketClientManager.Instance.DisconnectAsync(id);
         }
     }
 }

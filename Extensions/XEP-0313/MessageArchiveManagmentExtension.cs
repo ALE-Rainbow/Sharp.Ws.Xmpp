@@ -367,7 +367,8 @@ namespace Sharp.Xmpp.Extensions
             return false;
         }
 
-        public void DeleteAllArchivedMessages(String with, string queryId, String toJidString, Action<string, Iq> callback = null)
+
+        private (Jid, XmlElement) DeleteAllArchivedMessagesInternal(String with, string queryId, String toJidString)
         {
             /*
              * 
@@ -420,6 +421,21 @@ namespace Sharp.Xmpp.Extensions
             Jid jidTo = null;
             if (!String.IsNullOrEmpty(toJidString))
                 jidTo = new Jid(toJidString);
+
+            return (jidTo, rootElement);
+        }
+
+        public async Task<(string, Sharp.Xmpp.Core.Iq)> DeleteAllArchivedMessagesAsync(String with, string queryId, String toJidString)
+        {
+            (var jidTo, var rootElement) = DeleteAllArchivedMessagesInternal(with, queryId, toJidString);
+
+            //The Request is Async
+            return await im.IqRequestAsync(IqType.Set, jidTo, null, null, 60000, rootElement);
+        }
+
+        public void DeleteAllArchivedMessages(String with, string queryId, String toJidString, Action<string, Iq> callback = null)
+        {
+            (var jidTo, var rootElement) = DeleteAllArchivedMessagesInternal(with, queryId, toJidString);
 
             //The Request is Async
             im.IqRequestAsync(IqType.Set, jidTo, null, null, callback, rootElement);

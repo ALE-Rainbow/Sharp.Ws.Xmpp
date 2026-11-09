@@ -1639,7 +1639,18 @@ namespace Sharp.Xmpp.Im
             if (disposed)
                 throw new ObjectDisposedException(GetType().FullName);
             this.normalClosure = normalClosure;
-            Dispose();
+
+            core?.Close(normalClosure);
+        }
+
+        public async Task CloseAsync(bool normalClosure = true)
+        {
+            if (disposed)
+                throw new ObjectDisposedException(GetType().FullName);
+            this.normalClosure = normalClosure;
+
+            if (core is not null)
+                await core.CloseAsync(normalClosure);
         }
 
         /// <summary>
@@ -1666,7 +1677,7 @@ namespace Sharp.Xmpp.Im
                 // Get rid of managed resources.
                 if (disposing)
                 {
-                    core?.Close(normalClosure);
+                    core?.Dispose();
                     core = null;
                 }
                 // Get rid of unmanaged resources.

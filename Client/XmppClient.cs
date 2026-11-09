@@ -2681,6 +2681,13 @@ namespace Sharp.Xmpp.Client
             mam.DeleteAllArchivedMessages(with, queryId, toJid, callback);
         }
 
+        public async Task<(string, Sharp.Xmpp.Core.Iq)> DeleteAllArchivedMessagesAsync(String with, string queryId, String toJid, Action<string, Sharp.Xmpp.Core.Iq> callback = null)
+        {
+            AssertValid();
+            return await mam.DeleteAllArchivedMessagesAsync(with, queryId, toJid);
+        }
+
+
         public void RequestCallLogs(string queryId, int maxNumber, string before = null, string after = null)
         {
             AssertValid();
@@ -3554,10 +3561,21 @@ namespace Sharp.Xmpp.Client
         {
             if (disposed)
                 return;
-
             this.normalClosure = normalClosure;
-            Dispose();
+
+            im?.Close(normalClosure);
         }
+
+        public async Task CloseAsync(bool normalClosure = true)
+        {
+            if (disposed)
+                return;
+            this.normalClosure = normalClosure;
+
+            if (im is not null)
+                await im.CloseAsync(normalClosure);
+        }
+
 
         /// <summary>
         /// Releases all resources used by the current instance of the XmppClient class.
@@ -3583,7 +3601,7 @@ namespace Sharp.Xmpp.Client
                 // Get rid of managed resources.
                 if (disposing)
                 {
-                    im?.Close(normalClosure);
+                    im?.Dispose();
                     im = null;
                 }
                 // Get rid of unmanaged resources.
